@@ -54,6 +54,13 @@
       "Sure, let's change the topic",
       "Aah, you want to change the subject, sure",
       "Mmmh, as you wish, let's switch conversation"
+    ],
+    "llm_not_enabled": [
+      "Sorry, I need my large language model to fulfill this request, but it's not enabled",
+      "My large language model is not enabled, so I can't fulfill this request",
+      "I can't fulfill this request because my large language model is not enabled",
+      "Sorry, I need my large language model to answer this request, but it's not enabled",
+      "My large language model is not enabled, so I can't answer this request"
     ]
   }
 }

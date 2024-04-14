@@ -1,26 +1,34 @@
 import fs from 'node:fs'
 
-import type { LlamaModel, LlamaContext } from 'node-llama-cpp'
+import type { Llama, LlamaModel } from 'node-llama-cpp'
 
 import { LLM_MINIMUM_FREE_RAM, LLM_PATH } from '@/constants'
 import { LogHelper } from '@/helpers/log-helper'
 import { SystemHelper } from '@/helpers/system-helper'
 
+type LLMManagerLlama = Llama | null
 type LLMManagerModel = LlamaModel | null
-type LLMManagerContext = LlamaContext | null
 
+export const LLM_CONTEXT_SIZE = 8_096
+// Set to 0 to use the maximum threads supported by the current machine hardware
+export const LLM_THREADS = 4
+
+/**
+ * node-llama-cpp beta 3 docs:
+ * @see https://github.com/withcatai/node-llama-cpp/pull/105
+ */
 export default class LLMManager {
   private static instance: LLMManager
   private _isLLMEnabled = false
+  private _llama: LLMManagerLlama = null
   private _model: LLMManagerModel = null
-  private _context: LLMManagerContext = null
+
+  get llama(): Llama {
+    return this._llama as Llama
+  }
 
   get model(): LlamaModel {
     return this._model as LlamaModel
-  }
-
-  get context(): LlamaContext {
-    return this._context as LlamaContext
   }
 
   get isLLMEnabled(): boolean {
@@ -65,24 +73,14 @@ export default class LLMManager {
     }
 
     try {
-      const { LlamaModel, LlamaContext } = await import('node-llama-cpp')
+      const { getLlama, LlamaLogLevel } = await import('node-llama-cpp')
 
-      /**
-       * @see https://withcatai.github.io/node-llama-cpp/api/type-aliases/LlamaModelOptions
-       */
-      this._model = new LlamaModel({
+      this._llama = await getLlama({
+        logLevel: LlamaLogLevel.disabled
+      })
+      this._model = await this._llama.loadModel({
         modelPath: LLM_PATH
       })
-
-      /**
-       * @see https://withcatai.github.io/node-llama-cpp/api/type-aliases/LlamaContextOptions
-       */
-      this._context = new LlamaContext({
-        model: this._model,
-        contextSize: 8_096,
-        threads: 4
-      })
-
       this._isLLMEnabled = true
 
       LogHelper.success('LLM has been loaded')

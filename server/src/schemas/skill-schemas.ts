@@ -100,10 +100,29 @@ const skillCustomTrimEntityType = Type.Object(
   },
   { additionalProperties: false }
 )
+const skillCustomLLMEntityType = Type.Object(
+  {
+    type: Type.Literal('llm', {
+      description:
+        'LLM: you can define an entity based on a JSON schema and the LLM (Large Language Model) will be able to grab it by itself based on the schema.'
+    }),
+    schema: Type.Object(
+      {
+        /**
+         * Any key is allowed
+         * @see https://github.com/withcatai/node-llama-cpp/blob/6b012a6/src/utils/gbnfJson/types.ts#L2
+         */
+      },
+      { additionalProperties: true }
+    )
+  },
+  { additionalProperties: false }
+)
 const skillCustomEntityTypes = [
   Type.Array(skillCustomTrimEntityType),
   Type.Array(skillCustomRegexEntityType),
-  Type.Array(skillCustomEnumEntityType)
+  Type.Array(skillCustomEnumEntityType),
+  Type.Array(skillCustomLLMEntityType)
 ]
 
 export const domainSchemaObject = Type.Strict(
@@ -282,5 +301,8 @@ export type SkillCustomRegexEntityTypeSchema = Static<
 >
 export type SkillCustomEnumEntityTypeSchema = Static<
   typeof skillCustomEnumEntityType
+>
+export type SkillCustomLLMEntityTypeSchema = Static<
+  typeof skillCustomLLMEntityType
 >
 export type SkillAnswerConfigSchema = Static<typeof answerTypes>

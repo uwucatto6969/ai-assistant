@@ -2,7 +2,8 @@ import type { ActionFunction } from '@sdk/types'
 import { leon } from '@sdk/leon'
 import { Network } from '@sdk/network'
 
-export const run: ActionFunction = async function () {
+export const run: ActionFunction = async function (params) {
+  console.log('params', params)
   const network = new Network({
     baseURL: `${process.env['LEON_HOST']}:${process.env['LEON_PORT']}/api/v1`
   })

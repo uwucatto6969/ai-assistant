@@ -6,6 +6,7 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER } from '@/core'
 import { LLMDuties } from '@/core/llm-manager/types'
+import { LLM_CONTEXT_SIZE, LLM_THREADS } from '@/core/llm-manager/llm-manager'
 
 interface CustomNERLLMDutyParams<T> extends LLMDutyParams {
   data: {
@@ -15,7 +16,7 @@ interface CustomNERLLMDutyParams<T> extends LLMDutyParams {
 
 export class CustomNERLLMDuty<T> extends LLMDuty {
   protected readonly systemPrompt =
-    'You are an AI system that can extract entities (Named-Entity Recognition) from utterances. E.g. shopping list name = "shopping".'
+    'You are an AI system that extract entities (Named-Entity Recognition) from a given utterance. E.g. shopping list name = "shopping".'
   protected readonly name = 'Custom NER LLM Duty'
   protected input: LLMDutyParams['input'] = null
   protected data = {
@@ -37,15 +38,17 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
     LogHelper.info('Executing...')
 
     try {
-      const { LlamaChatSession, LlamaJsonSchemaGrammar } = await import(
+      const { LlamaCompletion, LlamaJsonSchemaGrammar } = await import(
         'node-llama-cpp'
       )
-
-      const session = new LlamaChatSession({
-        context: LLM_MANAGER.context,
-        systemPrompt: this.systemPrompt
+      const context = await LLM_MANAGER.model.createContext({
+        contextSize: LLM_CONTEXT_SIZE,
+        threads: LLM_THREADS
       })
-      const grammar = new LlamaJsonSchemaGrammar({
+      const completion = new LlamaCompletion({
+        contextSequence: context.getSequence()
+      })
+      const grammar = new LlamaJsonSchemaGrammar(LLM_MANAGER.llama, {
         type: 'object',
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
@@ -53,19 +56,16 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
           ...this.data.schema
         }
       })
-      const prompt = this.input as string
-
-      const rawResult = await session.prompt(prompt, {
+      const prompt = `Utterance: ${this.input}`
+      const rawResult = await completion.generateCompletion(prompt, {
         grammar,
-        maxTokens: LLM_MANAGER.context.getContextSize()
+        maxTokens: context.contextSize
       })
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
       const parsedResult = grammar.parse(rawResult)
       const result = {
         dutyType: LLMDuties.CustomNER,
         systemPrompt: this.systemPrompt,
-        input: this.input,
+        input: prompt,
         output: parsedResult,
         data: this.data
       }
@@ -73,7 +73,7 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
       LogHelper.title(this.name)
       LogHelper.success(`Duty executed: ${JSON.stringify(result)}`)
 
-      return result
+      return result as unknown as LLMDutyResult
     } catch (e) {
       LogHelper.title(this.name)
       LogHelper.error(`Failed to execute: ${e}`)

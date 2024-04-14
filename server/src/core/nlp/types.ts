@@ -125,7 +125,7 @@ export const BUILT_IN_ENTITY_TYPES = [
 
 export type BuiltInEntityType = (typeof BUILT_IN_ENTITY_TYPES)[number]
 
-export const CUSTOM_ENTITY_TYPES = ['regex', 'trim', 'enum'] as const
+export const CUSTOM_ENTITY_TYPES = ['regex', 'trim', 'enum', 'llm'] as const
 
 export type CustomEntityType = (typeof CUSTOM_ENTITY_TYPES)[number]
 

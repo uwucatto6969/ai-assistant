@@ -11,12 +11,14 @@ import { BUILT_IN_ENTITY_TYPES, SPACY_ENTITY_TYPES } from '@/core/nlp/types'
 import type {
   SkillCustomEnumEntityTypeSchema,
   SkillCustomRegexEntityTypeSchema,
-  SkillCustomTrimEntityTypeSchema
+  SkillCustomTrimEntityTypeSchema,
+  SkillCustomLLMEntityTypeSchema
 } from '@/schemas/skill-schemas'
-import { BRAIN, MODEL_LOADER, PYTHON_TCP_CLIENT } from '@/core'
+import { BRAIN, MODEL_LOADER, PYTHON_TCP_CLIENT, LLM_MANAGER } from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
 import { StringHelper } from '@/helpers/string-helper'
 import { SkillDomainHelper } from '@/helpers/skill-domain-helper'
+import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-duty'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type NERManager = undefined | any
@@ -90,35 +92,63 @@ export default class NER {
         lang
       )
       const { action } = classification
-      const promises: Array<Promise<void>> = []
       const actionEntities = actions[action]?.entities || []
+      let foundLLMEntities: NEREntity[] = []
 
       /**
        * Browse action entities
        * Dynamic injection of the action entities depending on the entity type
        */
       for (let i = 0; i < actionEntities.length; i += 1) {
-        const entity = actionEntities[i]
+        const actionEntityConfig = actionEntities[i]
 
-        if (entity?.type === 'regex') {
-          promises.push(this.injectRegexEntity(lang, entity))
-        } else if (entity?.type === 'trim') {
-          promises.push(this.injectTrimEntity(lang, entity))
-        } else if (entity?.type === 'enum') {
-          promises.push(this.injectEnumEntity(lang, entity))
+        if (actionEntityConfig?.type === 'regex') {
+          this.injectRegexEntity(lang, actionEntityConfig)
+        } else if (actionEntityConfig?.type === 'trim') {
+          this.injectTrimEntity(lang, actionEntityConfig)
+        } else if (actionEntityConfig?.type === 'enum') {
+          this.injectEnumEntity(lang, actionEntityConfig)
+        } else if (actionEntityConfig?.type === 'llm') {
+          try {
+            if (LLM_MANAGER.isLLMEnabled) {
+              foundLLMEntities = await this.injectLLMEntity(
+                actionEntityConfig,
+                utterance
+              )
+            } else {
+              LogHelper.title('NER')
+              LogHelper.warning(
+                'LLM is not enabled. This skill action entity will be ignored.'
+              )
+              BRAIN.talk(`${BRAIN.wernicke('llm_not_enabled')}.`)
+
+              resolve([])
+            }
+          } catch (e) {
+            LogHelper.title('NER')
+            LogHelper.error(`Failed to inject LLM entity: ${e}`)
+
+            resolve([])
+          }
         }
       }
 
-      await Promise.all(promises)
-
-      const { entities }: { entities: NEREntity[] } =
+      const { entities: extractedEntities }: { entities: NEREntity[] } =
         await this.manager.process({
           locale: lang,
           text: utterance
         })
+      const entities = [...extractedEntities, ...foundLLMEntities]
+
+      // Free up the newly-added rules from the global manager to avoid long-run conflicts
+      entities.forEach((entity) => {
+        if (this.manager.rules[lang][entity.entity]) {
+          this.manager.removeRule(lang, entity.entity)
+        }
+      })
 
       // Normalize entities
-      entities.map((entity) => {
+      entities.forEach((entity) => {
         // Trim whitespace at the beginning and the end of the entity value
         entity.sourceText = entity.sourceText.trim()
         entity.utteranceText = entity.utteranceText.trim()
@@ -213,44 +243,36 @@ export default class NER {
   private injectTrimEntity(
     lang: ShortLanguageCode,
     entityConfig: SkillCustomTrimEntityTypeSchema
-  ): Promise<void> {
-    return new Promise((resolve) => {
-      for (let j = 0; j < entityConfig.conditions.length; j += 1) {
-        const condition = entityConfig.conditions[j]
-        const conditionMethod = `add${StringHelper.snakeToPascalCase(
-          condition?.type || ''
-        )}Condition`
+  ): void {
+    for (let i = 0; i < entityConfig.conditions.length; i += 1) {
+      const condition = entityConfig.conditions[i]
+      const conditionMethod = `add${StringHelper.snakeToPascalCase(
+        condition?.type || ''
+      )}Condition`
 
-        if (condition?.type === 'between') {
-          /**
-           * Conditions: https://github.com/axa-group/nlp.js/blob/master/docs/v3/ner-manager.md#trim-named-entities
-           * e.g. list.addBetweenCondition('en', 'list', 'create a', 'list')
-           */
-          this.manager[conditionMethod](
-            lang,
-            entityConfig.name,
-            condition?.from,
-            condition?.to
-          )
-        } else if (condition?.type.indexOf('after') !== -1) {
-          const rule = {
-            type: 'afterLast',
-            words: condition?.from,
-            options: {}
-          }
-          this.manager.addRule(lang, entityConfig.name, 'trim', rule)
-          this.manager[conditionMethod](
-            lang,
-            entityConfig.name,
-            condition?.from
-          )
-        } else if (condition.type.indexOf('before') !== -1) {
-          this.manager[conditionMethod](lang, entityConfig.name, condition.to)
+      if (condition?.type === 'between') {
+        /**
+         * Conditions: https://github.com/axa-group/nlp.js/blob/master/docs/v3/ner-manager.md#trim-named-entities
+         * e.g. list.addBetweenCondition('en', 'list', 'create a', 'list')
+         */
+        this.manager[conditionMethod](
+          lang,
+          entityConfig.name,
+          condition?.from,
+          condition?.to
+        )
+      } else if (condition?.type.indexOf('after') !== -1) {
+        const rule = {
+          type: 'afterLast',
+          words: condition?.from,
+          options: {}
         }
+        this.manager.addRule(lang, entityConfig.name, 'trim', rule)
+        this.manager[conditionMethod](lang, entityConfig.name, condition?.from)
+      } else if (condition.type.indexOf('before') !== -1) {
+        this.manager[conditionMethod](lang, entityConfig.name, condition.to)
       }
-
-      resolve()
-    })
+    }
   }
 
   /**
@@ -259,16 +281,12 @@ export default class NER {
   private injectRegexEntity(
     lang: ShortLanguageCode,
     entityConfig: SkillCustomRegexEntityTypeSchema
-  ): Promise<void> {
-    return new Promise((resolve) => {
-      this.manager.addRegexRule(
-        lang,
-        entityConfig.name,
-        new RegExp(entityConfig.regex, 'g')
-      )
-
-      resolve()
-    })
+  ): void {
+    this.manager.addRegexRule(
+      lang,
+      entityConfig.name,
+      new RegExp(entityConfig.regex, 'g')
+    )
   }
 
   /**
@@ -277,18 +295,57 @@ export default class NER {
   private injectEnumEntity(
     lang: ShortLanguageCode,
     entityConfig: SkillCustomEnumEntityTypeSchema
-  ): Promise<void> {
-    return new Promise((resolve) => {
-      const { name: entityName, options } = entityConfig
-      const optionKeys = Object.keys(options)
+  ): void {
+    const { name: entityName, options } = entityConfig
+    const optionKeys = Object.keys(options)
 
-      optionKeys.forEach((optionName) => {
-        const { synonyms } = options[optionName] as { synonyms: string[] }
+    optionKeys.forEach((optionName) => {
+      const { synonyms } = options[optionName] as { synonyms: string[] }
 
-        this.manager.addRuleOptionTexts(lang, entityName, optionName, synonyms)
-      })
+      this.manager.addRuleOptionTexts(lang, entityName, optionName, synonyms)
+    })
+  }
 
-      resolve()
+  /**
+   * Inject LLM type entities
+   */
+  private async injectLLMEntity(
+    entityConfig: SkillCustomLLMEntityTypeSchema,
+    utterance: NLPUtterance
+  ): Promise<NEREntity[]> {
+    const { schema } = entityConfig
+    const customNERDuty = new CustomNERLLMDuty({
+      input: utterance,
+      data: {
+        schema
+      }
+    })
+    const result = await customNERDuty.execute()
+
+    const schemaKeys = Object.keys(schema)
+    return schemaKeys.map((key) => {
+      const entityName = key
+      const entityValue = result?.output[key] as string
+      const lowerCaseUtterance = utterance.toLowerCase()
+      const lowerCaseEntityValue = entityValue.toLowerCase()
+
+      return {
+        start: lowerCaseUtterance.indexOf(lowerCaseEntityValue),
+        end:
+          lowerCaseUtterance.indexOf(lowerCaseEntityValue) +
+          lowerCaseEntityValue.length,
+        len: entityValue.length,
+        levenshtein: 0,
+        accuracy: 1,
+        entity: entityName,
+        type: 'enum',
+        option: entityValue,
+        sourceText: entityValue,
+        utteranceText: entityValue,
+        resolution: {
+          value: entityValue
+        }
+      }
     })
   }
 }

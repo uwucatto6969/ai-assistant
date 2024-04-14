@@ -16,9 +16,9 @@ import {
 } from '@/core'
 import { Updater } from '@/updater'
 import { Telemetry } from '@/telemetry'
-import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-duty'
+// import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-duty'
 // import { SummarizationLLMDuty } from '@/core/llm-manager/llm-duties/summarization-llm-duty'
-import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
+// import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
 import { LangHelper } from '@/helpers/lang-helper'
 import { LogHelper } from '@/helpers/log-helper'
 ;(async (): Promise<void> => {
@@ -43,7 +43,7 @@ import { LogHelper } from '@/helpers/log-helper'
     LogHelper.error(`LLM Manager failed to load: ${e}`)
   }
 
-  const customNERDuty = new CustomNERLLMDuty({
+  /*const customNERDuty = new CustomNERLLMDuty({
     input:
       'Add apples, 1L of milk, orange juice and tissues to the shopping list',
     data: {
@@ -60,7 +60,7 @@ import { LogHelper } from '@/helpers/log-helper'
       }
     }
   })
-  await customNERDuty.execute()
+  await customNERDuty.execute()*/
 
   /*const summarizationDuty = new SummarizationLLMDuty({
     input: 'We’ll be taking several important safety steps ahead of making Sora available in OpenAI’s products. We are working with red teamers domain experts in areas like misinformation, hateful content, and bias who will be adversarially testing the model.\n' +
@@ -75,7 +75,7 @@ import { LogHelper } from '@/helpers/log-helper'
   })
   await summarizationDuty.execute()*/
 
-  const translationDuty = new TranslationLLMDuty({
+  /*const translationDuty = new TranslationLLMDuty({
     input: 'Bonjour, la température est très agréable à Shenzhen',
     data: {
       source: 'French',
@@ -83,7 +83,7 @@ import { LogHelper } from '@/helpers/log-helper'
       // autoDetectLanguage: true
     }
   })
-  await translationDuty.execute()
+  await translationDuty.execute()*/
 
   try {
     // Start the HTTP server

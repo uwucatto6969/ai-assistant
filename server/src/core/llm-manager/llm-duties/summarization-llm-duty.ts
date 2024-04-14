@@ -6,12 +6,13 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER } from '@/core'
 import { LLMDuties } from '@/core/llm-manager/types'
+import { LLM_CONTEXT_SIZE, LLM_THREADS } from '@/core/llm-manager/llm-manager'
 
 interface SummarizationLLMDutyParams extends LLMDutyParams {}
 
 export class SummarizationLLMDuty extends LLMDuty {
   protected readonly systemPrompt =
-    'You are an AI system that can summarize text in a few sentences.'
+    'You are an AI system that can summarize a given text in a few sentences.'
   protected readonly name = 'Summarization LLM Duty'
   protected input: LLMDutyParams['input'] = null
 
@@ -29,15 +30,17 @@ export class SummarizationLLMDuty extends LLMDuty {
     LogHelper.info('Executing...')
 
     try {
-      const { LlamaChatSession, LlamaJsonSchemaGrammar } = await import(
+      const { LlamaCompletion, LlamaJsonSchemaGrammar } = await import(
         'node-llama-cpp'
       )
-
-      const session = new LlamaChatSession({
-        context: LLM_MANAGER.context,
-        systemPrompt: this.systemPrompt as string
+      const context = await LLM_MANAGER.model.createContext({
+        contextSize: LLM_CONTEXT_SIZE,
+        threads: LLM_THREADS
       })
-      const grammar = new LlamaJsonSchemaGrammar({
+      const completion = new LlamaCompletion({
+        contextSequence: context.getSequence()
+      })
+      const grammar = new LlamaJsonSchemaGrammar(LLM_MANAGER.llama, {
         type: 'object',
         properties: {
           o: {
@@ -45,17 +48,16 @@ export class SummarizationLLMDuty extends LLMDuty {
           }
         }
       })
-      const prompt = this.input as string
-
-      const rawResult = await session.prompt(prompt, {
+      const prompt = `Text: ${this.input}`
+      const rawResult = await completion.generateCompletion(prompt, {
         grammar,
-        maxTokens: LLM_MANAGER.context.getContextSize()
+        maxTokens: context.contextSize
       })
       const parsedResult = grammar.parse(rawResult)
       const result = {
         dutyType: LLMDuties.Summarization,
         systemPrompt: this.systemPrompt,
-        input: this.input,
+        input: prompt,
         output: parsedResult,
         data: null
       }
