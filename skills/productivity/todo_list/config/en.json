@@ -4,7 +4,7 @@
     "create_list": {
       "type": "logic",
       "utterance_samples": [
-        "Create [the|a] @list list",
+        "[Create|Make] [the|a] @list list",
         "I [want|need] you to [create|make] a @list list",
         "Can you create a @list list for me?",
         "Make a @list list",

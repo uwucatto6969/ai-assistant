@@ -4,23 +4,17 @@
     "short_translate": {
       "type": "logic",
       "utterance_samples": [
-        "[Translate|Convert] @text [to|in|into] @language",
-        "What is @text in @language?",
-        "How [do|can] [I|we] say @text in @language?",
-        "Can you tell [me|us] how to say @text in @language?",
-        "[I|We] need to know how to say @text in @language"
+        "[Translate|Convert] @text_to_translate [to|in|into] @language",
+        "What is @text_to_translate in @language?",
+        "How [do|can] [I|we] say @text_to_translate in @language?",
+        "Can you tell [me|us] how to say @text_to_translate in @language?",
+        "[I|We] need to know how to say @text_to_translate in @language"
       ],
       "entities": [
         {
           "type": "llm",
           "schema": {
             "text_to_translate": {
-              "type": "string"
-            },
-            "positive_word": {
-              "type": "string"
-            },
-            "negative_word": {
               "type": "string"
             }
           }

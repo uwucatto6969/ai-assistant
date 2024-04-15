@@ -20,9 +20,6 @@ import { StringHelper } from '@/helpers/string-helper'
 import { SkillDomainHelper } from '@/helpers/skill-domain-helper'
 import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-duty'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type NERManager = undefined | any
-
 // https://github.com/axa-group/nlp.js/blob/master/packages/builtin-microsoft/src/builtin-microsoft.js
 export const MICROSOFT_BUILT_IN_ENTITIES = [
   'Number',
@@ -44,7 +41,6 @@ export const MICROSOFT_BUILT_IN_ENTITIES = [
 
 export default class NER {
   private static instance: NER
-  public manager: NERManager
   public spacyData: Map<
     `${SpacyEntityType}-${string}`,
     Record<string, unknown>
@@ -78,115 +74,116 @@ export default class NER {
     skillConfigPath: string,
     nluResult: NLUResult
   ): Promise<NEREntity[]> {
-    return new Promise(async (resolve) => {
-      LogHelper.title('NER')
-      LogHelper.info('Looking for entities...')
+    return new Promise(async (resolve, reject) => {
+      try {
+        LogHelper.title('NER')
+        LogHelper.info('Looking for entities...')
 
-      const { classification } = nluResult
-      // Remove end-punctuation and add an end-whitespace
-      const utterance = `${StringHelper.removeEndPunctuation(
-        nluResult.utterance
-      )} `
-      const { actions } = await SkillDomainHelper.getSkillConfig(
-        skillConfigPath,
-        lang
-      )
-      const { action } = classification
-      const actionEntities = actions[action]?.entities || []
-      let foundLLMEntities: NEREntity[] = []
+        const { classification } = nluResult
+        // Remove end-punctuation and add an end-whitespace
+        const utterance = `${StringHelper.removeEndPunctuation(
+          nluResult.utterance
+        )} `
+        const { actions } = await SkillDomainHelper.getSkillConfig(
+          skillConfigPath,
+          lang
+        )
+        const { action } = classification
+        const actionEntities = actions[action]?.entities || []
+        let foundLLMEntities: NEREntity[] = []
 
-      /**
-       * Browse action entities
-       * Dynamic injection of the action entities depending on the entity type
-       */
-      for (let i = 0; i < actionEntities.length; i += 1) {
-        const actionEntityConfig = actionEntities[i]
+        /**
+         * Browse action entities
+         * Dynamic injection of the action entities depending on the entity type
+         */
+        for (let i = 0; i < actionEntities.length; i += 1) {
+          const actionEntityConfig = actionEntities[i]
 
-        if (actionEntityConfig?.type === 'regex') {
-          this.injectRegexEntity(lang, actionEntityConfig)
-        } else if (actionEntityConfig?.type === 'trim') {
-          this.injectTrimEntity(lang, actionEntityConfig)
-        } else if (actionEntityConfig?.type === 'enum') {
-          this.injectEnumEntity(lang, actionEntityConfig)
-        } else if (actionEntityConfig?.type === 'llm') {
-          try {
-            if (LLM_MANAGER.isLLMEnabled) {
-              foundLLMEntities = await this.injectLLMEntity(
-                actionEntityConfig,
-                utterance
-              )
-            } else {
+          if (actionEntityConfig?.type === 'regex') {
+            this.injectRegexEntity(lang, actionEntityConfig)
+          } else if (actionEntityConfig?.type === 'trim') {
+            this.injectTrimEntity(lang, actionEntityConfig)
+          } else if (actionEntityConfig?.type === 'enum') {
+            this.injectEnumEntity(lang, actionEntityConfig)
+          } else if (actionEntityConfig?.type === 'llm') {
+            try {
+              if (LLM_MANAGER.isLLMEnabled) {
+                foundLLMEntities = await this.injectLLMEntity(
+                  actionEntityConfig,
+                  utterance
+                )
+              } else {
+                LogHelper.title('NER')
+                LogHelper.warning(
+                  'LLM is not enabled. This skill action entity will be ignored.'
+                )
+                BRAIN.talk(`${BRAIN.wernicke('llm_not_enabled')}.`)
+
+                resolve([])
+              }
+            } catch (e) {
               LogHelper.title('NER')
-              LogHelper.warning(
-                'LLM is not enabled. This skill action entity will be ignored.'
-              )
-              BRAIN.talk(`${BRAIN.wernicke('llm_not_enabled')}.`)
+              LogHelper.error(`Failed to inject LLM entity: ${e}`)
 
               resolve([])
             }
-          } catch (e) {
-            LogHelper.title('NER')
-            LogHelper.error(`Failed to inject LLM entity: ${e}`)
-
-            resolve([])
           }
         }
-      }
 
-      const { entities: extractedEntities }: { entities: NEREntity[] } =
-        await this.manager.process({
-          locale: lang,
-          text: utterance
-        })
-      const entities = [...extractedEntities, ...foundLLMEntities]
+        const { entities: extractedEntities }: { entities: NEREntity[] } =
+          await MODEL_LOADER.mainNLPContainer.ner.process({
+            locale: lang,
+            text: utterance
+          })
+        const entities = [...extractedEntities, ...foundLLMEntities]
 
-      // Free up the newly-added rules from the global manager to avoid long-run conflicts
-      entities.forEach((entity) => {
-        if (this.manager.rules[lang][entity.entity]) {
-          this.manager.removeRule(lang, entity.entity)
-        }
-      })
+        // Normalize entities
+        entities.forEach((entity) => {
+          // Trim whitespace at the beginning and the end of the entity value
+          entity.sourceText = entity.sourceText.trim()
+          entity.utteranceText = entity.utteranceText.trim()
 
-      // Normalize entities
-      entities.forEach((entity) => {
-        // Trim whitespace at the beginning and the end of the entity value
-        entity.sourceText = entity.sourceText.trim()
-        entity.utteranceText = entity.utteranceText.trim()
+          // Add resolution property to stay consistent with all entities
+          if (!entity.resolution) {
+            entity.resolution = { value: entity.sourceText }
+          }
 
-        // Add resolution property to stay consistent with all entities
-        if (!entity.resolution) {
-          entity.resolution = { value: entity.sourceText }
-        }
-
-        if (
-          BUILT_IN_ENTITY_TYPES.includes(entity.entity as BuiltInEntityType)
-        ) {
-          entity.type = entity.entity as BuiltInEntityType
-        }
-
-        if (SPACY_ENTITY_TYPES.includes(entity.entity as SpacyEntityType)) {
-          entity.type = entity.entity as SpacyEntityType
           if (
-            'value' in entity.resolution &&
-            this.spacyData.has(`${entity.type}-${entity.resolution.value}`)
+            BUILT_IN_ENTITY_TYPES.includes(entity.entity as BuiltInEntityType)
           ) {
-            entity.resolution = this.spacyData.get(
-              `${entity.type}-${entity.resolution.value}`
-            ) as NERSpacyEntity['resolution']
+            entity.type = entity.entity as BuiltInEntityType
           }
+
+          if (SPACY_ENTITY_TYPES.includes(entity.entity as SpacyEntityType)) {
+            entity.type = entity.entity as SpacyEntityType
+            if (
+              'value' in entity.resolution &&
+              this.spacyData.has(`${entity.type}-${entity.resolution.value}`)
+            ) {
+              entity.resolution = this.spacyData.get(
+                `${entity.type}-${entity.resolution.value}`
+              ) as NERSpacyEntity['resolution']
+            }
+          }
+
+          return entity
+        })
+
+        if (entities.length > 0) {
+          NER.logExtraction(entities)
+          return resolve(entities)
         }
 
-        return entity
-      })
+        LogHelper.title('NER')
+        LogHelper.info('No entity found')
 
-      if (entities.length > 0) {
-        NER.logExtraction(entities)
-        return resolve(entities)
+        return resolve([])
+      } catch (e) {
+        LogHelper.title('NER')
+        LogHelper.error(`Failed to extract entities: ${e}`)
+
+        return reject([])
       }
-
-      LogHelper.title('NER')
-      LogHelper.info('No entity found')
-      return resolve([])
     })
   }
 
@@ -246,7 +243,7 @@ export default class NER {
   ): void {
     for (let i = 0; i < entityConfig.conditions.length; i += 1) {
       const condition = entityConfig.conditions[i]
-      const conditionMethod = `add${StringHelper.snakeToPascalCase(
+      const conditionMethod = `addNer${StringHelper.snakeToPascalCase(
         condition?.type || ''
       )}Condition`
 
@@ -255,22 +252,24 @@ export default class NER {
          * Conditions: https://github.com/axa-group/nlp.js/blob/master/docs/v3/ner-manager.md#trim-named-entities
          * e.g. list.addBetweenCondition('en', 'list', 'create a', 'list')
          */
-        this.manager[conditionMethod](
+        MODEL_LOADER.mainNLPContainer[conditionMethod](
           lang,
           entityConfig.name,
           condition?.from,
           condition?.to
         )
       } else if (condition?.type.indexOf('after') !== -1) {
-        const rule = {
-          type: 'afterLast',
-          words: condition?.from,
-          options: {}
-        }
-        this.manager.addRule(lang, entityConfig.name, 'trim', rule)
-        this.manager[conditionMethod](lang, entityConfig.name, condition?.from)
+        MODEL_LOADER.mainNLPContainer[conditionMethod](
+          lang,
+          entityConfig.name,
+          condition?.from
+        )
       } else if (condition.type.indexOf('before') !== -1) {
-        this.manager[conditionMethod](lang, entityConfig.name, condition.to)
+        MODEL_LOADER.mainNLPContainer[conditionMethod](
+          lang,
+          entityConfig.name,
+          condition.to
+        )
       }
     }
   }
@@ -282,7 +281,7 @@ export default class NER {
     lang: ShortLanguageCode,
     entityConfig: SkillCustomRegexEntityTypeSchema
   ): void {
-    this.manager.addRegexRule(
+    MODEL_LOADER.mainNLPContainer.addNerRegexRule(
       lang,
       entityConfig.name,
       new RegExp(entityConfig.regex, 'g')
@@ -302,7 +301,12 @@ export default class NER {
     optionKeys.forEach((optionName) => {
       const { synonyms } = options[optionName] as { synonyms: string[] }
 
-      this.manager.addRuleOptionTexts(lang, entityName, optionName, synonyms)
+      MODEL_LOADER.mainNLPContainer.addNerRuleOptionTexts(
+        lang,
+        entityName,
+        optionName,
+        synonyms
+      )
     })
   }
 
