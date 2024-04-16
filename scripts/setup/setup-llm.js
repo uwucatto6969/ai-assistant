@@ -115,7 +115,7 @@ async function downloadAndCompileLlamaCPP() {
         osType === OSTypes.MacOS &&
         cpuArchitecture === CPUArchitectures.X64
       ) {
-        llamaCPPDownloadCommand = `${llamaCPPDownloadCommand} --no-metal`
+        // llamaCPPDownloadCommand = `${llamaCPPDownloadCommand} --no-metal`
 
         LogHelper.info(`macOS Intel chipset detected, Metal support disabled`)
       }

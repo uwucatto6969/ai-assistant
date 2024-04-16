@@ -2,7 +2,11 @@ import fs from 'node:fs'
 
 import type { Llama, LlamaModel } from 'node-llama-cpp'
 
-import { LLM_MINIMUM_FREE_RAM, LLM_PATH } from '@/constants'
+import {
+  LLM_MINIMUM_FREE_RAM,
+  LLM_NAME_WITH_VERSION,
+  LLM_PATH
+} from '@/constants'
 import { LogHelper } from '@/helpers/log-helper'
 import { SystemHelper } from '@/helpers/system-helper'
 
@@ -73,7 +77,7 @@ export default class LLMManager {
     }
 
     try {
-      const { getLlama, LlamaLogLevel } = await import('node-llama-cpp')
+      const { LlamaLogLevel, getLlama } = await import('node-llama-cpp')
 
       this._llama = await getLlama({
         logLevel: LlamaLogLevel.disabled
@@ -83,7 +87,7 @@ export default class LLMManager {
       })
       this._isLLMEnabled = true
 
-      LogHelper.success('LLM has been loaded')
+      LogHelper.success(`${LLM_NAME_WITH_VERSION} LLM has been loaded`)
     } catch (e) {
       LogHelper.error(`LLM Manager failed to load: ${e}`)
     }

@@ -50,7 +50,7 @@ export const run: ActionFunction = async function (params) {
   await leon.answer({
     key: 'translate',
     data: {
-      output: response.data.output.o
+      output: response.data.output.translation
     }
   })
 }

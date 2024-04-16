@@ -60,7 +60,7 @@ export class TranslationLLMDuty extends LLMDuty {
       const grammar = new LlamaJsonSchemaGrammar(LLM_MANAGER.llama, {
         type: 'object',
         properties: {
-          o: {
+          translation: {
             type: 'string'
           }
         }

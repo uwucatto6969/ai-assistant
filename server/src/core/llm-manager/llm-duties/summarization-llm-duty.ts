@@ -43,7 +43,7 @@ export class SummarizationLLMDuty extends LLMDuty {
       const grammar = new LlamaJsonSchemaGrammar(LLM_MANAGER.llama, {
         type: 'object',
         properties: {
-          o: {
+          summary: {
             type: 'string'
           }
         }
