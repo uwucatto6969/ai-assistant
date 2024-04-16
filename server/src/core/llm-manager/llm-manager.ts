@@ -13,7 +13,6 @@ import { SystemHelper } from '@/helpers/system-helper'
 type LLMManagerLlama = Llama | null
 type LLMManagerModel = LlamaModel | null
 
-export const LLM_CONTEXT_SIZE = 8_096
 // Set to 0 to use the maximum threads supported by the current machine hardware
 export const LLM_THREADS = 4
 
@@ -77,11 +76,15 @@ export default class LLMManager {
     }
 
     try {
-      const { LlamaLogLevel, getLlama } = await import('node-llama-cpp')
+      const { LlamaLogLevel, getLlama } = await Function(
+        'return import("node-llama-cpp")'
+      )()
 
       this._llama = await getLlama({
-        logLevel: LlamaLogLevel.disabled
+        logLevel: LlamaLogLevel.debug
       })
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
       this._model = await this._llama.loadModel({
         modelPath: LLM_PATH
       })

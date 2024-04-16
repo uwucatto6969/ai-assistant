@@ -76,11 +76,11 @@ import { LogHelper } from '@/helpers/log-helper'
   await summarizationDuty.execute()*/
 
   /*const translationDuty = new TranslationLLMDuty({
-    input: 'Bonjour, la température est très agréable à Shenzhen',
+    input: 'the weather is good in shenzhen',
     data: {
-      source: 'French',
-      target: 'English'
-      // autoDetectLanguage: true
+      // source: 'French',
+      target: 'French',
+      autoDetectLanguage: true
     }
   })
   await translationDuty.execute()*/

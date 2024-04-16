@@ -6,7 +6,7 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER } from '@/core'
 import { LLMDuties } from '@/core/llm-manager/types'
-import { LLM_CONTEXT_SIZE, LLM_THREADS } from '@/core/llm-manager/llm-manager'
+import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
 
 interface TranslationLLMDutyParams extends LLMDutyParams {
   data: {
@@ -47,11 +47,11 @@ export class TranslationLLMDuty extends LLMDuty {
     LogHelper.info('Executing...')
 
     try {
-      const { LlamaCompletion, LlamaJsonSchemaGrammar } = await import(
-        'node-llama-cpp'
-      )
+      const { LlamaCompletion, LlamaJsonSchemaGrammar } = await Function(
+        'return import("node-llama-cpp")'
+      )()
+
       const context = await LLM_MANAGER.model.createContext({
-        contextSize: LLM_CONTEXT_SIZE,
         threads: LLM_THREADS
       })
       const completion = new LlamaCompletion({
@@ -65,8 +65,9 @@ export class TranslationLLMDuty extends LLMDuty {
           }
         }
       })
-      const prompt = `Text: ${this.input}`
+      const prompt = `${this.systemPrompt} Text: ${this.input}`
       const rawResult = await completion.generateCompletion(prompt, {
+        contextShiftSize: context.contextSize / 2,
         grammar,
         maxTokens: context.contextSize
       })

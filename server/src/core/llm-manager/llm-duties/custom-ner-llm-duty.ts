@@ -6,7 +6,7 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER } from '@/core'
 import { LLMDuties } from '@/core/llm-manager/types'
-import { LLM_CONTEXT_SIZE, LLM_THREADS } from '@/core/llm-manager/llm-manager'
+import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
 
 interface CustomNERLLMDutyParams<T> extends LLMDutyParams {
   data: {
@@ -38,11 +38,11 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
     LogHelper.info('Executing...')
 
     try {
-      const { LlamaCompletion, LlamaJsonSchemaGrammar } = await import(
-        'node-llama-cpp'
-      )
+      const { LlamaCompletion, LlamaJsonSchemaGrammar } = await Function(
+        'return import("node-llama-cpp")'
+      )()
+
       const context = await LLM_MANAGER.model.createContext({
-        contextSize: LLM_CONTEXT_SIZE,
         threads: LLM_THREADS
       })
       const completion = new LlamaCompletion({
@@ -50,14 +50,13 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
       })
       const grammar = new LlamaJsonSchemaGrammar(LLM_MANAGER.llama, {
         type: 'object',
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         properties: {
           ...this.data.schema
         }
       })
-      const prompt = `Utterance: ${this.input}`
+      const prompt = `${this.systemPrompt} Utterance: ${this.input}`
       const rawResult = await completion.generateCompletion(prompt, {
+        contextShiftSize: context.contextSize / 2,
         grammar,
         maxTokens: context.contextSize
       })
