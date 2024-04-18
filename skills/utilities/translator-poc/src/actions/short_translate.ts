@@ -8,7 +8,7 @@ export const run: ActionFunction = async function (params) {
   let targetLanguage = null
 
   for (const currentEntity of params.current_entities) {
-    if (currentEntity.entity === 'text_to_translate') {
+    if (currentEntity.entity === 'text_to_parse') {
       textToTranslate = currentEntity.resolution.value
     }
     if (currentEntity.entity === 'language') {

@@ -40,15 +40,13 @@
     "view_list": {
       "type": "logic",
       "utterance_samples": [
-        "What do I have [in|on] [the|my] @list list?",
+        "What do I have on my @list list?",
         "Show [my|the] @list list",
         "Tell me what is on my @list list",
-        "What is [in|on] [the|my] @list list?",
+        "What is on [the|my] @list list?",
         "Can you give me the content of my @list list?",
         "I'd like to know what is on the @list list",
-        "Give me the content of the @list list",
-        "I need you tell me what's on the @list list",
-        "Get me the @list list"
+        "Give me the content of the @list list"
       ],
       "entities": [
         {

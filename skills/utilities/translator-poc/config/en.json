@@ -4,17 +4,17 @@
     "short_translate": {
       "type": "logic",
       "utterance_samples": [
-        "[Translate|Convert] @text_to_translate [to|in|into] @language",
-        "What is @text_to_translate in @language?",
-        "How [do|can] [I|we] say @text_to_translate in @language?",
-        "Can you tell [me|us] how to say @text_to_translate in @language?",
-        "[I|We] need to know how to say @text_to_translate in @language"
+        "[Translate|Convert] @text_to_parse [to|in|into] @language",
+        "What is @text_to_parse in @language?",
+        "How [do|can] [I|we] say @text_to_parse in @language?",
+        "Can you tell [me|us] how to say @text_to_parse in @language?",
+        "[I|We] need to know how to say @text_to_parse in @language"
       ],
       "entities": [
         {
           "type": "llm",
           "schema": {
-            "text_to_translate": {
+            "text_to_parse": {
               "type": "string"
             }
           }
