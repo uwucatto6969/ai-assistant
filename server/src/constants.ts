@@ -161,12 +161,15 @@ export const LEON_FILE_PATH = path.join(process.cwd(), 'leon.json')
 /**
  * LLMs
  */
-// export const LLM_VERSION = 'v0.2.Q4_K_M'
-export const LLM_VERSION = '1.1-7b-it-Q4_K_M'
-// export const LLM_NAME = 'Mistral 7B Instruct'
-export const LLM_NAME = 'Gemma 1.1 7B (IT)'
-// export const LLM_FILE_NAME = `mistral-7b-instruct-${LLM_VERSION}.gguf`
-export const LLM_FILE_NAME = `gemma-${LLM_VERSION}.gguf`
+export const LLM_VERSION = 'v0.2.Q4_K_S'
+// export const LLM_VERSION = '1.1-7b-it-Q4_K_M'
+// export const LLM_VERSION = '8B-Instruct-Q4_K_S'
+export const LLM_NAME = 'Mistral 7B Instruct'
+// export const LLM_NAME = 'Gemma 1.1 7B (IT)'
+// export const LLM_NAME = 'Meta Llama 3 8B Instruct'
+export const LLM_FILE_NAME = `mistral-7b-instruct-${LLM_VERSION}.gguf`
+// export const LLM_FILE_NAME = `gemma-${LLM_VERSION}.gguf`
+// export const LLM_FILE_NAME = `Meta-Llama-3-${LLM_VERSION}.gguf`
 export const LLM_NAME_WITH_VERSION = `${LLM_NAME} (${LLM_VERSION})`
 export const LLM_DIR_PATH = path.join(MODELS_PATH, 'llm')
 export const LLM_PATH = path.join(LLM_DIR_PATH, LLM_FILE_NAME)
@@ -176,10 +179,14 @@ export const LLM_HF_DOWNLOAD_URL =
   'https://huggingface.co/bartowski/gemma-1.1-7b-it-GGUF/resolve/main/gemma-1.1-7b-it-Q4_K_M.gguf?download=true'
 /*export const LLM_HF_DOWNLOAD_URL =
   'https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf?download=true'*/
+/*export const LLM_HF_DOWNLOAD_URL =
+  'https://huggingface.co/bartowski/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q4_K_S.gguf?download=true'*/
 export const LLM_MIRROR_DOWNLOAD_URL =
   'https://hf-mirror.com/bartowski/gemma-1.1-7b-it-GGUF/resolve/main/gemma-1.1-7b-it-Q4_K_M.gguf?download=true'
 /*export const LLM_MIRROR_DOWNLOAD_URL =
   'https://hf-mirror.com/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf?download=true'*/
+/*export const LLM_MIRROR_DOWNLOAD_URL =
+  'https://hf-mirror.com/bartowski/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q4_K_S.gguf?download=true'*/
 /**
  * @see llama.cpp releases: https://github.com/ggerganov/llama.cpp/releases
  */

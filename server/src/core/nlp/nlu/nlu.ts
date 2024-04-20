@@ -102,6 +102,8 @@ export default class NLU {
       LogHelper.title('NLU')
       LogHelper.info('Processing...')
 
+      console.log('HERE EHRHE RER UEIFJ EIF EIUF E')
+
       if (!MODEL_LOADER.hasNlpModels()) {
         if (!BRAIN.isMuted) {
           BRAIN.talk(`${BRAIN.wernicke('random_errors')}!`)
@@ -119,14 +121,19 @@ export default class NLU {
 
       // Pre NLU processing according to the active context if there is one
       if (this.conversation.hasActiveContext()) {
+        console.log('has active context', this.conversation.activeContext)
         // When the active context is in an action loop, then directly trigger the action
         if (this.conversation.activeContext.isInActionLoop) {
+          console.log('in action loop handle')
           return resolve(await ActionLoop.handle(utterance))
         }
 
         // When the active context has slots filled
         if (Object.keys(this.conversation.activeContext.slots).length > 0) {
           try {
+            console.log('in slot filling handle')
+            // TODO: active action loop if next action has it?
+
             return resolve(await SlotFilling.handle(utterance))
           } catch (e) {
             return reject({})
@@ -244,6 +251,7 @@ export default class NLU {
 
       const shouldSlotLoop = await SlotFilling.route(intent)
       if (shouldSlotLoop) {
+        console.log('should slot loop')
         return resolve({})
       }
 
@@ -253,6 +261,7 @@ export default class NLU {
         Object.keys(this.conversation.activeContext.slots).length > 0
       ) {
         try {
+          console.log('slot filling here')
           return resolve(await SlotFilling.handle(utterance))
         } catch (e) {
           return reject({})
@@ -282,11 +291,15 @@ export default class NLU {
       this.nluResult.entities = this.conversation.activeContext.entities
 
       try {
+        console.log('before brain execute')
         const processedData = await BRAIN.execute(this.nluResult)
+
+        console.log('processedData.nextAction', processedData.nextAction)
 
         // Prepare next action if there is one queuing
         if (processedData.nextAction) {
           this.conversation.cleanActiveContext()
+          console.log('actionloop switch 2')
           await this.conversation.setActiveContext({
             ...DEFAULT_ACTIVE_CONTEXT,
             lang: BRAIN.lang,

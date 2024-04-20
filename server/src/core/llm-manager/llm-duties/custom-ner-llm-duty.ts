@@ -54,7 +54,7 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
           ...this.data.schema
         }
       })
-      const prompt = `${this.systemPrompt} Utterance: ${this.input}`
+      const prompt = `${this.systemPrompt} Utterance to parse: ${this.input}`
       const rawResult = await completion.generateCompletion(prompt, {
         contextShiftSize: context.contextSize / 2,
         grammar,

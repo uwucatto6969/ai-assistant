@@ -1,7 +1,7 @@
 {
   "$schema": "../../../schemas/skill-schemas/skill.json",
   "name": "Translator (PoC)",
-  "bridge": "nodejs",
+  "bridge": "python",
   "version": "1.0.0",
   "description": "Translate text from one language to another",
   "author": {

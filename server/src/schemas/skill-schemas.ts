@@ -21,7 +21,8 @@ const skillActionTypes = [
 const skillDataTypes = [
   Type.Literal('skill_resolver'),
   Type.Literal('global_resolver'),
-  Type.Literal('entity')
+  Type.Literal('entity'),
+  Type.Literal('utterance')
 ]
 const answerTypes = Type.Union([
   Type.String(),
@@ -186,7 +187,10 @@ export const skillConfigSchemaObject = Type.Strict(
                     type: Type.Union(skillDataTypes),
                     name: Type.String()
                   },
-                  { description: 'An item can be a entity or a resolver.' }
+                  {
+                    description:
+                      'An item can be a entity, a resolver or an utterance.'
+                  }
                 )
               },
               {

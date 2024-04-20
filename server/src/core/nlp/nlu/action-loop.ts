@@ -20,6 +20,7 @@ export class ActionLoop {
   public static async handle(
     utterance: NLPUtterance
   ): Promise<Partial<BrainProcessResult> | null> {
+    console.log('here here here here here here here')
     const { domain, intent } = NLU.conversation.activeContext
     const [skillName, actionName] = intent.split('.') as [string, string]
     const skillConfigPath = join(
@@ -56,10 +57,14 @@ export class ActionLoop {
     if (action?.loop) {
       const { name: expectedItemName, type: expectedItemType } =
         action.loop.expected_item
+      let hasMatchingUtterance = false
       let hasMatchingEntity = false
       let hasMatchingResolver = false
 
-      if (expectedItemType === 'entity') {
+      if (expectedItemType === 'utterance') {
+        console.log('action.loop.expected_item', action.loop.expected_item)
+        hasMatchingUtterance = true
+      } else if (expectedItemType === 'entity') {
         hasMatchingEntity =
           NLU.nluResult.entities.filter(
             ({ entity }) => expectedItemName === entity
@@ -124,9 +129,10 @@ export class ActionLoop {
       }
 
       // Ensure expected items are in the utterance, otherwise clean context and reprocess
-      if (!hasMatchingEntity && !hasMatchingResolver) {
+      if (!hasMatchingEntity && !hasMatchingResolver && !hasMatchingUtterance) {
         BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
         NLU.conversation.cleanActiveContext()
+        console.log('nlu process 2')
         await NLU.process(utterance)
         return null
       }
@@ -140,6 +146,7 @@ export class ActionLoop {
           NLU.conversation.cleanActiveContext()
 
           if (originalUtterance !== null) {
+            console.log('nlu process 3')
             await NLU.process(originalUtterance)
           }
 
@@ -160,6 +167,8 @@ export class ActionLoop {
 
         // Break the action loop and prepare for the next action if necessary
         if (processedData.core?.isInActionLoop === false) {
+          console.log('actionloop switch 1')
+
           NLU.conversation.activeContext.isInActionLoop =
             !!processedData.action?.loop
           NLU.conversation.activeContext.actionName = processedData.action

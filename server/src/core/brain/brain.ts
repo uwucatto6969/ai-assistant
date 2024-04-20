@@ -332,7 +332,7 @@ export default class Brain {
   }
 
   /**
-   * Execute Python skills
+   * Execute skills
    */
   public execute(nluResult: NLUResult): Promise<Partial<BrainProcessResult>> {
     const executionTimeStart = Date.now()
@@ -372,6 +372,8 @@ export default class Brain {
         const nextAction = action.next_action
           ? actions[action.next_action]
           : null
+
+        console.log('nextAction', nextAction)
 
         if (actionType === SkillActionTypes.Logic) {
           /**
@@ -581,6 +583,8 @@ export default class Brain {
           if (nextAction?.suggestions) {
             SOCKET_SERVER.socket?.emit('suggest', nextAction.suggestions)
           }
+
+          console.log('nluResult', nluResult, action, nextAction)
 
           resolve({
             utteranceID,

@@ -16,11 +16,14 @@ export class SlotFilling {
   ): Promise<Partial<BrainProcessResult> | null> {
     const processedData = await this.fillSlot(utterance)
 
+    console.log('processedData', processedData)
+
     /**
      * In case the slot filling has been interrupted. e.g. context change, etc.
      * Then reprocess with the new utterance
      */
     if (!processedData) {
+      console.log('nlu process 1')
       await NLU.process(utterance)
       return null
     }
@@ -108,6 +111,8 @@ export class SlotFilling {
     if (!NLU.conversation.areSlotsAllFilled()) {
       BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
     } else {
+      console.log('slot filling active context', NLU.conversation.activeContext)
+
       NLU.nluResult = {
         ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
         // Assign slots only if there is a next action
@@ -124,7 +129,7 @@ export class SlotFilling {
         }
       }
 
-      NLU.conversation.cleanActiveContext()
+      // NLU.conversation.cleanActiveContext()
 
       return BRAIN.execute(NLU.nluResult)
     }

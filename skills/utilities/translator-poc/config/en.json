@@ -1,25 +1,32 @@
 {
   "$schema": "../../../../schemas/skill-schemas/skill-config.json",
   "actions": {
-    "short_translate": {
-      "type": "logic",
-      "utterance_samples": [
-        "[Translate|Convert] @text_to_parse [to|in|into] @language",
-        "What is @text_to_parse in @language?",
-        "How [do|can] [I|we] say @text_to_parse in @language?",
-        "Can you tell [me|us] how to say @text_to_parse in @language?",
-        "[I|We] need to know how to say @text_to_parse in @language"
-      ],
-      "entities": [
+    "translate_loop_entry": {
+      "type": "dialog",
+      "utterance_samples": ["Start a [translation|translate] loop"],
+      "slots": [
         {
-          "type": "llm",
-          "schema": {
-            "text_to_parse": {
-              "type": "string"
-            }
-          }
+          "name": "target_language",
+          "item": {
+            "type": "entity",
+            "name": "language"
+          },
+          "questions": [
+            "What language would you like to translate to?",
+            "Sure, what language are you translating to?"
+          ]
         }
-      ]
+      ],
+      "next_action": "translate"
+    },
+    "translate": {
+      "type": "logic",
+      "loop": {
+        "expected_item": {
+          "type": "utterance",
+          "name": "text_to_translate"
+        }
+      }
     }
   },
   "entities": {

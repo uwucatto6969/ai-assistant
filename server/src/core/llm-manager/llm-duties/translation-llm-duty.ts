@@ -65,7 +65,7 @@ export class TranslationLLMDuty extends LLMDuty {
           }
         }
       })
-      const prompt = `${this.systemPrompt} Text: ${this.input}`
+      const prompt = `${this.systemPrompt} Text to translate: ${this.input}`
       const rawResult = await completion.generateCompletion(prompt, {
         contextShiftSize: context.contextSize / 2,
         grammar,

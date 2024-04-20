@@ -48,7 +48,7 @@ export class SummarizationLLMDuty extends LLMDuty {
           }
         }
       })
-      const prompt = `${this.systemPrompt} Text: ${this.input}`
+      const prompt = `${this.systemPrompt} Text to summarize: ${this.input}`
       const rawResult = await completion.generateCompletion(prompt, {
         grammar,
         maxTokens: context.contextSize
