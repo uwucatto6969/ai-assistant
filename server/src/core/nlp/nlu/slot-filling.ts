@@ -111,7 +111,11 @@ export class SlotFilling {
     if (!NLU.conversation.areSlotsAllFilled()) {
       BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
     } else {
-      console.log('slot filling active context', NLU.conversation.activeContext)
+      console.log(
+        'slot filling active context',
+        utterance,
+        NLU.conversation.activeContext
+      )
 
       NLU.nluResult = {
         ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
@@ -129,7 +133,7 @@ export class SlotFilling {
         }
       }
 
-      // NLU.conversation.cleanActiveContext()
+      NLU.conversation.cleanActiveContext()
 
       return BRAIN.execute(NLU.nluResult)
     }

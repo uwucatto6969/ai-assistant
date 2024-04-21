@@ -47,7 +47,7 @@ async function canAccessHuggingFace() {
   }
 }
 
-async function downloadLLM() {
+async function downloadLLM(retryWithMirror = false) {
   try {
     LogHelper.info('Downloading LLM...')
 
@@ -61,9 +61,10 @@ async function downloadLLM() {
     }
 
     if (!manifest || manifest.version !== LLM_VERSION) {
-      const downloadURL = (await canAccessHuggingFace())
-        ? LLM_HF_DOWNLOAD_URL
-        : LLM_MIRROR_DOWNLOAD_URL
+      const downloadURL =
+        (await canAccessHuggingFace()) && !retryWithMirror
+          ? LLM_HF_DOWNLOAD_URL
+          : LLM_MIRROR_DOWNLOAD_URL
 
       // Just in case the LLM file already exists, delete it first
       if (fs.existsSync(LLM_PATH)) {
@@ -89,6 +90,13 @@ async function downloadLLM() {
     }
   } catch (e) {
     LogHelper.error(`Failed to download LLM: ${e}`)
+
+    if (e.code === 'EAI_AGAIN') {
+      LogHelper.warning(
+        'Failed to download from Hugging Face, retrying from mirror...'
+      )
+      await downloadLLM(true)
+    }
   }
 }
 

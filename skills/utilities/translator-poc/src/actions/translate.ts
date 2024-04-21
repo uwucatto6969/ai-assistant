@@ -34,10 +34,6 @@ export const run: ActionFunction = async function (params) {
 
   await leon.answer({
     key: 'translate',
-    core: {
-      isInActionLoop: true,
-      restart: true
-    },
     data: {
       output: `just a test ${targetLanguage} ${textToTranslate}`
       // output: response.data.output.translation
