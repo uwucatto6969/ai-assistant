@@ -20,7 +20,6 @@ export class ActionLoop {
   public static async handle(
     utterance: NLPUtterance
   ): Promise<Partial<BrainProcessResult> | null> {
-    console.log('here here here here here here here')
     const { domain, intent } = NLU.conversation.activeContext
     const [skillName, actionName] = intent.split('.') as [string, string]
     const skillConfigPath = join(
@@ -35,6 +34,7 @@ export class ActionLoop {
       ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
       slots: NLU.conversation.activeContext.slots,
       utterance,
+      newUtterance: utterance,
       skillConfigPath,
       classification: {
         domain,
@@ -62,7 +62,6 @@ export class ActionLoop {
       let hasMatchingResolver = false
 
       if (expectedItemType === 'utterance') {
-        console.log('action.loop.expected_item', action.loop.expected_item)
         hasMatchingUtterance = true
       } else if (expectedItemType === 'entity') {
         hasMatchingEntity =
@@ -132,7 +131,6 @@ export class ActionLoop {
       if (!hasMatchingEntity && !hasMatchingResolver && !hasMatchingUtterance) {
         BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
         NLU.conversation.cleanActiveContext()
-        console.log('nlu process 2')
         await NLU.process(utterance)
         return null
       }
@@ -146,7 +144,6 @@ export class ActionLoop {
           NLU.conversation.cleanActiveContext()
 
           if (originalUtterance !== null) {
-            console.log('nlu process 3')
             await NLU.process(originalUtterance)
           }
 
@@ -167,8 +164,6 @@ export class ActionLoop {
 
         // Break the action loop and prepare for the next action if necessary
         if (processedData.core?.isInActionLoop === false) {
-          console.log('actionloop switch 1')
-
           NLU.conversation.activeContext.isInActionLoop =
             !!processedData.action?.loop
           NLU.conversation.activeContext.actionName = processedData.action

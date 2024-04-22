@@ -21,6 +21,7 @@ class ExtraContextData(TypedDict):
 class ActionParams(TypedDict):
     lang: str
     utterance: str
+    new_utterance: str
     current_entities: list[Any]
     entities: list[Any]
     current_resolvers: list[Any]

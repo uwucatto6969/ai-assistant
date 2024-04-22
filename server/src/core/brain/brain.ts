@@ -188,6 +188,7 @@ export default class Brain {
       skill: nluResult.classification.skill,
       action: nluResult.classification.action,
       utterance: nluResult.utterance,
+      new_utterance: nluResult.newUtterance,
       current_entities: nluResult.currentEntities,
       entities: nluResult.entities,
       current_resolvers: nluResult.currentResolvers,
@@ -372,8 +373,6 @@ export default class Brain {
         const nextAction = action.next_action
           ? actions[action.next_action]
           : null
-
-        console.log('nextAction', nextAction)
 
         if (actionType === SkillActionTypes.Logic) {
           /**
@@ -583,8 +582,6 @@ export default class Brain {
           if (nextAction?.suggestions) {
             SOCKET_SERVER.socket?.emit('suggest', nextAction.suggestions)
           }
-
-          console.log('nluResult', nluResult, action, nextAction)
 
           resolve({
             utteranceID,

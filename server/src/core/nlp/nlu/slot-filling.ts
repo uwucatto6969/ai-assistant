@@ -16,14 +16,11 @@ export class SlotFilling {
   ): Promise<Partial<BrainProcessResult> | null> {
     const processedData = await this.fillSlot(utterance)
 
-    console.log('processedData', processedData)
-
     /**
      * In case the slot filling has been interrupted. e.g. context change, etc.
      * Then reprocess with the new utterance
      */
     if (!processedData) {
-      console.log('nlu process 1')
       await NLU.process(utterance)
       return null
     }
@@ -37,6 +34,7 @@ export class SlotFilling {
           slots: processedData.slots || {},
           isInActionLoop: !!processedData.nextAction?.loop,
           originalUtterance: processedData.utterance ?? null,
+          newUtterance: utterance,
           skillConfigPath: processedData.skillConfigPath || '',
           actionName: processedData.action.next_action,
           domain: processedData.classification?.domain || '',
@@ -74,6 +72,7 @@ export class SlotFilling {
     NLU.nluResult = {
       ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
       utterance,
+      newUtterance: utterance,
       classification: {
         domain,
         skill: skillName,
@@ -111,12 +110,6 @@ export class SlotFilling {
     if (!NLU.conversation.areSlotsAllFilled()) {
       BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
     } else {
-      console.log(
-        'slot filling active context',
-        utterance,
-        NLU.conversation.activeContext
-      )
-
       NLU.nluResult = {
         ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
         // Assign slots only if there is a next action
@@ -124,6 +117,7 @@ export class SlotFilling {
           ? NLU.conversation.activeContext.slots
           : {},
         utterance: NLU.conversation.activeContext.originalUtterance ?? '',
+        newUtterance: utterance,
         skillConfigPath,
         classification: {
           domain,
@@ -133,9 +127,17 @@ export class SlotFilling {
         }
       }
 
-      NLU.conversation.cleanActiveContext()
+      const processedData = await BRAIN.execute(NLU.nluResult)
 
-      return BRAIN.execute(NLU.nluResult)
+      /**
+       * Clean active context if the skill action returns isInActionLoop as false
+       * to avoid looping indefinitely in the same action once all slots have been filled
+       */
+      if (processedData.core?.isInActionLoop === false) {
+        NLU.conversation.cleanActiveContext()
+      }
+
+      return processedData
     }
 
     NLU.conversation.cleanActiveContext()
@@ -148,7 +150,10 @@ export class SlotFilling {
    * 2. If the context is expecting slots, then loop over questions to slot fill
    * 3. Or go to the brain executor if all slots have been filled in one shot
    */
-  public static async route(intent: string): Promise<boolean> {
+  public static async route(
+    intent: string,
+    utterance: NLPUtterance
+  ): Promise<boolean> {
     const slots =
       await MODEL_LOADER.mainNLPContainer.slotManager.getMandatorySlots(intent)
     const hasMandatorySlots = Object.keys(slots)?.length > 0
@@ -160,6 +165,7 @@ export class SlotFilling {
         slots,
         isInActionLoop: false,
         originalUtterance: NLU.nluResult.utterance,
+        newUtterance: utterance,
         skillConfigPath: NLU.nluResult.skillConfigPath,
         actionName: NLU.nluResult.classification.action,
         domain: NLU.nluResult.classification.domain,

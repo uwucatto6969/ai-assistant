@@ -85,6 +85,7 @@ export interface NLUResult {
   resolvers: NLUResolver[]
   slots: NLUSlots
   utterance: NLPUtterance
+  newUtterance: NLPUtterance
   skillConfigPath: string
   answers: { answer: string }[]
   sentiment: {

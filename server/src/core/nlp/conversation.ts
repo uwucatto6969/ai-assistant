@@ -20,6 +20,7 @@ interface ConversationContext {
   isInActionLoop: boolean
   nextAction: NLPAction | null
   originalUtterance: NLPUtterance | null
+  newUtterance: NLPUtterance | null
   activatedAt: number
   skillConfigPath: string
   actionName: NLPAction
@@ -39,6 +40,7 @@ export const DEFAULT_ACTIVE_CONTEXT = {
   isInActionLoop: false,
   nextAction: null,
   originalUtterance: null,
+  newUtterance: null,
   activatedAt: 0,
   skillConfigPath: '',
   actionName: '',

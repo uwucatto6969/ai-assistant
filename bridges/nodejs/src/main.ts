@@ -9,6 +9,7 @@ import { INTENT_OBJECT } from '@bridge/constants'
     action,
     lang,
     utterance,
+    new_utterance,
     current_entities,
     entities,
     current_resolvers,
@@ -20,6 +21,7 @@ import { INTENT_OBJECT } from '@bridge/constants'
   const params: ActionParams = {
     lang,
     utterance,
+    new_utterance,
     current_entities,
     entities,
     current_resolvers,

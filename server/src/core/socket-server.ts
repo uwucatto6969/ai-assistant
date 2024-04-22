@@ -116,7 +116,6 @@ export default class SocketServer {
               LogHelper.time('Utterance processed in')
 
               BRAIN.isMuted = false
-              console.log('nlu process 4')
               const processedData = await NLU.process(utterance)
 
               if (processedData) {

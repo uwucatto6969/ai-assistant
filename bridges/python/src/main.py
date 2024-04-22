@@ -9,6 +9,7 @@ def main():
     params = {
         'lang': INTENT_OBJECT['lang'],
         'utterance': INTENT_OBJECT['utterance'],
+        'new_utterance': INTENT_OBJECT['new_utterance'],
         'current_entities': INTENT_OBJECT['current_entities'],
         'entities': INTENT_OBJECT['entities'],
         'current_resolvers': INTENT_OBJECT['current_resolvers'],
