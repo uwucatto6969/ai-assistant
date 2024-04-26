@@ -161,13 +161,16 @@ export const LEON_FILE_PATH = path.join(process.cwd(), 'leon.json')
 /**
  * LLMs
  */
-export const LLM_VERSION = 'v0.2.Q4_K_S'
+// export const LLM_VERSION = 'v0.2.Q4_K_S'
+export const LLM_VERSION = '3-mini-4k-instruct-q4'
 // export const LLM_VERSION = '1.1-7b-it-Q4_K_M'
 // export const LLM_VERSION = '8B-Instruct-Q4_K_S'
-export const LLM_NAME = 'Mistral 7B Instruct'
+// export const LLM_NAME = 'Mistral 7B Instruct'
+export const LLM_NAME = 'Phi-3-mini'
 // export const LLM_NAME = 'Gemma 1.1 7B (IT)'
 // export const LLM_NAME = 'Meta Llama 3 8B Instruct'
-export const LLM_FILE_NAME = `mistral-7b-instruct-${LLM_VERSION}.gguf`
+// export const LLM_FILE_NAME = `mistral-7b-instruct-${LLM_VERSION}.gguf`
+export const LLM_FILE_NAME = `Phi-${LLM_VERSION}.gguf`
 // export const LLM_FILE_NAME = `gemma-${LLM_VERSION}.gguf`
 // export const LLM_FILE_NAME = `Meta-Llama-3-${LLM_VERSION}.gguf`
 export const LLM_NAME_WITH_VERSION = `${LLM_NAME} (${LLM_VERSION})`
@@ -175,16 +178,20 @@ export const LLM_DIR_PATH = path.join(MODELS_PATH, 'llm')
 export const LLM_PATH = path.join(LLM_DIR_PATH, LLM_FILE_NAME)
 export const LLM_MINIMUM_TOTAL_RAM = 0
 export const LLM_MINIMUM_FREE_RAM = 0
+export const LLM_HF_DOWNLOAD_URL =
+  'https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf?download=true'
 /*export const LLM_HF_DOWNLOAD_URL =
   'https://huggingface.co/bartowski/gemma-1.1-7b-it-GGUF/resolve/main/gemma-1.1-7b-it-Q4_K_M.gguf?download=true'*/
-export const LLM_HF_DOWNLOAD_URL =
-  'https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_S.gguf?download=true'
+/*export const LLM_HF_DOWNLOAD_URL =
+  'https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_S.gguf?download=true'*/
 /*export const LLM_HF_DOWNLOAD_URL =
   'https://huggingface.co/bartowski/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q4_K_S.gguf?download=true'*/
 /*export const LLM_MIRROR_DOWNLOAD_URL =
   'https://hf-mirror.com/bartowski/gemma-1.1-7b-it-GGUF/resolve/main/gemma-1.1-7b-it-Q4_K_M.gguf?download=true'*/
 export const LLM_MIRROR_DOWNLOAD_URL =
-  'https://hf-mirror.com/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_S.gguf?download=true'
+  'https://hf-mirror.com/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf?download=true'
+/*export const LLM_MIRROR_DOWNLOAD_URL =
+  'https://hf-mirror.com/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_S.gguf?download=true'*/
 /*export const LLM_MIRROR_DOWNLOAD_URL =
   'https://hf-mirror.com/bartowski/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q4_K_S.gguf?download=true'*/
 /**
