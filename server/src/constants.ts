@@ -197,7 +197,7 @@ export const LLM_MIRROR_DOWNLOAD_URL =
 /**
  * @see llama.cpp releases: https://github.com/ggerganov/llama.cpp/releases
  */
-export const LLM_LLAMA_CPP_RELEASE_TAG = 'b2665'
+export const LLM_LLAMA_CPP_RELEASE_TAG = 'b2717'
 
 /**
  * Misc

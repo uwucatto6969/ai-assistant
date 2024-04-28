@@ -53,6 +53,53 @@
       "params": []
     },
     {
+      "method": "POST",
+      "route": "/api/action/productivity/todo_list/create_list",
+      "params": ["list"],
+      "entitiesType": "trim"
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/productivity/todo_list/view_lists",
+      "params": []
+    },
+    {
+      "method": "POST",
+      "route": "/api/action/productivity/todo_list/view_list",
+      "params": ["list"],
+      "entitiesType": "trim"
+    },
+    {
+      "method": "POST",
+      "route": "/api/action/productivity/todo_list/rename_list",
+      "params": ["old_list", "new_list"],
+      "entitiesType": "trim"
+    },
+    {
+      "method": "POST",
+      "route": "/api/action/productivity/todo_list/delete_list",
+      "params": ["list"],
+      "entitiesType": "trim"
+    },
+    {
+      "method": "POST",
+      "route": "/api/action/productivity/todo_list/add_todos",
+      "params": ["todos", "list"],
+      "entitiesType": "trim"
+    },
+    {
+      "method": "POST",
+      "route": "/api/action/productivity/todo_list/complete_todos",
+      "params": ["todos", "list"],
+      "entitiesType": "trim"
+    },
+    {
+      "method": "POST",
+      "route": "/api/action/productivity/todo_list/uncheck_todos",
+      "params": ["todos", "list"],
+      "entitiesType": "trim"
+    },
+    {
       "method": "GET",
       "route": "/api/action/leon/age/run",
       "params": []
@@ -139,53 +186,6 @@
       "params": []
     },
     {
-      "method": "POST",
-      "route": "/api/action/productivity/todo_list/create_list",
-      "params": ["list"],
-      "entitiesType": "trim"
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/productivity/todo_list/view_lists",
-      "params": []
-    },
-    {
-      "method": "POST",
-      "route": "/api/action/productivity/todo_list/view_list",
-      "params": ["list"],
-      "entitiesType": "trim"
-    },
-    {
-      "method": "POST",
-      "route": "/api/action/productivity/todo_list/rename_list",
-      "params": ["old_list", "new_list"],
-      "entitiesType": "trim"
-    },
-    {
-      "method": "POST",
-      "route": "/api/action/productivity/todo_list/delete_list",
-      "params": ["list"],
-      "entitiesType": "trim"
-    },
-    {
-      "method": "POST",
-      "route": "/api/action/productivity/todo_list/add_todos",
-      "params": ["todos", "list"],
-      "entitiesType": "trim"
-    },
-    {
-      "method": "POST",
-      "route": "/api/action/productivity/todo_list/complete_todos",
-      "params": ["todos", "list"],
-      "entitiesType": "trim"
-    },
-    {
-      "method": "POST",
-      "route": "/api/action/productivity/todo_list/uncheck_todos",
-      "params": ["todos", "list"],
-      "entitiesType": "trim"
-    },
-    {
       "method": "GET",
       "route": "/api/action/social_communication/mbti/setup",
       "params": []
@@ -249,11 +249,6 @@
     {
       "method": "GET",
       "route": "/api/action/utilities/translator-poc/setup",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/utilities/translator-poc/setup_2",
       "params": []
     },
     {

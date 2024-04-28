@@ -81,6 +81,18 @@ async function downloadLLM(retryWithMirror = false) {
       response.data.pipe(llmWriter)
       await stream.promises.finished(llmWriter)
 
+      await FileHelper.createManifestFile(
+        LLM_MANIFEST_PATH,
+        LLM_NAME,
+        LLM_VERSION,
+        {
+          llamaCPPVersion: manifest.llamaCPPVersion
+            ? manifest.llamaCPPVersion
+            : null
+        }
+      )
+      LogHelper.success('Manifest file updated')
+
       LogHelper.success(`${LLM_NAME_WITH_VERSION} downloaded`)
       LogHelper.success(`${LLM_NAME_WITH_VERSION} ready`)
     } else {
@@ -141,8 +153,8 @@ async function downloadAndCompileLlamaCPP() {
           llamaCPPVersion: LLM_LLAMA_CPP_RELEASE_TAG
         }
       )
+      LogHelper.success('Manifest file updated')
 
-      LogHelper.success('Manifest file created')
       LogHelper.success(`llama.cpp downloaded and compiled`)
       LogHelper.success('The LLM is ready to go')
     } else {
