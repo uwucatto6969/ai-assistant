@@ -63,6 +63,31 @@ export default class NLU {
   }
 
   /**
+   * Check if the utterance should break the action loop
+   * based on the active context and the utterance content
+   */
+  private shouldBreakActionLoop(utterance: NLPUtterance): boolean {
+    const loopStopWords = LangHelper.getActionLoopStopWords(BRAIN.lang)
+    const hasActiveContext = this.conversation.hasActiveContext()
+    const hasOnlyOneWord = utterance.split(' ').length === 1
+    const hasLessThan5Words = utterance.split(' ').length < 5
+    const hasStopWords = loopStopWords.some((word) =>
+      utterance.toLowerCase().includes(word)
+    )
+    const hasLoopWord = utterance.toLowerCase().includes('loop')
+
+    if (
+      (hasActiveContext && hasStopWords && hasOnlyOneWord) ||
+      (hasLessThan5Words && hasStopWords && hasLoopWord)
+    ) {
+      LogHelper.info('Should break action loop')
+      return true
+    }
+
+    return false
+  }
+
+  /**
    * Set new language; recreate a new TCP server with new language; and reprocess understanding
    */
   private switchLanguage(
@@ -113,6 +138,15 @@ export default class NLU {
           'An NLP model is missing, please rebuild the project or if you are in dev run: npm run train'
         LogHelper.error(msg)
         return reject(msg)
+      }
+
+      if (this.shouldBreakActionLoop(utterance)) {
+        this.conversation.cleanActiveContext()
+
+        BRAIN.talk(`${BRAIN.wernicke('action_loop_stopped')}.`, true)
+        SOCKET_SERVER.socket?.emit('is-typing', false)
+
+        return resolve({})
       }
 
       // Add spaCy entities
