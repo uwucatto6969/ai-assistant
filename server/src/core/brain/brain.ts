@@ -485,13 +485,14 @@ export default class Brain {
           const { actions, entities: skillConfigEntities } =
             await SkillDomainHelper.getSkillConfig(configFilePath, this._lang)
           const utteranceHasEntities = nluResult.entities.length > 0
+          const utteranceHasSlots = Object.keys(nluResult.slots).length > 0
           const { answers: rawAnswers } = nluResult
           // TODO: handle dialog action skill speech vs text
           // let answers = rawAnswers as [{ answer: SkillAnswerConfigSchema }]
           let answers = rawAnswers
           let answer: string | undefined = ''
 
-          if (!utteranceHasEntities) {
+          if (!utteranceHasSlots && !utteranceHasEntities) {
             answers = answers.filter(
               ({ answer }) => answer.indexOf('{{') === -1
             )
@@ -525,11 +526,25 @@ export default class Brain {
             answer = answers[Math.floor(Math.random() * answers.length)]?.answer
 
             /**
-             * In case the utterance contains entities, and the picked up answer too,
+             * In case the utterance contains slots or entities, and the picked up answer too,
              * then map them (utterance <-> answer)
              */
-            if (utteranceHasEntities && answer?.indexOf('{{') !== -1) {
-              nluResult.currentEntities.forEach((entityObj) => {
+            if (
+              (utteranceHasSlots || utteranceHasEntities) &&
+              answer?.indexOf('{{') !== -1
+            ) {
+              /**
+               * Normalize data to browse (entities and slots)
+               */
+              const dataToBrowse = [
+                ...nluResult.entities,
+                ...Object.values(nluResult.slots).map((slot) => ({
+                  ...slot.value,
+                  entity: slot.name
+                }))
+              ]
+
+              dataToBrowse.forEach((entityObj) => {
                 answer = StringHelper.findAndMap(answer as string, {
                   [`{{ ${entityObj.entity} }}`]: (entityObj as NERCustomEntity)
                     .resolution.value
