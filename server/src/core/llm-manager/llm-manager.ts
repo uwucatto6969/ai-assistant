@@ -53,7 +53,9 @@ export default class LLMManager {
 
     if (!HAS_LLM) {
       this._isLLMEnabled = false
-      LogHelper.warning('LLM is not enabled')
+      LogHelper.warning(
+        'LLM is not enabled because you have explicitly disabled it'
+      )
 
       return
     }
