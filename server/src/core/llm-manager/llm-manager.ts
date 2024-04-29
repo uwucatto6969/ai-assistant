@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import type { Llama, LlamaModel } from 'node-llama-cpp'
 
 import {
+  HAS_LLM,
   LLM_MINIMUM_FREE_RAM,
   LLM_NAME_WITH_VERSION,
   LLM_PATH
@@ -49,6 +50,13 @@ export default class LLMManager {
 
   public async loadLLM(): Promise<void> {
     LogHelper.title('LLM Manager')
+
+    if (!HAS_LLM) {
+      this._isLLMEnabled = false
+      LogHelper.warning('LLM is not enabled')
+
+      return
+    }
 
     const freeRAMInGB = SystemHelper.getFreeRAM()
 

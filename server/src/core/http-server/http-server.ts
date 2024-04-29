@@ -84,9 +84,7 @@ export default class HTTPServer {
 
     this.fastify.register(infoPlugin, { apiVersion: API_VERSION })
 
-    if (LLM_MANAGER.isLLMEnabled) {
-      this.fastify.register(llmInferencePlugin, { apiVersion: API_VERSION })
-    }
+    this.fastify.register(llmInferencePlugin, { apiVersion: API_VERSION })
 
     if (HAS_OVER_HTTP) {
       this.fastify.register((instance, _opts, next) => {
