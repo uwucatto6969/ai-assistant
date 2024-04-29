@@ -2,130 +2,130 @@
   "$schema": "../../../../schemas/global-data/global-entity.json",
   "options": {
     "en-US": {
-      "synonyms": ["english", "british", "american"]
+      "synonyms": ["English", "British", "American"]
     },
     "zh-CN": {
-      "synonyms": ["mandarin", "chinese"]
+      "synonyms": ["Mandarin", "Chinese"]
     },
     "hi-IN": {
-      "synonyms": ["hindi", "indian"]
+      "synonyms": ["Hindi", "Indian"]
     },
     "es-ES": {
-      "synonyms": ["spanish"]
+      "synonyms": ["Spanish"]
     },
     "fr-FR": {
-      "synonyms": ["french"]
+      "synonyms": ["French"]
     },
     "ar-SA": {
-      "synonyms": ["arabic"]
+      "synonyms": ["Arabic"]
     },
     "ru-RU": {
-      "synonyms": ["russian"]
+      "synonyms": ["Russian"]
     },
     "pt-PT": {
-      "synonyms": ["portuguese"]
+      "synonyms": ["Portuguese"]
     },
     "bn-IN": {
-      "synonyms": ["bengali"]
+      "synonyms": ["Bengali"]
     },
     "in-ID": {
-      "synonyms": ["indonesian"]
+      "synonyms": ["Indonesian"]
     },
     "ja-JP": {
-      "synonyms": ["japanese"]
+      "synonyms": ["Japanese"]
     },
     "de-DE": {
-      "synonyms": ["german"]
+      "synonyms": ["German"]
     },
     "ko-KR": {
-      "synonyms": ["korean"]
+      "synonyms": ["Korean"]
     },
     "tr-TR": {
-      "synonyms": ["turkish"]
+      "synonyms": ["Turkish"]
     },
     "it-IT": {
-      "synonyms": ["italian"]
+      "synonyms": ["Italian"]
     },
     "vi-VN": {
-      "synonyms": ["vietnamese"]
+      "synonyms": ["Vietnamese"]
     },
     "th-TH": {
-      "synonyms": ["thai"]
+      "synonyms": ["Thai"]
     },
     "nl-NL": {
-      "synonyms": ["dutch"]
+      "synonyms": ["Dutch"]
     },
     "pl-PL": {
-      "synonyms": ["polish"]
+      "synonyms": ["Polish"]
     },
     "sv-SE": {
-      "synonyms": ["swedish"]
+      "synonyms": ["Swedish"]
     },
     "da-DK": {
-      "synonyms": ["danish"]
+      "synonyms": ["Danish"]
     },
     "fi-FI": {
-      "synonyms": ["finnish"]
+      "synonyms": ["Finnish"]
     },
     "no-NO": {
-      "synonyms": ["norwegian"]
+      "synonyms": ["Norwegian"]
     },
     "cs-CZ": {
-      "synonyms": ["czech"]
+      "synonyms": ["Czech"]
     },
     "hu-HU": {
-      "synonyms": ["hungarian"]
+      "synonyms": ["Hungarian"]
     },
     "el-GR": {
-      "synonyms": ["greek"]
+      "synonyms": ["Greek"]
     },
     "ro-RO": {
-      "synonyms": ["romanian"]
+      "synonyms": ["Romanian"]
     },
     "uk-UA": {
-      "synonyms": ["ukrainian"]
+      "synonyms": ["Ukrainian"]
     },
     "hr-HR": {
-      "synonyms": ["croatian"]
+      "synonyms": ["Croatian"]
     },
     "sr-RS": {
-      "synonyms": ["serbian"]
+      "synonyms": ["Serbian"]
     },
     "bg-BG": {
-      "synonyms": ["bulgarian"]
+      "synonyms": ["Bulgarian"]
     },
     "sk-SK": {
-      "synonyms": ["slovak"]
+      "synonyms": ["Slovak"]
     },
     "sl-SI": {
-      "synonyms": ["slovenian"]
+      "synonyms": ["Slovenian"]
     },
     "et-EE": {
-      "synonyms": ["estonian"]
+      "synonyms": ["Estonian"]
     },
     "lv-LV": {
-      "synonyms": ["latvian"]
+      "synonyms": ["Latvian"]
     },
     "lt-LT": {
-      "synonyms": ["lithuanian"]
+      "synonyms": ["Lithuanian"]
     },
     "mt-MT": {
-      "synonyms": ["maltese"]
+      "synonyms": ["Maltese"]
     },
     "is-IS": {
-      "synonyms": ["icelandic"]
+      "synonyms": ["Icelandic"]
     },
     "mk-MK": {
-      "synonyms": ["macedonian"]
+      "synonyms": ["Macedonian"]
     },
     "sq-AL": {
-      "synonyms": ["albanian"]
+      "synonyms": ["Albanian"]
     },
     "bs-BA": {
-      "synonyms": ["bosnian"]
+      "synonyms": ["Bosnian"]
     },
     "ur-PK": {
-      "synonyms": ["urdu"]
+      "synonyms": ["Urdu"]
     }
   }
 }

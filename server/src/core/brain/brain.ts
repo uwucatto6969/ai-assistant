@@ -106,6 +106,11 @@ export default class Brain {
     LogHelper.title('Brain')
     LogHelper.info('Talking...')
 
+    if (!answer) {
+      LogHelper.warning('No answer to say')
+      return
+    }
+
     if (answer !== '') {
       const textAnswer = typeof answer === 'string' ? answer : answer.text
       const speechAnswer = typeof answer === 'string' ? answer : answer.speech

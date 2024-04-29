@@ -73,6 +73,7 @@ export class SlotFilling {
       ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
       utterance,
       newUtterance: utterance,
+      skillConfigPath,
       classification: {
         domain,
         skill: skillName,
@@ -110,12 +111,19 @@ export class SlotFilling {
     if (!NLU.conversation.areSlotsAllFilled()) {
       BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
     } else {
+      const { actions } = await SkillDomainHelper.getSkillConfig(
+        skillConfigPath,
+        BRAIN.lang
+      )
+      const nextActionName = NLU.conversation.activeContext.nextAction
+      const hasNextAction = !!nextActionName
+      const doesNextActionHaveAnswers =
+        !!actions[NLU.conversation.activeContext.nextAction]?.answers
+
       NLU.nluResult = {
         ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
         // Assign slots only if there is a next action
-        slots: NLU.conversation.activeContext.nextAction
-          ? NLU.conversation.activeContext.slots
-          : {},
+        slots: hasNextAction ? NLU.conversation.activeContext.slots : {},
         utterance: NLU.conversation.activeContext.originalUtterance ?? '',
         newUtterance: utterance,
         skillConfigPath,
@@ -124,18 +132,19 @@ export class SlotFilling {
           skill: skillName,
           action: NLU.conversation.activeContext.nextAction,
           confidence: 1
-        }
+        },
+        // Prepare answers if the next action has them
+        answers:
+          hasNextAction && doesNextActionHaveAnswers
+            ? (actions[nextActionName]?.answers?.map((answer) => ({
+                answer
+              })) as { answer: string }[])
+            : []
       }
 
       const processedData = await BRAIN.execute(NLU.nluResult)
 
-      /**
-       * Clean active context if the skill action returns isInActionLoop as false
-       * to avoid looping indefinitely in the same action once all slots have been filled
-       */
-      if (processedData.core?.isInActionLoop === false) {
-        NLU.conversation.cleanActiveContext()
-      }
+      NLU.conversation.cleanActiveContext()
 
       return processedData
     }

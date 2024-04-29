@@ -17,10 +17,14 @@
           ]
         }
       ],
+      "next_action": "ready"
+    },
+    "ready": {
+      "type": "dialog",
       "answers": [
-        "Let's start translating to %target_language%.",
-        "Okay, you can input the text you want to translate.",
-        "Alright, let's start translating to %target_language%."
+        "Let's start translating to {{ target_language }}.",
+        "Okay, you can input the text you want to translate to {{ target_language }}.",
+        "Alright, let's start translating to {{ target_language }}."
       ],
       "next_action": "translate"
     },
