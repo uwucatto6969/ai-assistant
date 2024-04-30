@@ -255,7 +255,11 @@ export default class NLU {
 
       LogHelper.title('NLU')
       LogHelper.success(
-        `Intent found: ${this.nluResult.classification.skill}.${this.nluResult.classification.action} (domain: ${this.nluResult.classification.domain})`
+        `Intent found: ${this.nluResult.classification.skill}.${
+          this.nluResult.classification.action
+        } (domain: ${
+          this.nluResult.classification.domain
+        }); Confidence: ${this.nluResult.classification.confidence.toFixed(2)}`
       )
 
       const skillConfigPath = join(
