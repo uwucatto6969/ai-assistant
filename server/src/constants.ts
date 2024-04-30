@@ -163,16 +163,22 @@ export const LEON_FILE_PATH = path.join(process.cwd(), 'leon.json')
 /**
  * LLMs
  */
+// https://huggingface.co/PrunaAI/Phi-3-mini-128k-instruct-GGUF-Imatrix-smashed/blob/main/Phi-3-mini-128k-instruct.Q5_K_S.gguf
 // export const LLM_VERSION = 'v0.2.Q4_K_S'
-export const LLM_VERSION = '3-mini-4k-instruct-q4'
+export const LLM_VERSION = '3-8B-Uncensored-Q5_K_S'
+// export const LLM_VERSION = '3-mini-128k-instruct.Q5_K_S'
+// export const LLM_VERSION = '3-mini-4k-instruct-q4'
 // export const LLM_VERSION = '1.1-7b-it-Q4_K_M'
 // export const LLM_VERSION = '8B-Instruct-Q4_K_S'
 // export const LLM_NAME = 'Mistral 7B Instruct'
-export const LLM_NAME = 'Phi-3-mini'
+export const LLM_NAME = 'Lexi-Llama-3-8B-Uncensored'
+// export const LLM_NAME = 'Phi-3-Mini-128K-Instruct'
+// export const LLM_NAME = 'Phi-3-mini'
 // export const LLM_NAME = 'Gemma 1.1 7B (IT)'
 // export const LLM_NAME = 'Meta Llama 3 8B Instruct'
 // export const LLM_FILE_NAME = `mistral-7b-instruct-${LLM_VERSION}.gguf`
-export const LLM_FILE_NAME = `Phi-${LLM_VERSION}.gguf`
+export const LLM_FILE_NAME = `Lexi-Llama-${LLM_VERSION}.gguf`
+// export const LLM_FILE_NAME = `Phi-${LLM_VERSION}.gguf`
 // export const LLM_FILE_NAME = `gemma-${LLM_VERSION}.gguf`
 // export const LLM_FILE_NAME = `Meta-Llama-3-${LLM_VERSION}.gguf`
 export const LLM_NAME_WITH_VERSION = `${LLM_NAME} (${LLM_VERSION})`
@@ -181,7 +187,11 @@ export const LLM_PATH = path.join(LLM_DIR_PATH, LLM_FILE_NAME)
 export const LLM_MINIMUM_TOTAL_RAM = 8
 export const LLM_MINIMUM_FREE_RAM = 8
 export const LLM_HF_DOWNLOAD_URL =
-  'https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf?download=true'
+  'https://huggingface.co/bartowski/Lexi-Llama-3-8B-Uncensored-GGUF/resolve/main/Lexi-Llama-3-8B-Uncensored-Q5_K_S.gguf?download=true'
+/*export const LLM_HF_DOWNLOAD_URL =
+  'https://huggingface.co/PrunaAI/Phi-3-mini-128k-instruct-GGUF-Imatrix-smashed/resolve/main/Phi-3-mini-128k-instruct.Q5_K_S.gguf?download=true'*/
+/*export const LLM_HF_DOWNLOAD_URL =
+  'https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf?download=true'*/
 /*export const LLM_HF_DOWNLOAD_URL =
   'https://huggingface.co/bartowski/gemma-1.1-7b-it-GGUF/resolve/main/gemma-1.1-7b-it-Q4_K_M.gguf?download=true'*/
 /*export const LLM_HF_DOWNLOAD_URL =
@@ -191,7 +201,11 @@ export const LLM_HF_DOWNLOAD_URL =
 /*export const LLM_MIRROR_DOWNLOAD_URL =
   'https://hf-mirror.com/bartowski/gemma-1.1-7b-it-GGUF/resolve/main/gemma-1.1-7b-it-Q4_K_M.gguf?download=true'*/
 export const LLM_MIRROR_DOWNLOAD_URL =
-  'https://hf-mirror.com/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf?download=true'
+  'https://hf-mirror.com/bartowski/Lexi-Llama-3-8B-Uncensored-GGUF/resolve/main/Lexi-Llama-3-8B-Uncensored-Q5_K_S.gguf?download=true'
+/*export const LLM_MIRROR_DOWNLOAD_URL =
+  'https://hf-mirror.com/PrunaAI/Phi-3-mini-128k-instruct-GGUF-Imatrix-smashed/resolve/main/Phi-3-mini-128k-instruct.Q5_K_S.gguf?download=true'*/
+/*export const LLM_MIRROR_DOWNLOAD_URL =
+  'https://hf-mirror.com/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf?download=true'*/
 /*export const LLM_MIRROR_DOWNLOAD_URL =
   'https://hf-mirror.com/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_S.gguf?download=true'*/
 /*export const LLM_MIRROR_DOWNLOAD_URL =
@@ -199,7 +213,7 @@ export const LLM_MIRROR_DOWNLOAD_URL =
 /**
  * @see llama.cpp releases: https://github.com/ggerganov/llama.cpp/releases
  */
-export const LLM_LLAMA_CPP_RELEASE_TAG = 'b2717'
+export const LLM_LLAMA_CPP_RELEASE_TAG = 'b2768'
 
 /**
  * Misc
