@@ -1,7 +1,8 @@
 export enum LLMDuties {
   CustomNER = 'customer-ner',
   Translation = 'translation',
-  Summarization = 'summarization'
+  Summarization = 'summarization',
+  Paraphrase = 'paraphrase'
   // TODO
   /*SentimentAnalysis = 'sentiment-analysis',
   QuestionAnswering = 'question-answering',

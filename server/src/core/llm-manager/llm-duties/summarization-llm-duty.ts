@@ -12,7 +12,7 @@ interface SummarizationLLMDutyParams extends LLMDutyParams {}
 
 export class SummarizationLLMDuty extends LLMDuty {
   protected readonly systemPrompt =
-    'You are an AI system that can summarize a given text in a few sentences.'
+    'You are an AI system that summarizes a given text in a few sentences.'
   protected readonly name = 'Summarization LLM Duty'
   protected input: LLMDutyParams['input'] = null
 

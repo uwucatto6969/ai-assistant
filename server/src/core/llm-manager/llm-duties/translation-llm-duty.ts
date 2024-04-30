@@ -36,9 +36,9 @@ export class TranslationLLMDuty extends LLMDuty {
     this.data = params.data
 
     if (this.data.autoDetectLanguage && !this.data.source) {
-      this.systemPrompt = `You are an AI system that can translate a given text to "${this.data.target}" by auto-detecting the source language.`
+      this.systemPrompt = `You are an AI system that translates a given text to "${this.data.target}" by auto-detecting the source language.`
     } else {
-      this.systemPrompt = `You are an AI system that can translate a given text from "${this.data.source}" to "${this.data.target}".`
+      this.systemPrompt = `You are an AI system that translates a given text from "${this.data.source}" to "${this.data.target}".`
     }
   }
 

@@ -5,6 +5,7 @@ import { LLMDuties } from '@/core/llm-manager/types'
 import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-duty'
 import { SummarizationLLMDuty } from '@/core/llm-manager/llm-duties/summarization-llm-duty'
 import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
+import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
 import { LLM_MANAGER } from '@/core'
 
 interface PostLLMInferenceSchema {
@@ -19,7 +20,8 @@ interface PostLLMInferenceSchema {
 const LLM_DUTIES_MAP = {
   [LLMDuties.CustomNER]: CustomNERLLMDuty,
   [LLMDuties.Summarization]: SummarizationLLMDuty,
-  [LLMDuties.Translation]: TranslationLLMDuty
+  [LLMDuties.Translation]: TranslationLLMDuty,
+  [LLMDuties.Paraphrase]: ParaphraseLLMDuty
 }
 
 export const postLLMInference: FastifyPluginAsync<APIOptions> = async (

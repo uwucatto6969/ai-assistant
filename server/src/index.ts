@@ -19,6 +19,7 @@ import { Telemetry } from '@/telemetry'
 // import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-duty'
 // import { SummarizationLLMDuty } from '@/core/llm-manager/llm-duties/summarization-llm-duty'
 // import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
+import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
 import { LangHelper } from '@/helpers/lang-helper'
 import { LogHelper } from '@/helpers/log-helper'
 ;(async (): Promise<void> => {
@@ -74,6 +75,11 @@ import { LogHelper } from '@/helpers/log-helper'
       'We’ll be engaging policymakers, educators and artists around the world to understand their concerns and to identify positive use cases for this new technology. Despite extensive research and testing, we cannot predict all of the beneficial ways people will use our technology, nor all the ways people will abuse it. That’s why we believe that learning from real-world use is a critical component of creating and releasing increasingly safe AI systems over time.'
   })
   await summarizationDuty.execute()*/
+
+  const paraphraseDuty = new ParaphraseLLMDuty({
+    input: 'I added your items to the shopping list.'
+  })
+  await paraphraseDuty.execute()
 
   /*const translationDuty = new TranslationLLMDuty({
     input: 'the weather is good in shenzhen',

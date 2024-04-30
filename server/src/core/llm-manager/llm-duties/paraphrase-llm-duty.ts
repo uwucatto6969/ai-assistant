@@ -7,30 +7,22 @@ import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER } from '@/core'
 import { LLMDuties } from '@/core/llm-manager/types'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
+import { getMoodPrompt } from '@/core/llm-manager/personality'
 
-interface CustomNERLLMDutyParams<T> extends LLMDutyParams {
-  data: {
-    schema: T
-  }
-}
+interface ParaphraseLLMDutyParams extends LLMDutyParams {}
 
-export class CustomNERLLMDuty<T> extends LLMDuty {
-  protected readonly systemPrompt =
-    'You are an AI system that extracts entities (Named-Entity Recognition) from a given utterance. E.g. shopping list name = "shopping".'
-  protected readonly name = 'Custom NER LLM Duty'
+export class ParaphraseLLMDuty extends LLMDuty {
+  protected readonly systemPrompt = `${getMoodPrompt()} You are an AI system that generates answers (Natural Language Generation) based on a given text. You modify the text to according to your current mood.`
+  protected readonly name = 'Paraphrase LLM Duty'
   protected input: LLMDutyParams['input'] = null
-  protected data = {
-    schema: null
-  } as CustomNERLLMDutyParams<T>['data']
 
-  constructor(params: CustomNERLLMDutyParams<T>) {
+  constructor(params: ParaphraseLLMDutyParams) {
     super()
 
     LogHelper.title(this.name)
     LogHelper.success('New instance')
 
     this.input = params.input
-    this.data = params.data
   }
 
   public async execute(): Promise<LLMDutyResult | null> {
@@ -51,22 +43,27 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
       const grammar = new LlamaJsonSchemaGrammar(LLM_MANAGER.llama, {
         type: 'object',
         properties: {
-          ...this.data.schema
+          paraphrase: {
+            type: 'string'
+          }
         }
       })
-      const prompt = `${this.systemPrompt} Utterance to parse: ${this.input}`
-      const rawResult = await completion.generateCompletion(prompt, {
-        contextShiftSize: context.contextSize / 2,
+      const prompt = `${this.systemPrompt} Text to paraphrase: ${this.input}`
+      let rawResult = await completion.generateCompletion(prompt, {
         grammar,
         maxTokens: context.contextSize
       })
+      // If a closing bracket is missing, add it
+      if (rawResult[rawResult.length - 1] !== '}') {
+        rawResult += '}'
+      }
       const parsedResult = grammar.parse(rawResult)
       const result = {
-        dutyType: LLMDuties.CustomNER,
+        dutyType: LLMDuties.Paraphrase,
         systemPrompt: this.systemPrompt,
         input: prompt,
         output: parsedResult,
-        data: this.data
+        data: null
       }
 
       LogHelper.title(this.name)
