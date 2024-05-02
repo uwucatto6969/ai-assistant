@@ -117,7 +117,7 @@ export default class NER {
                 LogHelper.warning(
                   'LLM is not enabled. This skill action entity will be ignored.'
                 )
-                BRAIN.talk(`${BRAIN.wernicke('llm_not_enabled')}.`)
+                await BRAIN.talk(`${BRAIN.wernicke('llm_not_enabled')}.`)
 
                 resolve([])
               }

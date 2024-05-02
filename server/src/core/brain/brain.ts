@@ -28,16 +28,22 @@ import {
   NODEJS_BRIDGE_BIN_PATH,
   TMP_PATH
 } from '@/constants'
-import { SOCKET_SERVER, TTS } from '@/core'
+import { LLM_MANAGER, SOCKET_SERVER, TTS } from '@/core'
 import { LangHelper } from '@/helpers/lang-helper'
 import { LogHelper } from '@/helpers/log-helper'
 import { SkillDomainHelper } from '@/helpers/skill-domain-helper'
 import { StringHelper } from '@/helpers/string-helper'
 import { DateHelper } from '@/helpers/date-helper'
+import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
+import { AnswerQueue } from '@/core/brain/answer-queue'
+
+const MIN_NB_OF_WORDS_TO_USE_LLM_NLG = 4
 
 export default class Brain {
   private static instance: Brain
   private _lang: ShortLanguageCode = 'en'
+  private answerQueue = new AnswerQueue<SkillAnswerConfigSchema>()
+  private answerQueueProcessTimerId: NodeJS.Timeout | undefined = undefined
   private broca: GlobalAnswersSchema = JSON.parse(
     fs.readFileSync(
       path.join(process.cwd(), 'core', 'data', this._lang, 'answers.json'),
@@ -48,7 +54,6 @@ export default class Brain {
   private domainFriendlyName = ''
   private skillFriendlyName = ''
   private skillOutput = ''
-  private answers: SkillAnswerConfigSchema[] = []
   public isMuted = false // Close Leon mouth if true; e.g. over HTTP
 
   constructor() {
@@ -57,6 +62,20 @@ export default class Brain {
       LogHelper.success('New instance')
 
       Brain.instance = this
+
+      /**
+       * Clean up the answer queue every 2 hours
+       * to avoid memory leaks
+       */
+      setInterval(
+        () => {
+          if (this.answerQueueProcessTimerId) {
+            this.cleanUpAnswerQueueTimer()
+            this.answerQueue.clear()
+          }
+        },
+        60_000 * 60 * 2
+      )
     }
   }
 
@@ -77,6 +96,98 @@ export default class Brain {
     if (HAS_TTS) {
       this.updateTTSLang(this._lang)
     }
+  }
+
+  /**
+   * Clean up the answer queue timer to avoid multiple timers running
+   */
+  private cleanUpAnswerQueueTimer(intervalId?: NodeJS.Timeout): void {
+    const intervalToCleanUp = intervalId
+      ? intervalId
+      : this.answerQueueProcessTimerId
+
+    clearInterval(intervalToCleanUp)
+
+    if (intervalToCleanUp === this.answerQueueProcessTimerId) {
+      this.answerQueueProcessTimerId = undefined
+    }
+  }
+
+  /**
+   * Process the answer queue in the right order (first in, first out)
+   */
+  private async processAnswerQueue(end = false): Promise<void> {
+    const naturalStartTypingDelay = 500
+    this.answerQueue.isProcessing = true
+
+    // Clean up the timer as we are now already processing the queue for this timer tick
+    if (this.answerQueueProcessTimerId) {
+      this.cleanUpAnswerQueueTimer()
+    }
+    for (let i = 0; i < this.answerQueue.answers.length; i += 1) {
+      /**
+       * Use setTimeout to have a more natural feeling that
+       * Leon is starting to type another message just after sending the previous one
+       */
+      setTimeout(() => {
+        SOCKET_SERVER.socket?.emit('is-typing', true)
+      }, naturalStartTypingDelay)
+      // Next answer to handle
+      const answer = this.answerQueue.pop()
+      let textAnswer = ''
+      let speechAnswer = ''
+
+      if (answer && answer !== '') {
+        textAnswer = typeof answer === 'string' ? answer : answer.text
+        speechAnswer = typeof answer === 'string' ? answer : answer.speech
+
+        if (LLM_MANAGER.isLLMNLGEnabled) {
+          if (speechAnswer === textAnswer || typeof answer === 'string') {
+            /**
+             * Only use LLM NLG if the answer is not too short
+             * otherwise it will be too hard for the model to generate a meaningful text
+             */
+            const nbOfWords = String(answer).split(' ').length
+            if (nbOfWords >= MIN_NB_OF_WORDS_TO_USE_LLM_NLG) {
+              const paraphraseDuty = new ParaphraseLLMDuty({
+                input: textAnswer
+              })
+              const paraphraseResult = await paraphraseDuty.execute()
+
+              textAnswer = paraphraseResult?.output['paraphrase'] as string
+              speechAnswer = textAnswer
+            }
+          }
+        }
+
+        if (HAS_TTS) {
+          // Stripe HTML to a whitespace. Whitespace to let the TTS respects punctuation
+          const speech = speechAnswer.replace(/<(?:.|\n)*?>/gm, ' ')
+
+          TTS.add(speech, end)
+        }
+
+        SOCKET_SERVER.socket?.emit('answer', textAnswer)
+        SOCKET_SERVER.socket?.emit('is-typing', false)
+      }
+    }
+
+    /**
+     * In case new answers have been added answers in the queue while
+     * the queue was being processed, process them
+     */
+    if (!this.answerQueue.isEmpty()) {
+      LogHelper.title('Brain')
+      LogHelper.info(
+        `Answers have been processed. But ${this.answerQueue.answers.length} new answers have been added to the queue while the queue was being processed. Processing them now...`
+      )
+      await this.processAnswerQueue(end)
+    }
+
+    this.answerQueue.isProcessing = false
+    setTimeout(() => {
+      SOCKET_SERVER.socket?.emit('is-typing', false)
+    }, naturalStartTypingDelay)
   }
 
   private async updateTTSLang(newLang: ShortLanguageCode): Promise<void> {
@@ -100,9 +211,12 @@ export default class Brain {
   }
 
   /**
-   * Make Leon talk
+   * Make Leon talk by adding the answer to the answer queue
    */
-  public talk(answer: SkillAnswerConfigSchema, end = false): void {
+  public async talk(
+    answer: SkillAnswerConfigSchema,
+    end = false
+  ): Promise<void> {
     LogHelper.title('Brain')
     LogHelper.info('Talking...')
 
@@ -111,19 +225,20 @@ export default class Brain {
       return
     }
 
-    if (answer !== '') {
-      const textAnswer = typeof answer === 'string' ? answer : answer.text
-      const speechAnswer = typeof answer === 'string' ? answer : answer.speech
-
-      if (HAS_TTS) {
-        // Stripe HTML to a whitespace. Whitespace to let the TTS respects punctuation
-        const speech = speechAnswer.replace(/<(?:.|\n)*?>/gm, ' ')
-
-        TTS.add(speech, end)
+    this.answerQueue.push(answer)
+    /**
+     * If the answer queue is not processing and not empty,
+     * then process the queue,
+     * otherwise clean up the new answer queue timer right away to not have multiple timers running
+     */
+    const answerTimerCheckerId = setInterval(() => {
+      if (!this.answerQueue.isProcessing && !this.answerQueue.isEmpty()) {
+        this.processAnswerQueue(end)
+      } else {
+        this.cleanUpAnswerQueueTimer(answerTimerCheckerId)
       }
-
-      SOCKET_SERVER.socket?.emit('answer', textAnswer)
-    }
+    }, 300)
+    this.answerQueueProcessTimerId = answerTimerCheckerId
   }
 
   /**
@@ -232,7 +347,6 @@ export default class Brain {
         if (!this.isMuted) {
           this.talk(answer)
         }
-        this.answers.push(answer)
         this.skillOutput = data.toString()
 
         return Promise.resolve(null)
@@ -260,10 +374,7 @@ export default class Brain {
 
     if (!this.isMuted) {
       this.talk(speech)
-      SOCKET_SERVER.socket?.emit('is-typing', false)
     }
-
-    this.answers.push(speech)
   }
 
   /**
@@ -434,10 +545,6 @@ export default class Brain {
 
             Brain.deleteIntentObjFile(intentObjectPath)
 
-            if (!this.isMuted) {
-              SOCKET_SERVER.socket?.emit('is-typing', false)
-            }
-
             const executionTimeEnd = Date.now()
             const executionTime = executionTimeEnd - executionTimeStart
 
@@ -595,7 +702,6 @@ export default class Brain {
 
           if (!this.isMuted) {
             this.talk(answer as string, true)
-            SOCKET_SERVER.socket?.emit('is-typing', false)
           }
 
           // Send suggestions to the client

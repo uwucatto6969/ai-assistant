@@ -129,7 +129,7 @@ export class ActionLoop {
 
       // Ensure expected items are in the utterance, otherwise clean context and reprocess
       if (!hasMatchingEntity && !hasMatchingResolver && !hasMatchingUtterance) {
-        BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
+        await BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
         NLU.conversation.cleanActiveContext()
         await NLU.process(utterance)
         return null

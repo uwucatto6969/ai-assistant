@@ -19,7 +19,7 @@ import { Telemetry } from '@/telemetry'
 // import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-duty'
 // import { SummarizationLLMDuty } from '@/core/llm-manager/llm-duties/summarization-llm-duty'
 // import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
-import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
+// import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
 import { LangHelper } from '@/helpers/lang-helper'
 import { LogHelper } from '@/helpers/log-helper'
 ;(async (): Promise<void> => {
@@ -76,10 +76,10 @@ import { LogHelper } from '@/helpers/log-helper'
   })
   await summarizationDuty.execute()*/
 
-  const paraphraseDuty = new ParaphraseLLMDuty({
+  /*const paraphraseDuty = new ParaphraseLLMDuty({
     input: 'I added your items to the shopping list.'
   })
-  await paraphraseDuty.execute()
+  await paraphraseDuty.execute()*/
 
   /*const translationDuty = new TranslationLLMDuty({
     input: 'the weather is good in shenzhen',

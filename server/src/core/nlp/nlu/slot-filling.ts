@@ -100,8 +100,7 @@ export class SlotFilling {
 
         notFilledSlot = NLU.conversation.getNotFilledSlot()
         if (notFilledSlot) {
-          BRAIN.talk(notFilledSlot.pickedQuestion)
-          SOCKET_SERVER.socket?.emit('is-typing', false)
+          await BRAIN.talk(notFilledSlot.pickedQuestion)
 
           return {}
         }
@@ -109,7 +108,7 @@ export class SlotFilling {
     }
 
     if (!NLU.conversation.areSlotsAllFilled()) {
-      BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
+      await BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
     } else {
       const { actions } = await SkillDomainHelper.getSkillConfig(
         skillConfigPath,
@@ -195,8 +194,7 @@ export class SlotFilling {
           ) ?? []
 
         SOCKET_SERVER.socket?.emit('suggest', currentSlot?.suggestions)
-        BRAIN.talk(notFilledSlot.pickedQuestion)
-        SOCKET_SERVER.socket?.emit('is-typing', false)
+        await BRAIN.talk(notFilledSlot.pickedQuestion)
 
         return true
       }

@@ -90,16 +90,16 @@ export default class NLU {
   /**
    * Set new language; recreate a new TCP server with new language; and reprocess understanding
    */
-  private switchLanguage(
+  private async switchLanguage(
     utterance: NLPUtterance,
     locale: ShortLanguageCode
-  ): void {
+  ): Promise<void> {
     const connectedHandler = async (): Promise<void> => {
       await this.process(utterance)
     }
 
     BRAIN.lang = locale
-    BRAIN.talk(`${BRAIN.wernicke('random_language_switch')}.`, true)
+    await BRAIN.talk(`${BRAIN.wernicke('random_language_switch')}.`, true)
 
     // Recreate a new TCP server process and reconnect the TCP client
     kill(global.pythonTCPServerProcess.pid as number, () => {
@@ -130,8 +130,7 @@ export default class NLU {
 
       if (!MODEL_LOADER.hasNlpModels()) {
         if (!BRAIN.isMuted) {
-          BRAIN.talk(`${BRAIN.wernicke('random_errors')}!`)
-          SOCKET_SERVER.socket?.emit('is-typing', false)
+          await BRAIN.talk(`${BRAIN.wernicke('random_errors')}!`)
         }
 
         const msg =
@@ -143,8 +142,7 @@ export default class NLU {
       if (this.shouldBreakActionLoop(utterance)) {
         this.conversation.cleanActiveContext()
 
-        BRAIN.talk(`${BRAIN.wernicke('action_loop_stopped')}.`, true)
-        SOCKET_SERVER.socket?.emit('is-typing', false)
+        await BRAIN.talk(`${BRAIN.wernicke('action_loop_stopped')}.`, true)
 
         return resolve({})
       }
@@ -219,14 +217,16 @@ export default class NLU {
 
       const isSupportedLanguage = LangHelper.getShortCodes().includes(locale)
       if (!isSupportedLanguage) {
-        BRAIN.talk(`${BRAIN.wernicke('random_language_not_supported')}.`, true)
-        SOCKET_SERVER.socket?.emit('is-typing', false)
+        await BRAIN.talk(
+          `${BRAIN.wernicke('random_language_not_supported')}.`,
+          true
+        )
         return resolve({})
       }
 
       // Trigger language switching
       if (BRAIN.lang !== locale) {
-        this.switchLanguage(utterance, locale)
+        await this.switchLanguage(utterance, locale)
         return resolve(null)
       }
 
@@ -237,8 +237,10 @@ export default class NLU {
 
         if (!fallback) {
           if (!BRAIN.isMuted) {
-            BRAIN.talk(`${BRAIN.wernicke('random_unknown_intents')}.`, true)
-            SOCKET_SERVER.socket?.emit('is-typing', false)
+            await BRAIN.talk(
+              `${BRAIN.wernicke('random_unknown_intents')}.`,
+              true
+            )
           }
 
           LogHelper.title('NLU')

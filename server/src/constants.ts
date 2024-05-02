@@ -117,8 +117,6 @@ export const LANG = process.env['LEON_LANG'] as LongLanguageCode
 export const HOST = process.env['LEON_HOST']
 export const PORT = Number(process.env['LEON_PORT'])
 
-export const HAS_LLM = process.env['LEON_LLM'] === 'true'
-
 export const TIME_ZONE = process.env['LEON_TIME_ZONE']
 
 export const HAS_AFTER_SPEECH = process.env['LEON_AFTER_SPEECH'] === 'true'
@@ -163,6 +161,8 @@ export const LEON_FILE_PATH = path.join(process.cwd(), 'leon.json')
 /**
  * LLMs
  */
+export const HAS_LLM = process.env['LEON_LLM'] === 'true'
+export const HAS_LLM_NLG = process.env['LEON_LLM_NLG'] === 'true' && HAS_LLM
 // https://huggingface.co/PrunaAI/Phi-3-mini-128k-instruct-GGUF-Imatrix-smashed/blob/main/Phi-3-mini-128k-instruct.Q5_K_S.gguf
 // export const LLM_VERSION = 'v0.2.Q4_K_S'
 export const LLM_VERSION = '3-8B-Uncensored-Q5_K_S'

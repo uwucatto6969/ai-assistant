@@ -48,7 +48,7 @@ export class ParaphraseLLMDuty extends LLMDuty {
           }
         }
       })
-      const prompt = `${this.systemPrompt} Text to paraphrase: ${this.input}`
+      const prompt = `${this.systemPrompt} Text to paraphrase: "${this.input}"`
       let rawResult = await completion.generateCompletion(prompt, {
         grammar,
         maxTokens: context.contextSize

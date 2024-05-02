@@ -5,7 +5,7 @@
       "type": "logic",
       "utterance_samples": [
         "I want to know my MBTI personality type",
-        "Start a personality type [quiz|questionnaire|test]"
+        "Start a [personality type|MBTI] [quiz|test]"
       ],
       "next_action": "quiz"
     },

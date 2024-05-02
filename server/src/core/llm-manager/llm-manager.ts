@@ -4,6 +4,7 @@ import type { Llama, LlamaModel } from 'node-llama-cpp'
 
 import {
   HAS_LLM,
+  HAS_LLM_NLG,
   LLM_MINIMUM_FREE_RAM,
   LLM_NAME_WITH_VERSION,
   LLM_PATH
@@ -24,6 +25,7 @@ export const LLM_THREADS = 4
 export default class LLMManager {
   private static instance: LLMManager
   private _isLLMEnabled = false
+  private _isLLMNLGEnabled = false
   private _llama: LLMManagerLlama = null
   private _model: LLMManagerModel = null
 
@@ -37,6 +39,10 @@ export default class LLMManager {
 
   get isLLMEnabled(): boolean {
     return this._isLLMEnabled
+  }
+
+  get isLLMNLGEnabled(): boolean {
+    return this._isLLMNLGEnabled
   }
 
   constructor() {
@@ -99,6 +105,10 @@ export default class LLMManager {
         modelPath: LLM_PATH
       })
       this._isLLMEnabled = true
+
+      if (HAS_LLM_NLG) {
+        this._isLLMNLGEnabled = true
+      }
 
       LogHelper.success(`${LLM_NAME_WITH_VERSION} LLM has been loaded`)
     } catch (e) {
