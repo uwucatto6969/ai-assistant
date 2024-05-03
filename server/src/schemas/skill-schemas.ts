@@ -179,6 +179,12 @@ export const skillConfigSchemaObject = Type.Strict(
       Type.Object(
         {
           type: Type.Union(skillActionTypes),
+          disable_llm_nlg: Type.Optional(
+            Type.Boolean({
+              description:
+                'Disable the LLM (Large Language Model) for NLG (Natural Language Generation) in the action.'
+            })
+          ),
           loop: Type.Optional(
             Type.Object(
               {

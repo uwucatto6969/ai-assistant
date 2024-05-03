@@ -1,5 +1,6 @@
 import type { ShortLanguageCode } from '@/types'
 import type { BrainProcessResult } from '@/core/brain/types'
+import { SkillConfigSchema } from '@/schemas/skill-schemas'
 
 /**
  * NLP types
@@ -93,6 +94,7 @@ export interface NLUResult {
     score?: NLPJSProcessResult['sentiment']['score']
   }
   classification: NLUClassification
+  actionConfig: SkillConfigSchema['actions'][NLPAction] | null
 }
 
 export type NLUSlots = Record<string, NLUSlot>

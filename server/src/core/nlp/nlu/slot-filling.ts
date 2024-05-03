@@ -69,7 +69,7 @@ export class SlotFilling {
       BRAIN.lang + '.json'
     )
 
-    NLU.nluResult = {
+    await NLU.setNLUResult({
       ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
       utterance,
       newUtterance: utterance,
@@ -80,7 +80,7 @@ export class SlotFilling {
         action: actionName,
         confidence: 1
       }
-    }
+    })
 
     const entities = await NER.extractEntities(
       BRAIN.lang,
@@ -119,7 +119,7 @@ export class SlotFilling {
       const doesNextActionHaveAnswers =
         !!actions[NLU.conversation.activeContext.nextAction]?.answers
 
-      NLU.nluResult = {
+      await NLU.setNLUResult({
         ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
         // Assign slots only if there is a next action
         slots: hasNextAction ? NLU.conversation.activeContext.slots : {},
@@ -139,7 +139,7 @@ export class SlotFilling {
                 answer
               })) as { answer: string }[])
             : []
-      }
+      })
 
       const processedData = await BRAIN.execute(NLU.nluResult)
 

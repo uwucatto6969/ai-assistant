@@ -3,6 +3,7 @@
   "actions": {
     "run": {
       "type": "dialog",
+      "disable_llm_nlg": true,
       "utterance_samples": [
         "Tell me a joke",
         "Give me a joke",

@@ -15,6 +15,7 @@ import ModelLoader from '@/core/nlp/nlu/model-loader'
 import NaturalLanguageUnderstanding from '@/core/nlp/nlu/nlu'
 import Brain from '@/core/brain/brain'
 import LLMManager from '@/core/llm-manager/llm-manager'
+import Persona from '@/core/llm-manager/persona'
 
 /**
  * Register core nodes
@@ -31,6 +32,8 @@ export const PYTHON_TCP_CLIENT = new TCPClient(
  */
 
 export const LLM_MANAGER = new LLMManager()
+
+export const PERSONA = new Persona()
 
 export const HTTP_SERVER = new HTTPServer(String(HOST), PORT)
 

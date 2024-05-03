@@ -28,7 +28,7 @@ import {
   NODEJS_BRIDGE_BIN_PATH,
   TMP_PATH
 } from '@/constants'
-import { LLM_MANAGER, SOCKET_SERVER, TTS } from '@/core'
+import { LLM_MANAGER, NLU, SOCKET_SERVER, TTS } from '@/core'
 import { LangHelper } from '@/helpers/lang-helper'
 import { LogHelper } from '@/helpers/log-helper'
 import { SkillDomainHelper } from '@/helpers/skill-domain-helper'
@@ -37,7 +37,7 @@ import { DateHelper } from '@/helpers/date-helper'
 import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
 import { AnswerQueue } from '@/core/brain/answer-queue'
 
-const MIN_NB_OF_WORDS_TO_USE_LLM_NLG = 4
+const MIN_NB_OF_WORDS_TO_USE_LLM_NLG = 5
 
 export default class Brain {
   private static instance: Brain
@@ -141,7 +141,25 @@ export default class Brain {
         textAnswer = typeof answer === 'string' ? answer : answer.text
         speechAnswer = typeof answer === 'string' ? answer : answer.speech
 
-        if (LLM_MANAGER.isLLMNLGEnabled) {
+        const { actionConfig: currentActionConfig } = NLU.nluResult
+        const hasLoopConfig = !!currentActionConfig?.loop
+        const hasSlotsConfig = !!currentActionConfig?.slots
+        const isLLMNLGDisabled = !!currentActionConfig?.disable_llm_nlg
+
+        /**
+         * Only use LLM NLG if:
+         * - It is not specifically disabled in the action config
+         * - It is enabled in general
+         * - The current action does not have a loop neither slots configuration
+         * (Because sometimes the LLM will not be able to generate a meaningful text,
+         * and it will mislead the conversation)
+         */
+        if (
+          !isLLMNLGDisabled &&
+          LLM_MANAGER.isLLMNLGEnabled &&
+          !hasLoopConfig &&
+          !hasSlotsConfig
+        ) {
           if (speechAnswer === textAnswer || typeof answer === 'string') {
             /**
              * Only use LLM NLG if the answer is not too short
@@ -154,7 +172,9 @@ export default class Brain {
               })
               const paraphraseResult = await paraphraseDuty.execute()
 
-              textAnswer = paraphraseResult?.output['paraphrase'] as string
+              textAnswer = paraphraseResult?.output[
+                'text_alternative'
+              ] as string
               speechAnswer = textAnswer
             }
           }
@@ -644,6 +664,7 @@ export default class Brain {
                * Normalize data to browse (entities and slots)
                */
               const dataToBrowse = [
+                ...nluResult.currentEntities,
                 ...nluResult.entities,
                 ...Object.values(nluResult.slots).map((slot) => ({
                   ...slot.value,

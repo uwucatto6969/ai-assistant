@@ -28,6 +28,7 @@ import { ActionLoop } from '@/core/nlp/nlu/action-loop'
 import { SlotFilling } from '@/core/nlp/nlu/slot-filling'
 import Conversation, { DEFAULT_ACTIVE_CONTEXT } from '@/core/nlp/conversation'
 import { Telemetry } from '@/telemetry'
+import { SkillDomainHelper } from '@/helpers/skill-domain-helper'
 
 export const DEFAULT_NLU_RESULT = {
   utterance: '',
@@ -45,13 +46,43 @@ export const DEFAULT_NLU_RESULT = {
     skill: '',
     action: '',
     confidence: 0
-  }
+  },
+  actionConfig: null
 }
 
 export default class NLU {
   private static instance: NLU
-  public nluResult: NLUResult = DEFAULT_NLU_RESULT
+  private _nluResult: NLUResult = DEFAULT_NLU_RESULT
   public conversation = new Conversation('conv0')
+
+  get nluResult(): NLUResult {
+    return this._nluResult
+  }
+
+  async setNLUResult(newNLUResult: NLUResult): Promise<void> {
+    const skillConfigPath = newNLUResult.skillConfigPath
+      ? newNLUResult.skillConfigPath
+      : join(
+          process.cwd(),
+          'skills',
+          newNLUResult.classification.domain,
+          newNLUResult.classification.skill,
+          'config',
+          BRAIN.lang + '.json'
+        )
+    const { actions } = await SkillDomainHelper.getSkillConfig(
+      skillConfigPath,
+      BRAIN.lang
+    )
+
+    this._nluResult = {
+      ...newNLUResult,
+      skillConfigPath,
+      actionConfig: actions[
+        newNLUResult.classification.action
+      ] as NLUResult['actionConfig']
+    }
+  }
 
   constructor() {
     if (!NLU.instance) {
@@ -201,7 +232,7 @@ export default class NLU {
       }
 
       const [skillName, actionName] = intent.split('.')
-      this.nluResult = {
+      await this.setNLUResult({
         ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
         utterance,
         newUtterance: utterance,
@@ -213,7 +244,7 @@ export default class NLU {
           action: actionName || '',
           confidence: score
         }
-      }
+      })
 
       const isSupportedLanguage = LangHelper.getShortCodes().includes(locale)
       if (!isSupportedLanguage) {
@@ -252,33 +283,33 @@ export default class NLU {
           return resolve(null)
         }
 
-        this.nluResult = fallback
+        await this.setNLUResult(fallback)
       }
 
       LogHelper.title('NLU')
       LogHelper.success(
-        `Intent found: ${this.nluResult.classification.skill}.${
-          this.nluResult.classification.action
+        `Intent found: ${this._nluResult.classification.skill}.${
+          this._nluResult.classification.action
         } (domain: ${
-          this.nluResult.classification.domain
-        }); Confidence: ${this.nluResult.classification.confidence.toFixed(2)}`
+          this._nluResult.classification.domain
+        }); Confidence: ${this._nluResult.classification.confidence.toFixed(2)}`
       )
 
       const skillConfigPath = join(
         process.cwd(),
         'skills',
-        this.nluResult.classification.domain,
-        this.nluResult.classification.skill,
+        this._nluResult.classification.domain,
+        this._nluResult.classification.skill,
         'config',
         BRAIN.lang + '.json'
       )
-      this.nluResult.skillConfigPath = skillConfigPath
+      this._nluResult.skillConfigPath = skillConfigPath
 
       try {
-        this.nluResult.entities = await NER.extractEntities(
+        this._nluResult.entities = await NER.extractEntities(
           BRAIN.lang,
           skillConfigPath,
-          this.nluResult
+          this._nluResult
         )
       } catch (e) {
         LogHelper.error(`Failed to extract entities: ${e}`)
@@ -301,7 +332,7 @@ export default class NLU {
         }
       }
 
-      const newContextName = `${this.nluResult.classification.domain}.${skillName}`
+      const newContextName = `${this._nluResult.classification.domain}.${skillName}`
       if (this.conversation.activeContext.name !== newContextName) {
         this.conversation.cleanActiveContext()
       }
@@ -310,22 +341,22 @@ export default class NLU {
         lang: BRAIN.lang,
         slots: {},
         isInActionLoop: false,
-        originalUtterance: this.nluResult.utterance,
+        originalUtterance: this._nluResult.utterance,
         newUtterance: utterance,
-        skillConfigPath: this.nluResult.skillConfigPath,
-        actionName: this.nluResult.classification.action,
-        domain: this.nluResult.classification.domain,
+        skillConfigPath: this._nluResult.skillConfigPath,
+        actionName: this._nluResult.classification.action,
+        domain: this._nluResult.classification.domain,
         intent,
-        entities: this.nluResult.entities
+        entities: this._nluResult.entities
       })
       // Pass current utterance entities to the NLU result object
-      this.nluResult.currentEntities =
+      this._nluResult.currentEntities =
         this.conversation.activeContext.currentEntities
       // Pass context entities to the NLU result object
-      this.nluResult.entities = this.conversation.activeContext.entities
+      this._nluResult.entities = this.conversation.activeContext.entities
 
       try {
-        const processedData = await BRAIN.execute(this.nluResult)
+        const processedData = await BRAIN.execute(this._nluResult)
 
         // Prepare next action if there is one queuing
         if (processedData.nextAction) {
@@ -374,7 +405,7 @@ export default class NLU {
    * according to the wished skill action
    */
   private fallback(fallbacks: Language['fallbacks']): NLUResult | null {
-    const words = this.nluResult.utterance.toLowerCase().split(' ')
+    const words = this._nluResult.utterance.toLowerCase().split(' ')
 
     if (fallbacks.length > 0) {
       LogHelper.info('Looking for fallbacks...')
@@ -388,16 +419,16 @@ export default class NLU {
         }
 
         if (JSON.stringify(tmpWords) === JSON.stringify(fallbacks[i]?.words)) {
-          this.nluResult.entities = []
-          this.nluResult.classification.domain = fallbacks[i]
+          this._nluResult.entities = []
+          this._nluResult.classification.domain = fallbacks[i]
             ?.domain as NLPDomain
-          this.nluResult.classification.skill = fallbacks[i]?.skill as NLPSkill
-          this.nluResult.classification.action = fallbacks[i]
+          this._nluResult.classification.skill = fallbacks[i]?.skill as NLPSkill
+          this._nluResult.classification.action = fallbacks[i]
             ?.action as NLPAction
-          this.nluResult.classification.confidence = 1
+          this._nluResult.classification.confidence = 1
 
           LogHelper.success('Fallback found')
-          return this.nluResult
+          return this._nluResult
         }
       }
     }

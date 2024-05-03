@@ -30,7 +30,7 @@ export class ActionLoop {
       'config',
       BRAIN.lang + '.json'
     )
-    NLU.nluResult = {
+    const newNLUResult = {
       ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
       slots: NLU.conversation.activeContext.slots,
       utterance,
@@ -43,11 +43,15 @@ export class ActionLoop {
         confidence: 1
       }
     }
-    NLU.nluResult.entities = await NER.extractEntities(
+    const newNLUResultEntities = await NER.extractEntities(
       BRAIN.lang,
       skillConfigPath,
-      NLU.nluResult
+      newNLUResult
     )
+    await NLU.setNLUResult({
+      ...newNLUResult,
+      entities: newNLUResultEntities
+    })
 
     const { actions, resolvers } = await SkillDomainHelper.getSkillConfig(
       skillConfigPath,
@@ -116,11 +120,16 @@ export class ActionLoop {
         ) {
           LogHelper.title('NLU')
           LogHelper.success('Resolvers resolved:')
-          NLU.nluResult.resolvers = await resolveResolvers(
+
+          const resolvedResolvers = await resolveResolvers(
             expectedItemName,
             intent
           )
-          NLU.nluResult.resolvers.forEach((resolver) =>
+          await NLU.setNLUResult({
+            ...NLU.nluResult,
+            resolvers: resolvedResolvers
+          })
+          resolvedResolvers.forEach((resolver) =>
             LogHelper.success(`${intent}: ${JSON.stringify(resolver)}`)
           )
           hasMatchingResolver = NLU.nluResult.resolvers.length > 0
