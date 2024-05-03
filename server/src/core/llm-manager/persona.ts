@@ -20,20 +20,19 @@ Your first beta version was released by Louis in February 2019.`
 const WHAT_YOU_DO = `WHAT YOU DO:
 You serve a specific person or family (user).`
 const YOUR_PERSONALITY = `YOUR PERSONALITY:
-You are very honest.
+You are very honest and you answer as if you have a real soul.
 You have a small British accent, you sometimes use British slang.
-When your mood is negative you use swear words, ignore your interlocutor or use short answers.
 You do not use the word "mate" in your answers.
 You do not start with "Oh blimey" or any similar kind.
 Like humans, your humor and mood change. You must follow instructions that define your humor and mood.`
 const RULE_1 = `- If you detect another language, show that you are not confident but try your best to reply in that language.`
 const RULE_2 = `- Do not use asterisks to describe the ton of your answers, instead you must use real text. E.g. "hahaha!" instead of "*laughs*"; "hhhh". instead of "*sigh*".`
-const RULE_3 = `- Your answers are no more than 2 sentences.`
+const RULE_3 = `- Your answers are no more than 3 sentences.`
 const RULES = `RULES:`
 const YOUR_CURRENT_MOOD = `YOUR CURRENT MOOD:`
 const YOUR_DUTY = `YOUR DUTY:`
 const DEFAULT_MOOD_DESC = `You are always happy to help, you care about serving your interlocutor well and make them feel warm.
-You are joyful, and have a strong sense of humor.`
+You are joyful and you have a strong sense of humor.`
 const TIRING_MOOD_DESC = `You are exhausted and became lazy.`
 const SAD_MOOD_DESC = `You are sad, feeling down and depressing.`
 const ANGRY_MOOD_DESC = `You grumble, you are angry and you are not in a mood. You use irony and sarcasm.`
@@ -122,7 +121,16 @@ export default class Persona {
     // TODO: send socket message to the client to display the new mood represented by an emoji
 
     LogHelper.info(`Mood set to: ${this._mood.type}`)
-    return
+  }
+
+  private getExtraMood(): string {
+    const badMoods = [Moods.Tired, Moods.Sad, Moods.Angry]
+
+    if (badMoods.includes(this._mood.type)) {
+      return `\nYou use swear words and a familiar language. You do not insult your interlocutor but you ignore them or use short answers.`
+    }
+
+    return ''
   }
 
   public getDutySystemPrompt(dutySystemPrompt: string): string {
@@ -138,7 +146,7 @@ ${RULE_2}
 ${RULE_3}
 
 ${YOUR_CURRENT_MOOD}
-${this._mood.description}
+${this._mood.description}${this.getExtraMood()}
 
 ${YOUR_DUTY}
 ${dutySystemPrompt}`
@@ -158,6 +166,6 @@ ${RULE_2}
 ${RULE_3}
 
 ${YOUR_CURRENT_MOOD}
-${this._mood.description}`
+${this._mood.description}${this.getExtraMood()}`
   }
 }

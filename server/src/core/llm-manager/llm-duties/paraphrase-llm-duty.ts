@@ -4,14 +4,16 @@ import {
   LLMDuty
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
-import { LLM_MANAGER, PERSONA } from '@/core'
+import { LLM_MANAGER, PERSONA, NLU } from '@/core'
 import { LLMDuties } from '@/core/llm-manager/types'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
 
 interface ParaphraseLLMDutyParams extends LLMDutyParams {}
 
 export class ParaphraseLLMDuty extends LLMDuty {
-  protected readonly systemPrompt = `You are an AI system that generates answers (Natural Language Generation) based on a given text. Provide a text alternative of the given text according to your current mood. You do not ask follow up question if the original text does not contain any.`
+  protected readonly systemPrompt = `You are an AI system that generates answers (Natural Language Generation) based on a given text.
+According to your current mood, your personality and the given utterance, you must provide a text alternative of the given text.
+You do not ask follow up question if the original text does not contain any.`
   protected readonly name = 'Paraphrase LLM Duty'
   protected input: LLMDutyParams['input'] = null
 
@@ -48,11 +50,11 @@ export class ParaphraseLLMDuty extends LLMDuty {
           }
         }
       })
-      const prompt = `TEXT TO MODIFY:\n"${this.input}"`
+      const prompt = `CONTEXT UTTERANCE FROM USER:\n"${NLU.nluResult.newUtterance}"\nTEXT TO MODIFY:\n"${this.input}"`
       let rawResult = await session.prompt(prompt, {
         grammar,
-        maxTokens: context.contextSize
-        // temperature: 0.2
+        maxTokens: context.contextSize,
+        temperature: 1.0
       })
       // If a closing bracket is missing, add it
       if (rawResult[rawResult.length - 1] !== '}') {
