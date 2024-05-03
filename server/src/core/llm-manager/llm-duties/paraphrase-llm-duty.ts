@@ -38,7 +38,7 @@ export class ParaphraseLLMDuty extends LLMDuty {
       })
       const session = new LlamaChatSession({
         contextSequence: context.getSequence(),
-        systemPrompt: this.systemPrompt
+        systemPrompt: PERSONA.getDutySystemPrompt(this.systemPrompt)
       })
       const grammar = new LlamaJsonSchemaGrammar(LLM_MANAGER.llama, {
         type: 'object',

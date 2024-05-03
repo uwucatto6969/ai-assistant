@@ -56,9 +56,8 @@ export default class LLMManager {
   }
 
   public async loadLLM(): Promise<void> {
-    LogHelper.title('LLM Manager')
-
     if (!HAS_LLM) {
+      LogHelper.title('LLM Manager')
       LogHelper.warning(
         'LLM is not enabled because you have explicitly disabled it'
       )
@@ -77,6 +76,7 @@ export default class LLMManager {
      * the current free RAM is enough to load the LLM
      */
     if (!isLLMPathFound && isCurrentFreeRAMEnough) {
+      LogHelper.title('LLM Manager')
       LogHelper.warning(
         'The LLM is not set up yet whereas the current free RAM is enough to enable it. You can run the following command to set it up: "npm install"'
       )
@@ -88,6 +88,7 @@ export default class LLMManager {
      * the current free RAM is not enough to load the LLM
      */
     if (isLLMPathFound && !isCurrentFreeRAMEnough) {
+      LogHelper.title('LLM Manager')
       LogHelper.warning(
         'There is not enough free RAM to load the LLM. So the LLM will not be enabled.'
       )
@@ -100,6 +101,7 @@ export default class LLMManager {
      * the total RAM is enough to load the LLM
      */
     if (!isLLMPathFound && isTotalRAMEnough) {
+      LogHelper.title('LLM Manager')
       LogHelper.warning(
         `LLM is not enabled because it is not found at "${LLM_PATH}". Run the following command to set it up: "npm install"`
       )
@@ -113,7 +115,8 @@ export default class LLMManager {
       )()
 
       this._llama = await getLlama({
-        logLevel: LlamaLogLevel.debug
+        logLevel: LlamaLogLevel.disabled
+        // logLevel: LlamaLogLevel.debug
       })
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
@@ -126,8 +129,10 @@ export default class LLMManager {
         this._isLLMNLGEnabled = true
       }
 
+      LogHelper.title('LLM Manager')
       LogHelper.success(`${LLM_NAME_WITH_VERSION} LLM has been loaded`)
     } catch (e) {
+      LogHelper.title('LLM Manager')
       LogHelper.error(`LLM Manager failed to load: ${e}`)
     }
   }

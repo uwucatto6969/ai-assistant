@@ -30,15 +30,16 @@ export class SummarizationLLMDuty extends LLMDuty {
     LogHelper.info('Executing...')
 
     try {
-      const { LlamaCompletion, LlamaJsonSchemaGrammar } = await Function(
+      const { LlamaJsonSchemaGrammar, LlamaChatSession } = await Function(
         'return import("node-llama-cpp")'
       )()
 
       const context = await LLM_MANAGER.model.createContext({
         threads: LLM_THREADS
       })
-      const completion = new LlamaCompletion({
-        contextSequence: context.getSequence()
+      const session = new LlamaChatSession({
+        contextSequence: context.getSequence(),
+        systemPrompt: this.systemPrompt
       })
       const grammar = new LlamaJsonSchemaGrammar(LLM_MANAGER.llama, {
         type: 'object',
@@ -48,11 +49,16 @@ export class SummarizationLLMDuty extends LLMDuty {
           }
         }
       })
-      const prompt = `${this.systemPrompt} Text to summarize: "${this.input}"`
-      const rawResult = await completion.generateCompletion(prompt, {
+      const prompt = `TEXT TO SUMMARIZE:\n"${this.input}"`
+      let rawResult = await session.prompt(prompt, {
         grammar,
         maxTokens: context.contextSize
+        // temperature: 0.2
       })
+      // If a closing bracket is missing, add it
+      if (rawResult[rawResult.length - 1] !== '}') {
+        rawResult += '}'
+      }
       const parsedResult = grammar.parse(rawResult)
       const result = {
         dutyType: LLMDuties.Summarization,
