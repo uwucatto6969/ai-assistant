@@ -141,6 +141,7 @@ export const IS_TELEMETRY_ENABLED = process.env['LEON_TELEMETRY'] === 'true'
  * Paths
  */
 export const BIN_PATH = path.join(process.cwd(), 'bin')
+export const LOGS_PATH = path.join(process.cwd(), 'logs')
 export const SKILLS_PATH = path.join(process.cwd(), 'skills')
 export const GLOBAL_DATA_PATH = path.join(process.cwd(), 'core', 'data')
 export const MODELS_PATH = path.join(GLOBAL_DATA_PATH, 'models')
@@ -163,7 +164,6 @@ export const LEON_FILE_PATH = path.join(process.cwd(), 'leon.json')
  */
 export const HAS_LLM = process.env['LEON_LLM'] === 'true'
 export const HAS_LLM_NLG = process.env['LEON_LLM_NLG'] === 'true' && HAS_LLM
-// https://huggingface.co/PrunaAI/Phi-3-mini-128k-instruct-GGUF-Imatrix-smashed/blob/main/Phi-3-mini-128k-instruct.Q5_K_S.gguf
 // export const LLM_VERSION = 'v0.2.Q4_K_S'
 export const LLM_VERSION = '3-8B-Uncensored-Q5_K_S'
 // export const LLM_VERSION = '3-mini-128k-instruct.Q5_K_S'

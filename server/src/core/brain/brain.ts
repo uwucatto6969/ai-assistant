@@ -36,6 +36,7 @@ import { StringHelper } from '@/helpers/string-helper'
 import { DateHelper } from '@/helpers/date-helper'
 import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
 import { AnswerQueue } from '@/core/brain/answer-queue'
+import { ConversationLogger } from '@/conversation-logger'
 
 const MIN_NB_OF_WORDS_TO_USE_LLM_NLG = 5
 
@@ -173,7 +174,7 @@ export default class Brain {
               const paraphraseResult = await paraphraseDuty.execute()
 
               textAnswer = paraphraseResult?.output[
-                'text_alternative'
+                'rephrased_answer'
               ] as string
               speechAnswer = textAnswer
             }
@@ -189,6 +190,11 @@ export default class Brain {
 
         SOCKET_SERVER.socket?.emit('answer', textAnswer)
         SOCKET_SERVER.socket?.emit('is-typing', false)
+
+        await ConversationLogger.push({
+          who: 'leon',
+          message: textAnswer
+        })
       }
     }
 

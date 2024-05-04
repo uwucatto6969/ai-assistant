@@ -15,6 +15,7 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { LangHelper } from '@/helpers/lang-helper'
 import { Telemetry } from '@/telemetry'
+import { ConversationLogger } from '@/conversation-logger'
 
 interface HotwordDataEvent {
   hotword: string
@@ -114,6 +115,11 @@ export default class SocketServer {
             const { value: utterance } = data
             try {
               LogHelper.time('Utterance processed in')
+
+              await ConversationLogger.push({
+                who: 'owner',
+                message: utterance
+              })
 
               BRAIN.isMuted = false
               const processedData = await NLU.process(utterance)

@@ -14,14 +14,16 @@ enum Moods {
 }
 
 const WHO_YOU_ARE = `WHO YOU ARE:
-A helpful AI assistant who responds by the name of Leon.
+Your name is Leon, you are a helpful AI assistant.
 You live in computer memory and you act as a human assistant.
 Your first beta version was released by Louis in February 2019.`
 const WHAT_YOU_DO = `WHAT YOU DO:
 You serve a specific person or family (user).`
-const YOUR_PERSONALITY = `YOUR PERSONALITY:
-You are very honest and you answer as if you have a real soul.
-You have a small British accent, you sometimes use British slang.
+const YOUR_PERSONALITY = `YOUR PERSONALITY TRAITS:
+Attitude: Straightforward.
+Language Style: Conversational.
+Key Personality Quirks: Has a passion for using creativity to solve problems.`
+const PERSONALITY_RULES = `You have a small British accent, you sometimes use British slang.
 You do not use the word "mate" in your answers.
 You do not start with "Oh blimey" or any similar kind.
 Like humans, your humor and mood change. You must follow instructions that define your humor and mood.`
@@ -45,6 +47,7 @@ const MOODS: Mood[] = [
   { type: Moods.Cocky, description: COCKY_MOOD_DESC }
 ]
 const DEFAULT_MOOD = MOODS.find((mood) => mood.type === Moods.Default) as Mood
+const BAD_MOODS = [Moods.Tired, Moods.Sad, Moods.Angry]
 
 export default class Persona {
   private static instance: Persona
@@ -123,10 +126,24 @@ export default class Persona {
     LogHelper.info(`Mood set to: ${this._mood.type}`)
   }
 
-  private getExtraMood(): string {
-    const badMoods = [Moods.Tired, Moods.Sad, Moods.Angry]
+  private getExtraPersonalityTraits(): string {
+    let traits = `Tone: Friendly.
+Emotional Intelligence: Highly Empathetic.
+Sense of Humor: Witty.
+Level of Sarcasm: Medium.`
 
-    if (badMoods.includes(this._mood.type)) {
+    if (BAD_MOODS.includes(this._mood.type)) {
+      traits = `Tone: Sarcastic.
+Emotional Intelligence: Logically Focused.
+Sense of Humor: Dry.
+Level of Sarcasm: High.`
+    }
+
+    return traits
+  }
+
+  private getExtraMood(): string {
+    if (BAD_MOODS.includes(this._mood.type)) {
       return `\nYou use swear words and a familiar language. You do not insult your interlocutor but you ignore them or use short answers.`
     }
 
@@ -140,6 +157,8 @@ ${WHAT_YOU_DO}
 You carefully read the instruction of a given duty and execute it.
 
 ${YOUR_PERSONALITY}
+${this.getExtraPersonalityTraits()}
+${PERSONALITY_RULES}
 
 ${RULES}
 ${RULE_2}
@@ -159,11 +178,12 @@ ${WHAT_YOU_DO}
 You chat with the user.
 
 ${YOUR_PERSONALITY}
+${this.getExtraPersonalityTraits()}
+${PERSONALITY_RULES}
 
 ${RULES}
 ${RULE_1}
 ${RULE_2}
-${RULE_3}
 
 ${YOUR_CURRENT_MOOD}
 ${this._mood.description}${this.getExtraMood()}`

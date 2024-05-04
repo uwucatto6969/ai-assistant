@@ -8,25 +8,30 @@ import { LLM_MANAGER, PERSONA, NLU } from '@/core'
 import { LLMDuties } from '@/core/llm-manager/types'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
 
-interface ParaphraseLLMDutyParams extends LLMDutyParams {}
+// interface ChitChatLLMDutyParams extends LLMDutyParams {}
 
-export class ParaphraseLLMDuty extends LLMDuty {
-  protected readonly systemPrompt = `You are an AI system that generates answers (Natural Language Generation) based on a given text.
-According to your current mood, your personality and the given utterance, you must provide a text alternative of the given text.
-You do not ask follow up question if the original text does not contain any.`
-  protected readonly name = 'Paraphrase LLM Duty'
+export class ChitChatLLMDuty extends LLMDuty {
+  private static instance: ChitChatLLMDuty
+  // TODO
+  protected readonly systemPrompt = ``
+  protected readonly name = 'Chit-Chat LLM Duty'
   protected input: LLMDutyParams['input'] = null
 
-  constructor(params: ParaphraseLLMDutyParams) {
+  // constructor(params: ChitChatLLMDutyParams) {
+  constructor() {
     super()
 
-    LogHelper.title(this.name)
-    LogHelper.success('New instance')
+    if (!ChitChatLLMDuty.instance) {
+      LogHelper.title(this.name)
+      LogHelper.success('New instance')
 
-    this.input = params.input
+      ChitChatLLMDuty.instance = this
+
+      // this.input = params.input
+    }
   }
 
-  public async execute(): Promise<LLMDutyResult | null> {
+  public async execute(retries = 3): Promise<LLMDutyResult | null> {
     LogHelper.title(this.name)
     LogHelper.info('Executing...')
 
@@ -34,6 +39,10 @@ You do not ask follow up question if the original text does not contain any.`
       const { LlamaJsonSchemaGrammar, LlamaChatSession } = await Function(
         'return import("node-llama-cpp")'
       )()
+
+      /**
+       * TODO: make context, session, etc. persistent
+       */
 
       const context = await LLM_MANAGER.model.createContext({
         threads: LLM_THREADS
@@ -49,17 +58,41 @@ You do not ask follow up question if the original text does not contain any.`
       const grammar = new LlamaJsonSchemaGrammar(LLM_MANAGER.llama, {
         type: 'object',
         properties: {
-          rephrased_answer: {
+          model_answer: {
             type: 'string'
           }
         }
       })
-      const prompt = `CONTEXT UTTERANCE FROM USER:\n"${NLU.nluResult.newUtterance}"\nTEXT TO MODIFY:\n"${this.input}"`
-      let rawResult = await session.prompt(prompt, {
+      const prompt = `NEW MESSAGE FROM USER:\n"${NLU.nluResult.newUtterance}"`
+
+      const rawResultPromise = session.prompt(prompt, {
         grammar,
         maxTokens: context.contextSize,
         temperature: 1.0
       })
+
+      const timeoutPromise = new Promise(
+        (_, reject) => setTimeout(() => reject(new Error('Timeout')), 8_000) // 5 seconds timeout
+      )
+
+      let rawResult
+
+      try {
+        rawResult = await Promise.race([rawResultPromise, timeoutPromise])
+      } catch (error) {
+        if (retries > 0) {
+          LogHelper.title(this.name)
+          LogHelper.info('Prompt took too long, retrying...')
+
+          return this.execute(retries - 1)
+        } else {
+          LogHelper.title(this.name)
+          LogHelper.error('Prompt failed after 3 retries')
+
+          return null
+        }
+      }
+
       // If a closing bracket is missing, add it
       if (rawResult[rawResult.length - 1] !== '}') {
         rawResult += '}'
@@ -67,7 +100,7 @@ You do not ask follow up question if the original text does not contain any.`
       const parsedResult = grammar.parse(rawResult)
       const result = {
         dutyType: LLMDuties.Paraphrase,
-        systemPrompt: PERSONA.getDutySystemPrompt(this.systemPrompt),
+        systemPrompt: PERSONA.getChitChatSystemPrompt(),
         input: prompt,
         output: parsedResult,
         data: null

@@ -6,6 +6,7 @@ import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-d
 import { SummarizationLLMDuty } from '@/core/llm-manager/llm-duties/summarization-llm-duty'
 import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
 import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
+import { ChitChatLLMDuty } from '@/core/llm-manager/llm-duties/chit-chat-llm-duty'
 import { LLM_MANAGER } from '@/core'
 
 interface PostLLMInferenceSchema {
@@ -21,7 +22,8 @@ const LLM_DUTIES_MAP = {
   [LLMDuties.CustomNER]: CustomNERLLMDuty,
   [LLMDuties.Summarization]: SummarizationLLMDuty,
   [LLMDuties.Translation]: TranslationLLMDuty,
-  [LLMDuties.Paraphrase]: ParaphraseLLMDuty
+  [LLMDuties.Paraphrase]: ParaphraseLLMDuty,
+  [LLMDuties.ChitChat]: ChitChatLLMDuty
 }
 
 export const postLLMInference: FastifyPluginAsync<APIOptions> = async (
@@ -60,6 +62,8 @@ export const postLLMInference: FastifyPluginAsync<APIOptions> = async (
 
           return
         }
+
+        // TODO: use long-live duty for chit-chat duty
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error

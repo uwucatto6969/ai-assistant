@@ -1,6 +1,11 @@
 import fs from 'node:fs'
 
-import type { Llama, LlamaModel } from 'node-llama-cpp'
+import type {
+  Llama,
+  LlamaModel,
+  ChatHistoryItem,
+  LlamaChatSession
+} from 'node-llama-cpp'
 
 import {
   HAS_LLM,
@@ -12,6 +17,7 @@ import {
 } from '@/constants'
 import { LogHelper } from '@/helpers/log-helper'
 import { SystemHelper } from '@/helpers/system-helper'
+import { ConversationLogger } from '@/conversation-logger'
 
 type LLMManagerLlama = Llama | null
 type LLMManagerModel = LlamaModel | null
@@ -115,8 +121,8 @@ export default class LLMManager {
       )()
 
       this._llama = await getLlama({
-        logLevel: LlamaLogLevel.disabled
-        // logLevel: LlamaLogLevel.debug
+        // logLevel: LlamaLogLevel.disabled
+        logLevel: LlamaLogLevel.debug
       })
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
@@ -135,5 +141,37 @@ export default class LLMManager {
       LogHelper.title('LLM Manager')
       LogHelper.error(`LLM Manager failed to load: ${e}`)
     }
+  }
+
+  public async loadHistory(
+    session: LlamaChatSession
+  ): Promise<ChatHistoryItem[]> {
+    const [systemMessage] = session.getChatHistory()
+    const conversationLogs = await ConversationLogger.load()
+
+    if (!conversationLogs) {
+      return [systemMessage] as ChatHistoryItem[]
+    }
+
+    const history =
+      conversationLogs?.map((messageRecord) => {
+        if (!messageRecord || !messageRecord.message) {
+          messageRecord.message = ''
+        }
+
+        if (messageRecord.who === 'owner') {
+          return {
+            type: 'user',
+            text: messageRecord.message
+          }
+        }
+
+        return {
+          type: 'model',
+          response: [messageRecord.message]
+        }
+      }) ?? []
+
+    return [systemMessage, ...history] as ChatHistoryItem[]
   }
 }
