@@ -177,9 +177,4 @@ export default class LLMManager {
 
     return [systemMessage, ...history] as ChatHistoryItem[]
   }
-
-  public countTokens(text: string): number {
-    // count every words and then add 25% of the total words
-    return text.split(' ').length + Math.round(text.split(' ').length * 0.25)
-  }
 }
