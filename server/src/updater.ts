@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 import { LEON_VERSION } from '@/constants'
+import { SOCKET_SERVER } from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
 
 export class Updater {
@@ -28,6 +29,8 @@ export class Updater {
         LogHelper.warning(
           `Run the following command to update Leon and benefit from the latest features: "npm install --save @leon-ai/leon@${latestVersion}"`
         )
+
+        SOCKET_SERVER.socket?.emit('new-update', latestVersion)
       } else {
         const releaseMode = this.isDevelopment ? 'development' : 'stable'
 
