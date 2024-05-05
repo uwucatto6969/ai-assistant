@@ -24,7 +24,7 @@ export const run: ActionFunction = async function (params) {
       }
     }
   })
-  const { translation } = response.data.output
+  const translation = response.data.output
 
   await leon.answer({
     key: 'translate',

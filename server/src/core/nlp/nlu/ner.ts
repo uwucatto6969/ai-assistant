@@ -191,6 +191,17 @@ export default class NER {
    * Merge spaCy entities with the NER instance
    */
   public async mergeSpacyEntities(utterance: NLPUtterance): Promise<void> {
+    const nbOfWords = utterance.split(' ').length
+
+    if (nbOfWords > 128) {
+      LogHelper.title('NER')
+      LogHelper.warning(
+        'This utterance is too long to be processed by spaCy, so spaCy entities will not be merged'
+      )
+
+      return
+    }
+
     this.spacyData = new Map()
     const spacyEntities = await this.getSpacyEntities(utterance)
 

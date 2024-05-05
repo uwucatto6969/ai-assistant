@@ -3,7 +3,11 @@
   "actions": {
     "setup": {
       "type": "dialog",
-      "utterance_samples": ["Start a [chat|chit-chat|talk] loop"],
+      "utterance_samples": [
+        "Start a [chat|chit-chat|talk] loop",
+        "I want to [talk|chat|speak] with you",
+        "Let's [chat|speak|talk]"
+      ],
       "answers": [
         "Alright, let's chat! What do you want to talk about?",
         "Sure, let's chat! What's on your mind?",

@@ -6,7 +6,11 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER } from '@/core'
 import { LLMDuties } from '@/core/llm-manager/types'
-import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
+import {
+  LLM_THREADS,
+  MAX_EXECUTION_RETRIES,
+  MAX_EXECUTION_TIMOUT
+} from '@/core/llm-manager/llm-manager'
 
 interface CustomNERLLMDutyParams<T> extends LLMDutyParams {
   data: {
@@ -33,7 +37,9 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
     this.data = params.data
   }
 
-  public async execute(): Promise<LLMDutyResult | null> {
+  public async execute(
+    retries = MAX_EXECUTION_RETRIES
+  ): Promise<LLMDutyResult | null> {
     LogHelper.title(this.name)
     LogHelper.info('Executing...')
 
@@ -56,22 +62,53 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
         }
       })
       const prompt = `UTTERANCE TO PARSE:\n"${this.input}"`
-      let rawResult = await session.prompt(prompt, {
+      const rawResultPromise = session.prompt(prompt, {
         grammar,
         maxTokens: context.contextSize
         // temperature: 0.2
       })
-      // If a closing bracket is missing, add it
-      if (rawResult[rawResult.length - 1] !== '}') {
-        rawResult += '}'
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), MAX_EXECUTION_TIMOUT)
+      )
+
+      let parsedResult
+
+      try {
+        let rawResult = await Promise.race([rawResultPromise, timeoutPromise])
+
+        // If a closing bracket is missing, add it
+        if (rawResult[rawResult.length - 1] !== '}') {
+          rawResult += '}'
+        }
+        parsedResult = grammar.parse(rawResult)
+      } catch (e) {
+        if (retries > 0) {
+          LogHelper.title(this.name)
+          LogHelper.info('Prompt took too long, retrying...')
+
+          return this.execute(retries - 1)
+        } else {
+          LogHelper.title(this.name)
+          LogHelper.error(
+            `Prompt failed after ${MAX_EXECUTION_RETRIES} retries`
+          )
+
+          return null
+        }
       }
-      const parsedResult = grammar.parse(rawResult)
+
+      const { usedInputTokens, usedOutputTokens } =
+        session.sequence.tokenMeter.getState()
       const result = {
         dutyType: LLMDuties.CustomNER,
         systemPrompt: this.systemPrompt,
         input: prompt,
         output: parsedResult,
-        data: this.data
+        data: this.data,
+        maxTokens: context.contextSize,
+        // Current context size
+        usedInputTokens,
+        usedOutputTokens
       }
 
       LogHelper.title(this.name)
@@ -81,6 +118,11 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
     } catch (e) {
       LogHelper.title(this.name)
       LogHelper.error(`Failed to execute: ${e}`)
+
+      if (retries > 0) {
+        LogHelper.info('Retrying...')
+        return this.execute(retries - 1)
+      }
     }
 
     return null

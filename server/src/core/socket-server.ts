@@ -10,12 +10,12 @@ import {
   TTS,
   NLU,
   BRAIN,
-  MODEL_LOADER
+  MODEL_LOADER,
+  CONVERSATION_LOGGER
 } from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
 import { LangHelper } from '@/helpers/lang-helper'
 import { Telemetry } from '@/telemetry'
-import { ConversationLogger } from '@/conversation-logger'
 
 interface HotwordDataEvent {
   hotword: string
@@ -116,7 +116,7 @@ export default class SocketServer {
             try {
               LogHelper.time('Utterance processed in')
 
-              await ConversationLogger.push({
+              await CONVERSATION_LOGGER.push({
                 who: 'owner',
                 message: utterance
               })

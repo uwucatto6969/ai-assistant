@@ -16,6 +16,7 @@ import NaturalLanguageUnderstanding from '@/core/nlp/nlu/nlu'
 import Brain from '@/core/brain/brain'
 import LLMManager from '@/core/llm-manager/llm-manager'
 import Persona from '@/core/llm-manager/persona'
+import { ConversationLogger } from '@/conversation-logger'
 
 /**
  * Register core nodes
@@ -34,6 +35,19 @@ export const PYTHON_TCP_CLIENT = new TCPClient(
 export const LLM_MANAGER = new LLMManager()
 
 export const PERSONA = new Persona()
+
+export const CONVERSATION_LOGGER = new ConversationLogger({
+  loggerName: 'Conversation Logger',
+  fileName: 'conversation_log.json',
+  nbOfLogsToKeep: 512,
+  nbOfLogsToLoad: 96
+})
+export const LOOP_CONVERSATION_LOGGER = new ConversationLogger({
+  loggerName: 'Loop Conversation Logger',
+  fileName: 'loop_conversation_log.json',
+  nbOfLogsToKeep: 512,
+  nbOfLogsToLoad: 96
+})
 
 export const HTTP_SERVER = new HTTPServer(String(HOST), PORT)
 

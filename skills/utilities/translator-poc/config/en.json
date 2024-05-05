@@ -20,6 +20,7 @@
       "next_action": "ready"
     },
     "ready": {
+      "disable_llm_nlg": true,
       "type": "dialog",
       "answers": [
         "Let's start translating to {{ target_language }}.",

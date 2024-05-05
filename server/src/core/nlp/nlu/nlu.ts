@@ -111,6 +111,7 @@ export default class NLU {
       (hasActiveContext && hasStopWords && hasOnlyOneWord) ||
       (hasLessThan5Words && hasStopWords && hasLoopWord)
     ) {
+      LogHelper.title('NLU')
       LogHelper.info('Should break action loop')
       return true
     }

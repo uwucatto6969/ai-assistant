@@ -1,23 +1,27 @@
+import type { LlamaContext, LlamaChatSession } from 'node-llama-cpp'
+
 import {
   type LLMDutyParams,
   type LLMDutyResult,
   LLMDuty
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
-import { LLM_MANAGER, PERSONA, NLU } from '@/core'
+import { LLM_MANAGER, PERSONA, NLU, LOOP_CONVERSATION_LOGGER } from '@/core'
 import { LLMDuties } from '@/core/llm-manager/types'
-import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
-
-// interface ChitChatLLMDutyParams extends LLMDutyParams {}
+import {
+  LLM_THREADS,
+  MAX_EXECUTION_RETRIES,
+  MAX_EXECUTION_TIMOUT
+} from '@/core/llm-manager/llm-manager'
 
 export class ChitChatLLMDuty extends LLMDuty {
   private static instance: ChitChatLLMDuty
-  // TODO
+  private static context: LlamaContext = null as unknown as LlamaContext
+  private static session: LlamaChatSession = null as unknown as LlamaChatSession
   protected readonly systemPrompt = ``
   protected readonly name = 'Chit-Chat LLM Duty'
   protected input: LLMDutyParams['input'] = null
 
-  // constructor(params: ChitChatLLMDutyParams) {
   constructor() {
     super()
 
@@ -26,53 +30,63 @@ export class ChitChatLLMDuty extends LLMDuty {
       LogHelper.success('New instance')
 
       ChitChatLLMDuty.instance = this
-
-      // this.input = params.input
     }
   }
 
-  public async execute(retries = 3): Promise<LLMDutyResult | null> {
+  public async init(): Promise<void> {
+    /**
+     * A new context and session will be created only
+     * when Leon's instance is restarted
+     */
+    if (!ChitChatLLMDuty.context || !ChitChatLLMDuty.session) {
+      await LOOP_CONVERSATION_LOGGER.clear()
+
+      ChitChatLLMDuty.context = await LLM_MANAGER.model.createContext({
+        threads: LLM_THREADS
+      })
+
+      const { LlamaChatSession } = await Function(
+        'return import("node-llama-cpp")'
+      )()
+
+      ChitChatLLMDuty.session = new LlamaChatSession({
+        contextSequence: ChitChatLLMDuty.context.getSequence(),
+        systemPrompt: PERSONA.getChitChatSystemPrompt()
+      }) as LlamaChatSession
+    } else {
+      /**
+       * As long as Leon's instance has not been restarted,
+       * the context, session with history will be loaded
+       */
+      const history = await LLM_MANAGER.loadHistory(
+        LOOP_CONVERSATION_LOGGER,
+        ChitChatLLMDuty.session
+      )
+
+      ChitChatLLMDuty.session.setChatHistory(history)
+    }
+  }
+
+  public async execute(
+    retries = MAX_EXECUTION_RETRIES
+  ): Promise<LLMDutyResult | null> {
     LogHelper.title(this.name)
     LogHelper.info('Executing...')
 
     try {
-      const { LlamaJsonSchemaGrammar, LlamaChatSession } = await Function(
-        'return import("node-llama-cpp")'
-      )()
-
-      /**
-       * TODO: make context, session, etc. persistent
-       */
-
-      const context = await LLM_MANAGER.model.createContext({
-        threads: LLM_THREADS
+      await LOOP_CONVERSATION_LOGGER.push({
+        who: 'owner',
+        message: NLU.nluResult.newUtterance
       })
-      const session = new LlamaChatSession({
-        contextSequence: context.getSequence(),
-        systemPrompt: PERSONA.getDutySystemPrompt(this.systemPrompt)
+      const prompt = NLU.nluResult.newUtterance
+
+      const rawResultPromise = ChitChatLLMDuty.session.prompt(prompt, {
+        maxTokens: ChitChatLLMDuty.context.contextSize,
+        temperature: 1.3
       })
 
-      const history = await LLM_MANAGER.loadHistory(session)
-      session.setChatHistory(history)
-
-      const grammar = new LlamaJsonSchemaGrammar(LLM_MANAGER.llama, {
-        type: 'object',
-        properties: {
-          model_answer: {
-            type: 'string'
-          }
-        }
-      })
-      const prompt = `NEW MESSAGE FROM USER:\n"${NLU.nluResult.newUtterance}"`
-
-      const rawResultPromise = session.prompt(prompt, {
-        grammar,
-        maxTokens: context.contextSize,
-        temperature: 1.0
-      })
-
-      const timeoutPromise = new Promise(
-        (_, reject) => setTimeout(() => reject(new Error('Timeout')), 8_000) // 5 seconds timeout
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), MAX_EXECUTION_TIMOUT)
       )
 
       let rawResult
@@ -87,24 +101,32 @@ export class ChitChatLLMDuty extends LLMDuty {
           return this.execute(retries - 1)
         } else {
           LogHelper.title(this.name)
-          LogHelper.error('Prompt failed after 3 retries')
+          LogHelper.error(
+            `Prompt failed after ${MAX_EXECUTION_RETRIES} retries`
+          )
 
           return null
         }
       }
 
-      // If a closing bracket is missing, add it
-      if (rawResult[rawResult.length - 1] !== '}') {
-        rawResult += '}'
-      }
-      const parsedResult = grammar.parse(rawResult)
+      const { usedInputTokens, usedOutputTokens } =
+        ChitChatLLMDuty.session.sequence.tokenMeter.getState()
       const result = {
         dutyType: LLMDuties.Paraphrase,
         systemPrompt: PERSONA.getChitChatSystemPrompt(),
         input: prompt,
-        output: parsedResult,
-        data: null
+        output: rawResult,
+        data: null,
+        maxTokens: ChitChatLLMDuty.context.contextSize,
+        // Current context size
+        usedInputTokens,
+        usedOutputTokens
       }
+
+      await LOOP_CONVERSATION_LOGGER.push({
+        who: 'leon',
+        message: result.output as string
+      })
 
       LogHelper.title(this.name)
       LogHelper.success(`Duty executed: ${JSON.stringify(result)}`)
@@ -113,6 +135,11 @@ export class ChitChatLLMDuty extends LLMDuty {
     } catch (e) {
       LogHelper.title(this.name)
       LogHelper.error(`Failed to execute: ${e}`)
+
+      if (retries > 0) {
+        LogHelper.info('Retrying...')
+        return this.execute(retries - 1)
+      }
     }
 
     return null

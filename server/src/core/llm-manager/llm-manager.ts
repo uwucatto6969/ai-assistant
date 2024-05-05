@@ -24,6 +24,8 @@ type LLMManagerModel = LlamaModel | null
 
 // Set to 0 to use the maximum threads supported by the current machine hardware
 export const LLM_THREADS = 4
+export const MAX_EXECUTION_TIMOUT = 32_000
+export const MAX_EXECUTION_RETRIES = 2
 
 /**
  * node-llama-cpp beta 3 docs:
@@ -121,8 +123,8 @@ export default class LLMManager {
       )()
 
       this._llama = await getLlama({
-        // logLevel: LlamaLogLevel.disabled
-        logLevel: LlamaLogLevel.debug
+        logLevel: LlamaLogLevel.disabled
+        // logLevel: LlamaLogLevel.debug
       })
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
@@ -144,10 +146,11 @@ export default class LLMManager {
   }
 
   public async loadHistory(
+    conversationLogger: ConversationLogger,
     session: LlamaChatSession
   ): Promise<ChatHistoryItem[]> {
     const [systemMessage] = session.getChatHistory()
-    const conversationLogs = await ConversationLogger.load()
+    const conversationLogs = await conversationLogger.load()
 
     if (!conversationLogs) {
       return [systemMessage] as ChatHistoryItem[]
@@ -173,5 +176,10 @@ export default class LLMManager {
       }) ?? []
 
     return [systemMessage, ...history] as ChatHistoryItem[]
+  }
+
+  public countTokens(text: string): number {
+    // count every words and then add 25% of the total words
+    return text.split(' ').length + Math.round(text.split(' ').length * 0.25)
   }
 }

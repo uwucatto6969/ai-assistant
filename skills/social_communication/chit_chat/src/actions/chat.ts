@@ -19,12 +19,12 @@ export const run: ActionFunction = async function (params) {
       input: ownerMessage
     }
   })
-  const { model_answer: leonAnswer } = response.data.output
+  // const { leon_answer: leonAnswer } = response.data.output
 
   await leon.answer({
     key: 'answer_message',
     data: {
-      output: leonAnswer
+      output: response.data.output
     }
   })
 }

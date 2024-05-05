@@ -63,12 +63,21 @@ export const postLLMInference: FastifyPluginAsync<APIOptions> = async (
           return
         }
 
+        let llmResult
+
         // TODO: use long-live duty for chit-chat duty
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        const duty = new LLM_DUTIES_MAP[params.dutyType](params)
-        const llmResult = await duty.execute()
+        if (params.dutyType === LLMDuties.ChitChat) {
+          const chitChatLLMDuty = new ChitChatLLMDuty()
+          await chitChatLLMDuty.init()
+
+          llmResult = await chitChatLLMDuty.execute()
+        } else {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
+          const duty = new LLM_DUTIES_MAP[params.dutyType](params)
+          llmResult = await duty.execute()
+        }
 
         reply.send({
           success: true,

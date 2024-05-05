@@ -9,8 +9,12 @@ interface MessageLog {
   sentAt: number
   message: string
 }
-
-const CONVERSATION_LOG_PATH = path.join(LOGS_PATH, 'conversation_log.json')
+interface ConversationLoggerSettings {
+  loggerName: string
+  fileName: string
+  nbOfLogsToKeep: number
+  nbOfLogsToLoad: number
+}
 
 /**
  * The goal of this class is to log the conversation data between the
@@ -20,27 +24,39 @@ const CONVERSATION_LOG_PATH = path.join(LOGS_PATH, 'conversation_log.json')
  * better results.
  */
 export class ConversationLogger {
-  private static readonly nbOfLogsToKeep = 512
-  private static readonly nbOfLogsToLoad = 32
+  private readonly settings: ConversationLoggerSettings
+  private readonly conversationLogPath: string
 
-  private static async createConversationLogFile(): Promise<void> {
+  get loggerName(): string {
+    return this.settings.loggerName
+  }
+
+  constructor(settings: ConversationLoggerSettings) {
+    LogHelper.title(settings.loggerName)
+    LogHelper.success('New instance')
+
+    this.settings = settings
+    this.conversationLogPath = path.join(LOGS_PATH, this.settings.fileName)
+  }
+
+  private async createConversationLogFile(): Promise<void> {
     try {
-      if (!fs.existsSync(CONVERSATION_LOG_PATH)) {
-        await fs.promises.writeFile(CONVERSATION_LOG_PATH, '[]', 'utf-8')
+      if (!fs.existsSync(this.conversationLogPath)) {
+        await fs.promises.writeFile(this.conversationLogPath, '[]', 'utf-8')
       }
     } catch (e) {
-      LogHelper.title('Conversation Logger')
+      LogHelper.title(this.settings.loggerName)
       LogHelper.error(`Failed to create conversation log file: ${e})`)
     }
   }
 
-  private static async getAllLogs(): Promise<MessageLog[]> {
+  private async getAllLogs(): Promise<MessageLog[]> {
     try {
       let conversationLog: MessageLog[] = []
 
-      if (fs.existsSync(CONVERSATION_LOG_PATH)) {
+      if (fs.existsSync(this.conversationLogPath)) {
         conversationLog = JSON.parse(
-          await fs.promises.readFile(CONVERSATION_LOG_PATH, 'utf-8')
+          await fs.promises.readFile(this.conversationLogPath, 'utf-8')
         )
       } else {
         await this.createConversationLogFile()
@@ -48,20 +64,18 @@ export class ConversationLogger {
 
       return conversationLog
     } catch (e) {
-      LogHelper.title('Conversation Logger')
+      LogHelper.title(this.settings.loggerName)
       LogHelper.error(`Failed to get conversation log: ${e})`)
     }
 
     return []
   }
 
-  public static async push(
-    newRecord: Omit<MessageLog, 'sentAt'>
-  ): Promise<void> {
+  public async push(newRecord: Omit<MessageLog, 'sentAt'>): Promise<void> {
     try {
       const conversationLogs = await this.getAllLogs()
 
-      if (conversationLogs.length >= this.nbOfLogsToKeep) {
+      if (conversationLogs.length >= this.settings.nbOfLogsToKeep) {
         conversationLogs.shift()
       }
 
@@ -71,32 +85,32 @@ export class ConversationLogger {
       })
 
       await fs.promises.writeFile(
-        CONVERSATION_LOG_PATH,
+        this.conversationLogPath,
         JSON.stringify(conversationLogs, null, 2),
         'utf-8'
       )
     } catch (e) {
-      LogHelper.title('Conversation Logger')
+      LogHelper.title(this.settings.loggerName)
       LogHelper.error(`Failed to push new record: ${e})`)
     }
   }
 
-  public static async load(): Promise<MessageLog[] | void> {
+  public async load(): Promise<MessageLog[] | void> {
     try {
       const conversationLog = await this.getAllLogs()
 
-      return conversationLog.slice(-this.nbOfLogsToLoad)
+      return conversationLog.slice(-this.settings.nbOfLogsToLoad)
     } catch (e) {
-      LogHelper.title('Conversation Logger')
+      LogHelper.title(this.settings.loggerName)
       LogHelper.error(`Failed to load conversation log: ${e})`)
     }
   }
 
-  public static async clear(): Promise<void> {
+  public async clear(): Promise<void> {
     try {
-      await fs.promises.writeFile(CONVERSATION_LOG_PATH, '[]', 'utf-8')
+      await fs.promises.writeFile(this.conversationLogPath, '[]', 'utf-8')
     } catch (e) {
-      LogHelper.title('Conversation Logger')
+      LogHelper.title(this.settings.loggerName)
       LogHelper.error(`Failed to clear conversation log: ${e})`)
     }
   }
