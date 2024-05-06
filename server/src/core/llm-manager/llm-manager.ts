@@ -24,8 +24,6 @@ type LLMManagerModel = LlamaModel | null
 
 // Set to 0 to use the maximum threads supported by the current machine hardware
 export const LLM_THREADS = 4
-export const MAX_EXECUTION_TIMOUT = 32_000
-export const MAX_EXECUTION_RETRIES = 2
 
 /**
  * node-llama-cpp beta 3 docs:

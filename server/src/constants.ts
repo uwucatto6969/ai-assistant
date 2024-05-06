@@ -163,9 +163,9 @@ export const LEON_FILE_PATH = path.join(process.cwd(), 'leon.json')
  * LLMs
  * @see k-quants comparison: https://github.com/ggerganov/llama.cpp/pull/1684
  */
-// https://huggingface.co/QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/blob/main/Meta-Llama-3-8B-Instruct.Q5_K_S.gguf
 export const HAS_LLM = process.env['LEON_LLM'] === 'true'
 export const HAS_LLM_NLG = process.env['LEON_LLM_NLG'] === 'true' && HAS_LLM
+export const LLM_PROVIDER = process.env['LEON_LLM_PROVIDER']
 // export const LLM_VERSION = 'v0.2.Q4_K_S'
 // export const LLM_VERSION = '8B-Instruct.Q5_K_S'
 // export const LLM_VERSION = '2.9-llama3-8b.Q5_K_S'

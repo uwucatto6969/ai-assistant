@@ -15,6 +15,7 @@ import ModelLoader from '@/core/nlp/nlu/model-loader'
 import NaturalLanguageUnderstanding from '@/core/nlp/nlu/nlu'
 import Brain from '@/core/brain/brain'
 import LLMManager from '@/core/llm-manager/llm-manager'
+import LLMProvider from '@/core/llm-manager/llm-provider'
 import Persona from '@/core/llm-manager/persona'
 import { ConversationLogger } from '@/conversation-logger'
 
@@ -31,6 +32,8 @@ export const PYTHON_TCP_CLIENT = new TCPClient(
 /**
  * Register core singletons
  */
+
+export const LLM_PROVIDER = new LLMProvider()
 
 export const LLM_MANAGER = new LLMManager()
 

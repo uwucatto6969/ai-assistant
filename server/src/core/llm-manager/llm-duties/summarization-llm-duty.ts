@@ -4,13 +4,8 @@ import {
   LLMDuty
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
-import { LLM_MANAGER } from '@/core'
-import { LLMDuties } from '@/core/llm-manager/types'
-import {
-  LLM_THREADS,
-  MAX_EXECUTION_RETRIES,
-  MAX_EXECUTION_TIMOUT
-} from '@/core/llm-manager/llm-manager'
+import { LLM_MANAGER, LLM_PROVIDER } from '@/core'
+import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
 
 interface SummarizationLLMDutyParams extends LLMDutyParams {}
 
@@ -29,9 +24,7 @@ export class SummarizationLLMDuty extends LLMDuty {
     this.input = params.input
   }
 
-  public async execute(
-    retries = MAX_EXECUTION_RETRIES
-  ): Promise<LLMDutyResult | null> {
+  public async execute(): Promise<LLMDutyResult | null> {
     LogHelper.title(this.name)
     LogHelper.info('Executing...')
 
@@ -48,61 +41,20 @@ export class SummarizationLLMDuty extends LLMDuty {
         systemPrompt: this.systemPrompt
       })
       const prompt = `Summarize the following text: ${this.input}`
-      const rawResultPromise = session.prompt(prompt, {
+
+      const completionResult = await LLM_PROVIDER.prompt(prompt, {
+        session,
+        systemPrompt: this.systemPrompt,
         maxTokens: context.contextSize
-        // temperature: 0.5
       })
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), MAX_EXECUTION_TIMOUT)
-      )
-
-      let rawResult
-
-      try {
-        rawResult = await Promise.race([rawResultPromise, timeoutPromise])
-      } catch (e) {
-        if (retries > 0) {
-          LogHelper.title(this.name)
-          LogHelper.info('Prompt took too long, retrying...')
-
-          return this.execute(retries - 1)
-        } else {
-          LogHelper.title(this.name)
-          LogHelper.error(
-            `Prompt failed after ${MAX_EXECUTION_RETRIES} retries`
-          )
-
-          return null
-        }
-      }
-
-      const { usedInputTokens, usedOutputTokens } =
-        session.sequence.tokenMeter.getState()
-      const result = {
-        dutyType: LLMDuties.Summarization,
-        systemPrompt: this.systemPrompt,
-        input: prompt,
-        output: rawResult,
-        data: null,
-        maxTokens: context.contextSize,
-        // Current context size
-        usedInputTokens,
-        usedOutputTokens
-      }
-
       LogHelper.title(this.name)
-      LogHelper.success(`Duty executed: ${JSON.stringify(result)}`)
+      LogHelper.success(`Duty executed: ${JSON.stringify(completionResult)}`)
 
-      return result as unknown as LLMDutyResult
+      return completionResult as unknown as LLMDutyResult
     } catch (e) {
       LogHelper.title(this.name)
       LogHelper.error(`Failed to execute: ${e}`)
-
-      if (retries > 0) {
-        LogHelper.info('Retrying...')
-        return this.execute(retries - 1)
-      }
     }
 
     return null

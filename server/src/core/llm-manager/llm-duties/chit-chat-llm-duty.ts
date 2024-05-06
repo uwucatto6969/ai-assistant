@@ -6,13 +6,14 @@ import {
   LLMDuty
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
-import { LLM_MANAGER, PERSONA, NLU, LOOP_CONVERSATION_LOGGER } from '@/core'
-import { LLMDuties } from '@/core/llm-manager/types'
 import {
-  LLM_THREADS,
-  MAX_EXECUTION_RETRIES,
-  MAX_EXECUTION_TIMOUT
-} from '@/core/llm-manager/llm-manager'
+  LLM_MANAGER,
+  PERSONA,
+  NLU,
+  LOOP_CONVERSATION_LOGGER,
+  LLM_PROVIDER
+} from '@/core'
+import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
 
 export class ChitChatLLMDuty extends LLMDuty {
   private static instance: ChitChatLLMDuty
@@ -67,9 +68,7 @@ export class ChitChatLLMDuty extends LLMDuty {
     }
   }
 
-  public async execute(
-    retries = MAX_EXECUTION_RETRIES
-  ): Promise<LLMDutyResult | null> {
+  public async execute(): Promise<LLMDutyResult | null> {
     LogHelper.title(this.name)
     LogHelper.info('Executing...')
 
@@ -78,68 +77,28 @@ export class ChitChatLLMDuty extends LLMDuty {
         who: 'owner',
         message: NLU.nluResult.newUtterance
       })
+
       const prompt = NLU.nluResult.newUtterance
 
-      const rawResultPromise = ChitChatLLMDuty.session.prompt(prompt, {
+      const completionResult = await LLM_PROVIDER.prompt(prompt, {
+        session: ChitChatLLMDuty.session,
+        systemPrompt: PERSONA.getChitChatSystemPrompt(),
         maxTokens: ChitChatLLMDuty.context.contextSize,
         temperature: 1.3
       })
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), MAX_EXECUTION_TIMOUT)
-      )
-
-      let rawResult
-
-      try {
-        rawResult = await Promise.race([rawResultPromise, timeoutPromise])
-      } catch (error) {
-        if (retries > 0) {
-          LogHelper.title(this.name)
-          LogHelper.info('Prompt took too long, retrying...')
-
-          return this.execute(retries - 1)
-        } else {
-          LogHelper.title(this.name)
-          LogHelper.error(
-            `Prompt failed after ${MAX_EXECUTION_RETRIES} retries`
-          )
-
-          return null
-        }
-      }
-
-      const { usedInputTokens, usedOutputTokens } =
-        ChitChatLLMDuty.session.sequence.tokenMeter.getState()
-      const result = {
-        dutyType: LLMDuties.Paraphrase,
-        systemPrompt: PERSONA.getChitChatSystemPrompt(),
-        input: prompt,
-        output: rawResult,
-        data: null,
-        maxTokens: ChitChatLLMDuty.context.contextSize,
-        // Current context size
-        usedInputTokens,
-        usedOutputTokens
-      }
-
       await LOOP_CONVERSATION_LOGGER.push({
         who: 'leon',
-        message: result.output as string
+        message: completionResult?.output as string
       })
 
       LogHelper.title(this.name)
-      LogHelper.success(`Duty executed: ${JSON.stringify(result)}`)
+      LogHelper.success(`Duty executed: ${JSON.stringify(completionResult)}`)
 
-      return result as unknown as LLMDutyResult
+      return completionResult as unknown as LLMDutyResult
     } catch (e) {
       LogHelper.title(this.name)
       LogHelper.error(`Failed to execute: ${e}`)
-
-      if (retries > 0) {
-        LogHelper.info('Retrying...')
-        return this.execute(retries - 1)
-      }
     }
 
     return null

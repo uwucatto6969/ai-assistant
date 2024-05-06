@@ -1,3 +1,7 @@
+import type { LlamaChatSession } from 'node-llama-cpp'
+
+import type { LLMDuty } from '@/core/llm-manager/llm-duty'
+
 export enum LLMDuties {
   CustomNER = 'customer-ner',
   Translation = 'translation',
@@ -10,4 +14,21 @@ export enum LLMDuties {
   IntentFallback = 'intent-fallback',
   RAG = 'rag',
   NLUParaphraser = 'nlu-paraphraser'*/
+}
+
+export enum LLMProviders {
+  Local = 'local',
+  Groq = 'groq'
+}
+
+export interface CompletionOptions {
+  systemPrompt: string
+  maxTokens: number
+  grammar?: string
+  temperature?: number
+  timeout?: number
+  maxRetries?: number
+  session?: LlamaChatSession
+  duty?: LLMDuty
+  data?: Record<string, unknown> | null
 }
