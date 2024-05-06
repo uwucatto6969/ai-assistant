@@ -15,9 +15,19 @@ import {
 interface ParaphraseLLMDutyParams extends LLMDutyParams {}
 
 export class ParaphraseLLMDuty extends LLMDuty {
-  protected readonly systemPrompt = `YOUR DUTY: You are an AI system that generates answers (Natural Language Generation) based on a given text.
-According to your current mood, your personality and the given utterance, you must provide a text alternative of the given text.
-You do not ask question if the original text does not contain any.`
+  protected readonly systemPrompt = `You are an AI system that generates answers (Natural Language Generation).
+You must provide a text alternative according to your current mood and your personality.
+Never indicate that it's a modified version.
+You do not ask question if the original text does not contain any.
+If there are data in the original text, make sure to provide them.
+
+Examples:
+
+Modify this text: I added your items to the shopping list.
+I included the items you mentioned to the shopping list. Happy shopping!
+
+Modify this text: the sun is a star.
+The sun is a star, it is the closest star to Earth.`
   protected readonly name = 'Paraphrase LLM Duty'
   protected input: LLMDutyParams['input'] = null
 
@@ -46,7 +56,7 @@ You do not ask question if the original text does not contain any.`
       })
       const session = new LlamaChatSession({
         contextSequence: context.getSequence(),
-        systemPrompt: PERSONA.getDutySystemPrompt()
+        systemPrompt: PERSONA.getDutySystemPrompt(this.systemPrompt)
       })
 
       const history = await LLM_MANAGER.loadHistory(
@@ -54,17 +64,17 @@ You do not ask question if the original text does not contain any.`
         session
       )
       /**
-       * Only the first (system prompt) and last (new utterance) messages are used
+       * Only the first (system prompt) messages is used
        * to provide some context
        */
-      session.setChatHistory([history[0], history[history.length - 1]])
+      // session.setChatHistory([history[0], history[history.length - 1]])
+      session.setChatHistory([history[0]])
 
-      const prompt = `${this.systemPrompt}
-Generate the answer based on this text: ${this.input}`
+      const prompt = `Modify the following text but do not say you modified it: ${this.input}`
 
       const rawResultPromise = session.prompt(prompt, {
         maxTokens: context.contextSize,
-        temperature: 0.4
+        temperature: 0.8
       })
 
       const timeoutPromise = new Promise((_, reject) =>
@@ -91,11 +101,16 @@ Generate the answer based on this text: ${this.input}`
         }
       }
 
+      // If starts and end with a double quote, remove them
+      if (rawResult.startsWith('"') && rawResult.endsWith('"')) {
+        rawResult = rawResult.slice(1, -1)
+      }
+
       const { usedInputTokens, usedOutputTokens } =
         session.sequence.tokenMeter.getState()
       const result = {
         dutyType: LLMDuties.Paraphrase,
-        systemPrompt: PERSONA.getDutySystemPrompt(),
+        systemPrompt: PERSONA.getDutySystemPrompt(this.systemPrompt),
         input: prompt,
         output: rawResult,
         data: null,
