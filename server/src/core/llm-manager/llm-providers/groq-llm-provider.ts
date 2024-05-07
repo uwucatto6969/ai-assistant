@@ -141,9 +141,6 @@ export default class GroqLLMProvider {
         })
 
         return resolve(promise)
-        // const parsedCompletionResult = JSON.parse(completionResult.data)
-
-        // return resolve(parsedCompletionResult.choices[0].message.content)
       } catch (e) {
         const err = e as Error | AxiosError
         let errorMessage = `Failed to run completion: ${err}`
