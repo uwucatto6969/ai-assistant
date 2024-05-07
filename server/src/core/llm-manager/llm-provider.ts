@@ -75,7 +75,7 @@ export default class LLMProvider {
     this.llmProvider = new provider()
 
     LogHelper.title('LLM Provider')
-    LogHelper.success('LLM provider initialized')
+    LogHelper.success(`Initialized with "${LLM_PROVIDER}" provider`)
 
     return true
   }
@@ -87,6 +87,9 @@ export default class LLMProvider {
     prompt: string,
     completionOptions: CompletionOptions
   ): Promise<CompletionResult | null> {
+    LogHelper.title('LLM Provider')
+    LogHelper.info(`Using "${LLM_PROVIDER}" provider for completion...`)
+
     if (!this.llmProvider) {
       LogHelper.error('LLM provider is not ready')
       return null

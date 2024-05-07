@@ -83,9 +83,9 @@ export default class Persona {
 
   /**
    * Change mood according to:
-   * - TODO: the weather (later); think of other factors
    * - The time of the day
    * - The day of the week
+   * TODO: the weather, holidays (Christmas, Halloween, etc.), news, etc.
    */
   private setMood(): void {
     LogHelper.title('Persona')
@@ -95,28 +95,28 @@ export default class Persona {
     const day = date.getDay()
     const hour = date.getHours()
     const random = Math.random()
+    const tiredMood = MOODS.find((mood) => mood.type === Moods.Tired) as Mood
+    const sadMood = MOODS.find((mood) => mood.type === Moods.Sad) as Mood
+    const cockyMood = MOODS.find((mood) => mood.type === Moods.Cocky) as Mood
 
     if (hour >= 13 && hour <= 14 && random < 0.5) {
       // After lunchtime, there is a 50% chance to be tired
-      this._mood = MOODS.find((mood) => mood.type === Moods.Tired) as Mood
+      this._mood = tiredMood
     } else if (day === 0 && random < 0.2) {
       // On Sunday, there is a 20% chance to be sad
-      this._mood = MOODS.find((mood) => mood.type === Moods.Sad) as Mood
+      this._mood = sadMood
     } else if (day === 5 && random < 0.8) {
       // On Friday, there is an 80% chance to be happy
-      this._mood = MOODS.find((mood) => mood.type === Moods.Default) as Mood
+      this._mood = DEFAULT_MOOD
     } else if (day === 6 && random < 0.25) {
       // On Saturday, there is a 25% chance to be cocky
-      this._mood = MOODS.find((mood) => mood.type === Moods.Cocky) as Mood
+      this._mood = cockyMood
     } else if (day === 1 && random < 0.25) {
       // On Monday, there is a 25% chance to be tired
-      this._mood = MOODS.find((mood) => mood.type === Moods.Tired) as Mood
+      this._mood = tiredMood
     } else if (hour >= 23 || hour < 6) {
       // Every day after 11pm and before 6am, there is a 33% chance to be tired
-      this._mood =
-        random < 0.33
-          ? (MOODS.find((mood) => mood.type === Moods.Tired) as Mood)
-          : (MOODS.find((mood) => mood.type === Moods.Default) as Mood)
+      this._mood = random < 0.33 ? tiredMood : DEFAULT_MOOD
     } else {
       // The rest of the time, there is 75% chance to be happy
       let pickedMood =

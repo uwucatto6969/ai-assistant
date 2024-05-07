@@ -7,7 +7,8 @@ import {
   LEON_VERSION,
   LEON_NODE_ENV,
   HAS_OVER_HTTP,
-  IS_TELEMETRY_ENABLED
+  IS_TELEMETRY_ENABLED,
+  LLM_PROVIDER
 } from '@/constants'
 import { LogHelper } from '@/helpers/log-helper'
 import { DateHelper } from '@/helpers/date-helper'
@@ -55,19 +56,21 @@ export default class HTTPServer {
     this.fastify.addHook('preValidation', otherMidd)
 
     LogHelper.title('Initialization')
-    LogHelper.info(`The current env is ${LEON_NODE_ENV}`)
-    LogHelper.info(`The current version is ${LEON_VERSION}`)
+    LogHelper.info(`Environment: ${LEON_NODE_ENV}`)
+    LogHelper.info(`Version: ${LEON_VERSION}`)
 
-    LogHelper.info(`The current time zone is ${DateHelper.getTimeZone()}`)
+    LogHelper.info(`Time zone: ${DateHelper.getTimeZone()}`)
+
+    LogHelper.info(`LLM provider: ${LLM_PROVIDER}`)
 
     const isLLMEnabled = LLM_MANAGER.isLLMEnabled ? 'enabled' : 'disabled'
-    LogHelper.info(`LLM ${isLLMEnabled}`)
+    LogHelper.info(`LLM: ${isLLMEnabled}`)
 
     const isLLMNLGEnabled = LLM_MANAGER.isLLMNLGEnabled ? 'enabled' : 'disabled'
-    LogHelper.info(`LLM NLG ${isLLMNLGEnabled}`)
+    LogHelper.info(`LLM NLG: ${isLLMNLGEnabled}`)
 
     const isTelemetryEnabled = IS_TELEMETRY_ENABLED ? 'enabled' : 'disabled'
-    LogHelper.info(`Telemetry ${isTelemetryEnabled}`)
+    LogHelper.info(`Telemetry: ${isTelemetryEnabled}`)
 
     await this.bootstrap()
   }

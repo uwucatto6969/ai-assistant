@@ -6,13 +6,14 @@ import {
   IS_PRODUCTION_ENV,
   IS_TELEMETRY_ENABLED,
   LANG as LEON_LANG,
-  LLM_PROVIDER,
+  LLM_PROVIDER as LLM_PROVIDER_NAME,
   PYTHON_TCP_SERVER_BIN_PATH
 } from '@/constants'
 import {
   PYTHON_TCP_CLIENT,
   HTTP_SERVER,
   SOCKET_SERVER,
+  LLM_PROVIDER,
   LLM_MANAGER
 } from '@/core'
 import { Updater } from '@/updater'
@@ -39,8 +40,14 @@ import { LLMProviders } from '@/core/llm-manager/types'
   // Connect the Python TCP client to the Python TCP server
   PYTHON_TCP_CLIENT.connect()
 
+  try {
+    await LLM_PROVIDER.init()
+  } catch (e) {
+    LogHelper.error(`LLM Provider failed to init: ${e}`)
+  }
+
   // Load the LLM provider if the chosen provider is local
-  if (LLM_PROVIDER === LLMProviders.Local) {
+  if (LLM_PROVIDER_NAME === LLMProviders.Local) {
     try {
       await LLM_MANAGER.loadLLM()
     } catch (e) {
