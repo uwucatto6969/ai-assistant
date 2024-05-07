@@ -4,8 +4,10 @@ import {
   LLMDuty
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
-import { CONVERSATION_LOGGER, LLM_MANAGER, LLM_PROVIDER, PERSONA } from '@/core'
+import { LLM_MANAGER, LLM_PROVIDER, PERSONA } from '@/core'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
+import { LLMProviders } from '@/core/llm-manager/types'
+import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 
 interface ParaphraseLLMDutyParams extends LLMDutyParams {}
 
@@ -40,37 +42,45 @@ The sun is a star, it is the closest star to Earth.`
     LogHelper.info('Executing...')
 
     try {
-      const { LlamaChatSession } = await Function(
-        'return import("node-llama-cpp")'
-      )()
-
-      const context = await LLM_MANAGER.model.createContext({
-        threads: LLM_THREADS
-      })
-      const session = new LlamaChatSession({
-        contextSequence: context.getSequence(),
-        systemPrompt: PERSONA.getDutySystemPrompt(this.systemPrompt)
-      })
-
-      const history = await LLM_MANAGER.loadHistory(
-        CONVERSATION_LOGGER,
-        session
-      )
-      /**
-       * Only the first (system prompt) messages is used
-       * to provide some context
-       */
-      // session.setChatHistory([history[0], history[history.length - 1]])
-      session.setChatHistory([history[0]])
-
       const prompt = `Modify the following text but do not say you modified it: ${this.input}`
-
-      const completionResult = await LLM_PROVIDER.prompt(prompt, {
-        session,
+      const completionParams = {
         systemPrompt: PERSONA.getDutySystemPrompt(this.systemPrompt),
-        maxTokens: context.contextSize,
         temperature: 0.8
-      })
+      }
+      let completionResult
+
+      if (LLM_PROVIDER_NAME === LLMProviders.Local) {
+        const { LlamaChatSession } = await Function(
+          'return import("node-llama-cpp")'
+        )()
+
+        /*const history = await LLM_MANAGER.loadHistory(
+          CONVERSATION_LOGGER,
+          session
+        )*/
+        /**
+         * Only the first (system prompt) messages is used
+         * to provide some context
+         */
+        // session.setChatHistory([history[0], history[history.length - 1]])
+        // session.setChatHistory([history[0]])
+
+        const context = await LLM_MANAGER.model.createContext({
+          threads: LLM_THREADS
+        })
+        const session = new LlamaChatSession({
+          contextSequence: context.getSequence(),
+          systemPrompt: completionParams.systemPrompt
+        })
+
+        completionResult = await LLM_PROVIDER.prompt(prompt, {
+          ...completionParams,
+          session,
+          maxTokens: context.contextSize
+        })
+      } else {
+        completionResult = await LLM_PROVIDER.prompt(prompt, completionParams)
+      }
 
       LogHelper.title(this.name)
       LogHelper.success(`Duty executed: ${JSON.stringify(completionResult)}`)

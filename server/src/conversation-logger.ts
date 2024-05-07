@@ -1,14 +1,10 @@
 import path from 'node:path'
 import fs from 'node:fs'
 
+import type { MessageLog } from '@/types'
 import { LOGS_PATH } from '@/constants'
 import { LogHelper } from '@/helpers/log-helper'
 
-interface MessageLog {
-  who: 'owner' | 'leon'
-  sentAt: number
-  message: string
-}
 interface ConversationLoggerSettings {
   loggerName: string
   fileName: string
@@ -95,7 +91,7 @@ export class ConversationLogger {
     }
   }
 
-  public async load(): Promise<MessageLog[] | void> {
+  public async load(): Promise<MessageLog[]> {
     try {
       const conversationLog = await this.getAllLogs()
 
@@ -104,6 +100,8 @@ export class ConversationLogger {
       LogHelper.title(this.settings.loggerName)
       LogHelper.error(`Failed to load conversation log: ${e})`)
     }
+
+    return []
   }
 
   public async clear(): Promise<void> {

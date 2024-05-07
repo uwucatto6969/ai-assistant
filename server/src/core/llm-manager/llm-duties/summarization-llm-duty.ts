@@ -6,6 +6,8 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER, LLM_PROVIDER } from '@/core'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
+import { LLMProviders } from '@/core/llm-manager/types'
+import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 
 interface SummarizationLLMDutyParams extends LLMDutyParams {}
 
@@ -29,24 +31,33 @@ export class SummarizationLLMDuty extends LLMDuty {
     LogHelper.info('Executing...')
 
     try {
-      const { LlamaChatSession } = await Function(
-        'return import("node-llama-cpp")'
-      )()
-
-      const context = await LLM_MANAGER.model.createContext({
-        threads: LLM_THREADS
-      })
-      const session = new LlamaChatSession({
-        contextSequence: context.getSequence(),
-        systemPrompt: this.systemPrompt
-      })
       const prompt = `Summarize the following text: ${this.input}`
+      const completionParams = {
+        systemPrompt: this.systemPrompt
+      }
+      let completionResult
 
-      const completionResult = await LLM_PROVIDER.prompt(prompt, {
-        session,
-        systemPrompt: this.systemPrompt,
-        maxTokens: context.contextSize
-      })
+      if (LLM_PROVIDER_NAME === LLMProviders.Local) {
+        const { LlamaChatSession } = await Function(
+          'return import("node-llama-cpp")'
+        )()
+
+        const context = await LLM_MANAGER.model.createContext({
+          threads: LLM_THREADS
+        })
+        const session = new LlamaChatSession({
+          contextSequence: context.getSequence(),
+          systemPrompt: completionParams.systemPrompt
+        })
+
+        completionResult = await LLM_PROVIDER.prompt(prompt, {
+          ...completionParams,
+          session,
+          maxTokens: context.contextSize
+        })
+      } else {
+        completionResult = await LLM_PROVIDER.prompt(prompt, completionParams)
+      }
 
       LogHelper.title(this.name)
       LogHelper.success(`Duty executed: ${JSON.stringify(completionResult)}`)

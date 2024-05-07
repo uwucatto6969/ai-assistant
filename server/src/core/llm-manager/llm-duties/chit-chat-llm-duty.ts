@@ -1,5 +1,6 @@
 import type { LlamaContext, LlamaChatSession } from 'node-llama-cpp'
 
+import type { MessageLog } from '@/types'
 import {
   type LLMDutyParams,
   type LLMDutyResult,
@@ -14,11 +15,15 @@ import {
   LLM_PROVIDER
 } from '@/core'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
+import { LLMProviders } from '@/core/llm-manager/types'
+import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 
 export class ChitChatLLMDuty extends LLMDuty {
   private static instance: ChitChatLLMDuty
   private static context: LlamaContext = null as unknown as LlamaContext
   private static session: LlamaChatSession = null as unknown as LlamaChatSession
+  private static messagesHistoryForNonLocalProvider: MessageLog[] =
+    null as unknown as MessageLog[]
   protected readonly systemPrompt = ``
   protected readonly name = 'Chit-Chat LLM Duty'
   protected input: LLMDutyParams['input'] = null
@@ -35,36 +40,51 @@ export class ChitChatLLMDuty extends LLMDuty {
   }
 
   public async init(): Promise<void> {
-    /**
-     * A new context and session will be created only
-     * when Leon's instance is restarted
-     */
-    if (!ChitChatLLMDuty.context || !ChitChatLLMDuty.session) {
-      await LOOP_CONVERSATION_LOGGER.clear()
+    if (LLM_PROVIDER_NAME === LLMProviders.Local) {
+      /**
+       * A new context and session will be created only
+       * when Leon's instance is restarted
+       */
+      if (!ChitChatLLMDuty.context || !ChitChatLLMDuty.session) {
+        await LOOP_CONVERSATION_LOGGER.clear()
 
-      ChitChatLLMDuty.context = await LLM_MANAGER.model.createContext({
-        threads: LLM_THREADS
-      })
+        ChitChatLLMDuty.context = await LLM_MANAGER.model.createContext({
+          threads: LLM_THREADS
+        })
 
-      const { LlamaChatSession } = await Function(
-        'return import("node-llama-cpp")'
-      )()
+        const { LlamaChatSession } = await Function(
+          'return import("node-llama-cpp")'
+        )()
 
-      ChitChatLLMDuty.session = new LlamaChatSession({
-        contextSequence: ChitChatLLMDuty.context.getSequence(),
-        systemPrompt: PERSONA.getChitChatSystemPrompt()
-      }) as LlamaChatSession
+        ChitChatLLMDuty.session = new LlamaChatSession({
+          contextSequence: ChitChatLLMDuty.context.getSequence(),
+          systemPrompt: PERSONA.getChitChatSystemPrompt()
+        }) as LlamaChatSession
+      } else {
+        /**
+         * As long as Leon's instance has not been restarted,
+         * the context, session with history will be loaded
+         */
+        const history = await LLM_MANAGER.loadHistory(
+          LOOP_CONVERSATION_LOGGER,
+          ChitChatLLMDuty.session
+        )
+
+        ChitChatLLMDuty.session.setChatHistory(history)
+      }
     } else {
       /**
-       * As long as Leon's instance has not been restarted,
-       * the context, session with history will be loaded
+       * For non-local providers:
+       * Once Leon's instance is restarted, clean up the messages history,
+       * then load the messages history
        */
-      const history = await LLM_MANAGER.loadHistory(
-        LOOP_CONVERSATION_LOGGER,
-        ChitChatLLMDuty.session
-      )
 
-      ChitChatLLMDuty.session.setChatHistory(history)
+      if (!ChitChatLLMDuty.messagesHistoryForNonLocalProvider) {
+        await LOOP_CONVERSATION_LOGGER.clear()
+      }
+
+      ChitChatLLMDuty.messagesHistoryForNonLocalProvider =
+        await LOOP_CONVERSATION_LOGGER.load()
     }
   }
 
@@ -79,13 +99,24 @@ export class ChitChatLLMDuty extends LLMDuty {
       })
 
       const prompt = NLU.nluResult.newUtterance
-
-      const completionResult = await LLM_PROVIDER.prompt(prompt, {
-        session: ChitChatLLMDuty.session,
+      const completionParams = {
         systemPrompt: PERSONA.getChitChatSystemPrompt(),
-        maxTokens: ChitChatLLMDuty.context.contextSize,
         temperature: 1.3
-      })
+      }
+      let completionResult
+
+      if (LLM_PROVIDER_NAME === LLMProviders.Local) {
+        completionResult = await LLM_PROVIDER.prompt(prompt, {
+          ...completionParams,
+          session: ChitChatLLMDuty.session,
+          maxTokens: ChitChatLLMDuty.context.contextSize
+        })
+      } else {
+        completionResult = await LLM_PROVIDER.prompt(prompt, {
+          ...completionParams,
+          history: ChitChatLLMDuty.messagesHistoryForNonLocalProvider
+        })
+      }
 
       await LOOP_CONVERSATION_LOGGER.push({
         who: 'leon',

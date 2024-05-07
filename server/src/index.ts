@@ -6,7 +6,6 @@ import {
   IS_PRODUCTION_ENV,
   IS_TELEMETRY_ENABLED,
   LANG as LEON_LANG,
-  LLM_PROVIDER as LLM_PROVIDER_NAME,
   PYTHON_TCP_SERVER_BIN_PATH
 } from '@/constants'
 import {
@@ -18,13 +17,12 @@ import {
 } from '@/core'
 import { Updater } from '@/updater'
 import { Telemetry } from '@/telemetry'
-import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-duty'
-import { SummarizationLLMDuty } from '@/core/llm-manager/llm-duties/summarization-llm-duty'
-import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
-import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
+// import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-duty'
+// import { SummarizationLLMDuty } from '@/core/llm-manager/llm-duties/summarization-llm-duty'
+// import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
+// import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
 import { LangHelper } from '@/helpers/lang-helper'
 import { LogHelper } from '@/helpers/log-helper'
-import { LLMProviders } from '@/core/llm-manager/types'
 ;(async (): Promise<void> => {
   process.title = 'leon'
 
@@ -46,16 +44,13 @@ import { LLMProviders } from '@/core/llm-manager/types'
     LogHelper.error(`LLM Provider failed to init: ${e}`)
   }
 
-  // Load the LLM provider if the chosen provider is local
-  if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-    try {
-      await LLM_MANAGER.loadLLM()
-    } catch (e) {
-      LogHelper.error(`LLM Manager failed to load: ${e}`)
-    }
+  try {
+    await LLM_MANAGER.loadLLM()
+  } catch (e) {
+    LogHelper.error(`LLM Manager failed to load: ${e}`)
   }
 
-  const customNERDuty = new CustomNERLLMDuty({
+  /*const customNERDuty = new CustomNERLLMDuty({
     input:
       'Add apples, 1L of milk, orange juice and tissues to the shopping list',
     data: {
@@ -72,9 +67,9 @@ import { LLMProviders } from '@/core/llm-manager/types'
       }
     }
   })
-  await customNERDuty.execute()
+  await customNERDuty.execute()*/
 
-  const summarizationDuty = new SummarizationLLMDuty({
+  /*const summarizationDuty = new SummarizationLLMDuty({
     input:
       'We’ll be taking several important safety steps ahead of making Sora available in OpenAI’s products. We are working with red teamers domain experts in areas like misinformation, hateful content, and bias who will be adversarially testing the model.\n' +
       '\n' +
@@ -86,14 +81,14 @@ import { LLMProviders } from '@/core/llm-manager/types'
       '\n' +
       'We’ll be engaging policymakers, educators and artists around the world to understand their concerns and to identify positive use cases for this new technology. Despite extensive research and testing, we cannot predict all of the beneficial ways people will use our technology, nor all the ways people will abuse it. That’s why we believe that learning from real-world use is a critical component of creating and releasing increasingly safe AI systems over time.'
   })
-  await summarizationDuty.execute()
+  await summarizationDuty.execute()*/
 
-  const paraphraseDuty = new ParaphraseLLMDuty({
+  /*const paraphraseDuty = new ParaphraseLLMDuty({
     input: 'I added your items to the shopping list.'
   })
-  await paraphraseDuty.execute()
+  await paraphraseDuty.execute()*/
 
-  const translationDuty = new TranslationLLMDuty({
+  /*const translationDuty = new TranslationLLMDuty({
     input: 'the weather is good in shenzhen',
     data: {
       // source: 'French',
@@ -101,7 +96,7 @@ import { LLMProviders } from '@/core/llm-manager/types'
       autoDetectLanguage: true
     }
   })
-  await translationDuty.execute()
+  await translationDuty.execute()*/
 
   try {
     // Start the HTTP server

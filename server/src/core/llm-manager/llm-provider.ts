@@ -1,5 +1,7 @@
 import path from 'node:path'
 
+import type { AxiosResponse } from 'axios'
+
 import {
   type CompletionOptions,
   LLMDuties,
@@ -21,6 +23,11 @@ interface CompletionResult {
   usedOutputTokens: number
   temperature: number
 }
+interface NormalizedCompletionResult {
+  rawResult: string
+  usedInputTokens: number
+  usedOutputTokens: number
+}
 type Provider = LocalLLMProvider | GroqLLMProvider | undefined
 
 const LLM_PROVIDERS_MAP = {
@@ -30,6 +37,7 @@ const LLM_PROVIDERS_MAP = {
 const DEFAULT_MAX_EXECUTION_TIMOUT = 32_000
 const DEFAULT_MAX_EXECUTION_RETRIES = 2
 const DEFAULT_TEMPERATURE = 0 // Disabled
+const DEFAULT_MAX_TOKENS = 8_192
 
 export default class LLMProvider {
   private static instance: LLMProvider
@@ -80,6 +88,40 @@ export default class LLMProvider {
     return true
   }
 
+  private normalizeCompletionResultForLocalProvider(
+    rawResult: string,
+    completionOptions: CompletionOptions
+  ): NormalizedCompletionResult {
+    if (!completionOptions.session) {
+      return {
+        rawResult,
+        usedInputTokens: 0,
+        usedOutputTokens: 0
+      }
+    }
+
+    const { usedInputTokens, usedOutputTokens } =
+      completionOptions.session.sequence.tokenMeter.getState()
+
+    return {
+      rawResult,
+      usedInputTokens,
+      usedOutputTokens
+    }
+  }
+
+  private normalizeCompletionResultForGroqProvider(
+    rawResult: AxiosResponse
+  ): NormalizedCompletionResult {
+    const parsedCompletionResult = JSON.parse(rawResult.data)
+
+    return {
+      rawResult: parsedCompletionResult.choices[0].message.content,
+      usedInputTokens: parsedCompletionResult.usage.prompt_tokens,
+      usedOutputTokens: parsedCompletionResult.usage.completion_tokens
+    }
+  }
+
   /**
    * Run the completion inference
    */
@@ -102,6 +144,8 @@ export default class LLMProvider {
     completionOptions.data = completionOptions.data || null
     completionOptions.temperature =
       completionOptions.temperature || DEFAULT_TEMPERATURE
+    completionOptions.maxTokens =
+      completionOptions.maxTokens || DEFAULT_MAX_TOKENS
 
     const isJSONMode = completionOptions.data !== null
 
@@ -119,19 +163,11 @@ export default class LLMProvider {
 
     try {
       rawResult = await Promise.race([rawResultPromise, timeoutPromise])
-      rawResultString = rawResult as string
-
-      if (isJSONMode) {
-        // If a closing bracket is missing, add it
-        if (rawResultString[rawResultString.length - 1] !== '}') {
-          rawResultString += '}'
-        }
-      }
     } catch (e) {
       LogHelper.title('LLM Provider')
 
       if (completionOptions.maxRetries > 0) {
-        LogHelper.info('Prompt took too long, retrying...')
+        LogHelper.info('Prompt took too long or failed. Retrying...')
 
         return this.prompt(prompt, {
           ...completionOptions,
@@ -148,15 +184,43 @@ export default class LLMProvider {
 
     let usedInputTokens = 0
     let usedOutputTokens = 0
-    if (completionOptions.session) {
-      const {
-        usedInputTokens: newUsedInputTokens,
-        usedOutputTokens: newUsedOutputTokens
-      } = completionOptions.session.sequence.tokenMeter.getState()
 
-      usedInputTokens = newUsedInputTokens
-      usedOutputTokens = newUsedOutputTokens
+    /**
+     * Normalize the completion result according to the provider
+     */
+    if (LLM_PROVIDER === LLMProviders.Local) {
+      if (completionOptions.session) {
+        const {
+          rawResult: result,
+          usedInputTokens: inputTokens,
+          usedOutputTokens: outputTokens
+        } = this.normalizeCompletionResultForLocalProvider(
+          rawResult as string,
+          completionOptions
+        )
+
+        rawResult = result
+        usedInputTokens = inputTokens
+        usedOutputTokens = outputTokens
+      }
+    } else if (LLM_PROVIDER === LLMProviders.Groq) {
+      const {
+        rawResult: result,
+        usedInputTokens: inputTokens,
+        usedOutputTokens: outputTokens
+      } = this.normalizeCompletionResultForGroqProvider(
+        rawResult as AxiosResponse
+      )
+
+      rawResult = result
+      usedInputTokens = inputTokens
+      usedOutputTokens = outputTokens
+    } else {
+      LogHelper.error(`The LLM provider "${LLM_PROVIDER}" is not yet supported`)
+      return null
     }
+
+    rawResultString = rawResult as string
 
     // If starts and end with a double quote, remove them
     if (rawResultString.startsWith('"') && rawResultString.endsWith('"')) {

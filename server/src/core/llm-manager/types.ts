@@ -1,6 +1,7 @@
 import type { LlamaChatSession } from 'node-llama-cpp'
 
 import type { LLMDuty } from '@/core/llm-manager/llm-duty'
+import type { MessageLog } from '@/types'
 
 export enum LLMDuties {
   CustomNER = 'customer-ner',
@@ -23,12 +24,13 @@ export enum LLMProviders {
 
 export interface CompletionOptions {
   systemPrompt: string
-  maxTokens: number
+  maxTokens?: number
   grammar?: string
   temperature?: number
   timeout?: number
   maxRetries?: number
-  session?: LlamaChatSession
+  session?: LlamaChatSession | null
   duty?: LLMDuty
   data?: Record<string, unknown> | null
+  history?: MessageLog[]
 }
