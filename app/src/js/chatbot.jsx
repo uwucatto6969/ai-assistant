@@ -1,4 +1,15 @@
-const MAXIMUM_HEIGHT_TO_SHOW_SEE_MORE = 340
+import '@fontsource/source-sans-pro/200.css'
+import '@fontsource/source-sans-pro/300.css'
+import '@fontsource/source-sans-pro/400.css'
+import '@fontsource/source-sans-pro/600.css'
+import '@fontsource/source-sans-pro/700.css'
+import '@fontsource/source-sans-pro/900.css'
+import 'remixicon/fonts/remixicon.css'
+import '@leon-ai/aurora/style.css'
+
+import { createRoot } from 'react-dom/client'
+import { createElement } from 'react'
+import * as auroraComponents from '@leon-ai/aurora'
 
 export default class Chatbot {
   constructor() {
@@ -97,21 +108,27 @@ export default class Chatbot {
 
     this.feed.appendChild(container).appendChild(bubble)
 
-    if (container.clientHeight > MAXIMUM_HEIGHT_TO_SHOW_SEE_MORE) {
-      bubble.style.maxHeight = `${MAXIMUM_HEIGHT_TO_SHOW_SEE_MORE}px`
-      const showMore = document.createElement('p')
-      const showMoreText = 'Show more'
+    const root = createRoot(container)
 
-      showMore.className = 'show-more'
-      showMore.innerHTML = showMoreText
+    const render = (component) => {
+      if (component) {
+        const reactComponent = auroraComponents[component.component]
 
-      container.appendChild(showMore)
+        if (
+          component.props?.children &&
+          Array.isArray(component.props.children)
+        ) {
+          component.props.children = component.props.children.map((child) => {
+            return render(child)
+          })
+        }
 
-      showMore.addEventListener('click', () => {
-        bubble.classList.toggle('show-all')
-        showMore.innerHTML =
-          showMore.innerHTML === showMoreText ? 'Show less' : showMoreText
-      })
+        return createElement(reactComponent, component.props)
+      }
+    }
+
+    if (typeof string === 'object') {
+      root.render(render(string))
     }
 
     if (save) {

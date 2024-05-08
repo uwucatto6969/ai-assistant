@@ -3,7 +3,8 @@
     "en-US": {
       "short": "en",
       "min_confidence": 0.5,
-      "fallbacks": []
+      "fallbacks": [],
+      "action_loop_stop_words": ["stop", "break", "exit"]
     },
     "fr-FR": {
       "short": "fr",
@@ -15,7 +16,8 @@
           "skill": "welcome",
           "action": "run"
         }
-      ]
+      ],
+      "action_loop_stop_words": ["stop", "break", "exit"]
     }
   }
 }

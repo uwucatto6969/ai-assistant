@@ -38,4 +38,13 @@ export class LangHelper {
   public static getShortCode(longCode: LongLanguageCode): ShortLanguageCode {
     return langs[longCode].short
   }
+
+  /**
+   * Get action loop stop words of the given long language code
+   * @param shortCode The short language code of the language
+   * @example getActionLoopStopWords('en-US') // ["stop", "break", "exit"]
+   */
+  public static getActionLoopStopWords(shortCode: ShortLanguageCode): string[] {
+    return langs[LangHelper.getLongCode(shortCode)].action_loop_stop_words
+  }
 }

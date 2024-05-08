@@ -1,12 +1,9 @@
-import { Widget } from '../widget'
+import { type ButtonProps } from '@leon-ai/aurora'
 
-// TODO: contains the button API. rendering engine <-> SDK
-interface ButtonOptions {
-  text: string
-}
+import { WidgetComponent } from '../widget-component'
 
-export class Button extends Widget<ButtonOptions> {
-  public constructor(options: ButtonOptions) {
-    super(options)
+export class Button extends WidgetComponent<ButtonProps> {
+  constructor(props: ButtonProps) {
+    super(props)
   }
 }

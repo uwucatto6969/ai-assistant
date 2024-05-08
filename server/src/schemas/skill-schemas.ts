@@ -21,7 +21,8 @@ const skillActionTypes = [
 const skillDataTypes = [
   Type.Literal('skill_resolver'),
   Type.Literal('global_resolver'),
-  Type.Literal('entity')
+  Type.Literal('entity'),
+  Type.Literal('utterance')
 ]
 const answerTypes = Type.Union([
   Type.String(),
@@ -100,10 +101,29 @@ const skillCustomTrimEntityType = Type.Object(
   },
   { additionalProperties: false }
 )
+const skillCustomLLMEntityType = Type.Object(
+  {
+    type: Type.Literal('llm', {
+      description:
+        'LLM: you can define an entity based on a JSON schema and the LLM (Large Language Model) will be able to grab it by itself based on the schema.'
+    }),
+    schema: Type.Object(
+      {
+        /**
+         * Any key is allowed
+         * @see https://github.com/withcatai/node-llama-cpp/blob/6b012a6/src/utils/gbnfJson/types.ts#L2
+         */
+      },
+      { additionalProperties: true }
+    )
+  },
+  { additionalProperties: false }
+)
 const skillCustomEntityTypes = [
   Type.Array(skillCustomTrimEntityType),
   Type.Array(skillCustomRegexEntityType),
-  Type.Array(skillCustomEnumEntityType)
+  Type.Array(skillCustomEnumEntityType),
+  Type.Array(skillCustomLLMEntityType)
 ]
 
 export const domainSchemaObject = Type.Strict(
@@ -159,6 +179,12 @@ export const skillConfigSchemaObject = Type.Strict(
       Type.Object(
         {
           type: Type.Union(skillActionTypes),
+          disable_llm_nlg: Type.Optional(
+            Type.Boolean({
+              description:
+                'Disable the LLM (Large Language Model) for NLG (Natural Language Generation) in the action.'
+            })
+          ),
           loop: Type.Optional(
             Type.Object(
               {
@@ -167,7 +193,10 @@ export const skillConfigSchemaObject = Type.Strict(
                     type: Type.Union(skillDataTypes),
                     name: Type.String()
                   },
-                  { description: 'An item can be a entity or a resolver.' }
+                  {
+                    description:
+                      'An item can be a entity, a resolver or an utterance.'
+                  }
                 )
               },
               {
@@ -282,5 +311,8 @@ export type SkillCustomRegexEntityTypeSchema = Static<
 >
 export type SkillCustomEnumEntityTypeSchema = Static<
   typeof skillCustomEnumEntityType
+>
+export type SkillCustomLLMEntityTypeSchema = Static<
+  typeof skillCustomLLMEntityType
 >
 export type SkillAnswerConfigSchema = Static<typeof answerTypes>

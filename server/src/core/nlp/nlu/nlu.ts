@@ -14,17 +14,25 @@ import type {
   NLUResult
 } from '@/core/nlp/types'
 import { langs } from '@@/core/langs.json'
-import { TCP_SERVER_BIN_PATH } from '@/constants'
-import { TCP_CLIENT, BRAIN, SOCKET_SERVER, MODEL_LOADER, NER } from '@/core'
+import { PYTHON_TCP_SERVER_BIN_PATH } from '@/constants'
+import {
+  PYTHON_TCP_CLIENT,
+  BRAIN,
+  SOCKET_SERVER,
+  MODEL_LOADER,
+  NER
+} from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
 import { LangHelper } from '@/helpers/lang-helper'
 import { ActionLoop } from '@/core/nlp/nlu/action-loop'
 import { SlotFilling } from '@/core/nlp/nlu/slot-filling'
 import Conversation, { DEFAULT_ACTIVE_CONTEXT } from '@/core/nlp/conversation'
 import { Telemetry } from '@/telemetry'
+import { SkillDomainHelper } from '@/helpers/skill-domain-helper'
 
 export const DEFAULT_NLU_RESULT = {
   utterance: '',
+  newUtterance: '',
   currentEntities: [],
   entities: [],
   currentResolvers: [],
@@ -38,13 +46,43 @@ export const DEFAULT_NLU_RESULT = {
     skill: '',
     action: '',
     confidence: 0
-  }
+  },
+  actionConfig: null
 }
 
 export default class NLU {
   private static instance: NLU
-  public nluResult: NLUResult = DEFAULT_NLU_RESULT
+  private _nluResult: NLUResult = DEFAULT_NLU_RESULT
   public conversation = new Conversation('conv0')
+
+  get nluResult(): NLUResult {
+    return this._nluResult
+  }
+
+  async setNLUResult(newNLUResult: NLUResult): Promise<void> {
+    const skillConfigPath = newNLUResult.skillConfigPath
+      ? newNLUResult.skillConfigPath
+      : join(
+          process.cwd(),
+          'skills',
+          newNLUResult.classification.domain,
+          newNLUResult.classification.skill,
+          'config',
+          BRAIN.lang + '.json'
+        )
+    const { actions } = await SkillDomainHelper.getSkillConfig(
+      skillConfigPath,
+      BRAIN.lang
+    )
+
+    this._nluResult = {
+      ...newNLUResult,
+      skillConfigPath,
+      actionConfig: actions[
+        newNLUResult.classification.action
+      ] as NLUResult['actionConfig']
+    }
+  }
 
   constructor() {
     if (!NLU.instance) {
@@ -56,28 +94,57 @@ export default class NLU {
   }
 
   /**
+   * Check if the utterance should break the action loop
+   * based on the active context and the utterance content
+   */
+  private shouldBreakActionLoop(utterance: NLPUtterance): boolean {
+    const loopStopWords = LangHelper.getActionLoopStopWords(BRAIN.lang)
+    const hasActiveContext = this.conversation.hasActiveContext()
+    const hasOnlyOneWord = utterance.split(' ').length === 1
+    const hasLessThan5Words = utterance.split(' ').length < 5
+    const hasStopWords = loopStopWords.some((word) =>
+      utterance.toLowerCase().includes(word)
+    )
+    const hasLoopWord = utterance.toLowerCase().includes('loop')
+
+    if (
+      (hasActiveContext && hasStopWords && hasOnlyOneWord) ||
+      (hasLessThan5Words && hasStopWords && hasLoopWord)
+    ) {
+      LogHelper.title('NLU')
+      LogHelper.info('Should break action loop')
+      return true
+    }
+
+    return false
+  }
+
+  /**
    * Set new language; recreate a new TCP server with new language; and reprocess understanding
    */
-  private switchLanguage(
+  private async switchLanguage(
     utterance: NLPUtterance,
     locale: ShortLanguageCode
-  ): void {
+  ): Promise<void> {
     const connectedHandler = async (): Promise<void> => {
       await this.process(utterance)
     }
 
     BRAIN.lang = locale
-    BRAIN.talk(`${BRAIN.wernicke('random_language_switch')}.`, true)
+    await BRAIN.talk(`${BRAIN.wernicke('random_language_switch')}.`, true)
 
     // Recreate a new TCP server process and reconnect the TCP client
-    kill(global.tcpServerProcess.pid as number, () => {
-      global.tcpServerProcess = spawn(`${TCP_SERVER_BIN_PATH} ${locale}`, {
-        shell: true
-      })
+    kill(global.pythonTCPServerProcess.pid as number, () => {
+      global.pythonTCPServerProcess = spawn(
+        `${PYTHON_TCP_SERVER_BIN_PATH} ${locale}`,
+        {
+          shell: true
+        }
+      )
 
-      TCP_CLIENT.connect()
-      TCP_CLIENT.ee.removeListener('connected', connectedHandler)
-      TCP_CLIENT.ee.on('connected', connectedHandler)
+      PYTHON_TCP_CLIENT.connect()
+      PYTHON_TCP_CLIENT.ee.removeListener('connected', connectedHandler)
+      PYTHON_TCP_CLIENT.ee.on('connected', connectedHandler)
     })
   }
 
@@ -95,14 +162,21 @@ export default class NLU {
 
       if (!MODEL_LOADER.hasNlpModels()) {
         if (!BRAIN.isMuted) {
-          BRAIN.talk(`${BRAIN.wernicke('random_errors')}!`)
-          SOCKET_SERVER.socket?.emit('is-typing', false)
+          await BRAIN.talk(`${BRAIN.wernicke('random_errors')}!`)
         }
 
         const msg =
           'An NLP model is missing, please rebuild the project or if you are in dev run: npm run train'
         LogHelper.error(msg)
         return reject(msg)
+      }
+
+      if (this.shouldBreakActionLoop(utterance)) {
+        this.conversation.cleanActiveContext()
+
+        await BRAIN.talk(`${BRAIN.wernicke('action_loop_stopped')}.`, true)
+
+        return resolve({})
       }
 
       // Add spaCy entities
@@ -159,9 +233,10 @@ export default class NLU {
       }
 
       const [skillName, actionName] = intent.split('.')
-      this.nluResult = {
+      await this.setNLUResult({
         ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
         utterance,
+        newUtterance: utterance,
         answers, // For dialog action type
         sentiment,
         classification: {
@@ -170,18 +245,20 @@ export default class NLU {
           action: actionName || '',
           confidence: score
         }
-      }
+      })
 
       const isSupportedLanguage = LangHelper.getShortCodes().includes(locale)
       if (!isSupportedLanguage) {
-        BRAIN.talk(`${BRAIN.wernicke('random_language_not_supported')}.`, true)
-        SOCKET_SERVER.socket?.emit('is-typing', false)
+        await BRAIN.talk(
+          `${BRAIN.wernicke('random_language_not_supported')}.`,
+          true
+        )
         return resolve({})
       }
 
       // Trigger language switching
       if (BRAIN.lang !== locale) {
-        this.switchLanguage(utterance, locale)
+        await this.switchLanguage(utterance, locale)
         return resolve(null)
       }
 
@@ -192,8 +269,10 @@ export default class NLU {
 
         if (!fallback) {
           if (!BRAIN.isMuted) {
-            BRAIN.talk(`${BRAIN.wernicke('random_unknown_intents')}.`, true)
-            SOCKET_SERVER.socket?.emit('is-typing', false)
+            await BRAIN.talk(
+              `${BRAIN.wernicke('random_unknown_intents')}.`,
+              true
+            )
           }
 
           LogHelper.title('NLU')
@@ -205,35 +284,39 @@ export default class NLU {
           return resolve(null)
         }
 
-        this.nluResult = fallback
+        await this.setNLUResult(fallback)
       }
 
       LogHelper.title('NLU')
       LogHelper.success(
-        `Intent found: ${this.nluResult.classification.skill}.${this.nluResult.classification.action} (domain: ${this.nluResult.classification.domain})`
+        `Intent found: ${this._nluResult.classification.skill}.${
+          this._nluResult.classification.action
+        } (domain: ${
+          this._nluResult.classification.domain
+        }); Confidence: ${this._nluResult.classification.confidence.toFixed(2)}`
       )
 
       const skillConfigPath = join(
         process.cwd(),
         'skills',
-        this.nluResult.classification.domain,
-        this.nluResult.classification.skill,
+        this._nluResult.classification.domain,
+        this._nluResult.classification.skill,
         'config',
         BRAIN.lang + '.json'
       )
-      this.nluResult.skillConfigPath = skillConfigPath
+      this._nluResult.skillConfigPath = skillConfigPath
 
       try {
-        this.nluResult.entities = await NER.extractEntities(
+        this._nluResult.entities = await NER.extractEntities(
           BRAIN.lang,
           skillConfigPath,
-          this.nluResult
+          this._nluResult
         )
       } catch (e) {
         LogHelper.error(`Failed to extract entities: ${e}`)
       }
 
-      const shouldSlotLoop = await SlotFilling.route(intent)
+      const shouldSlotLoop = await SlotFilling.route(intent, utterance)
       if (shouldSlotLoop) {
         return resolve({})
       }
@@ -250,7 +333,7 @@ export default class NLU {
         }
       }
 
-      const newContextName = `${this.nluResult.classification.domain}.${skillName}`
+      const newContextName = `${this._nluResult.classification.domain}.${skillName}`
       if (this.conversation.activeContext.name !== newContextName) {
         this.conversation.cleanActiveContext()
       }
@@ -259,21 +342,22 @@ export default class NLU {
         lang: BRAIN.lang,
         slots: {},
         isInActionLoop: false,
-        originalUtterance: this.nluResult.utterance,
-        skillConfigPath: this.nluResult.skillConfigPath,
-        actionName: this.nluResult.classification.action,
-        domain: this.nluResult.classification.domain,
+        originalUtterance: this._nluResult.utterance,
+        newUtterance: utterance,
+        skillConfigPath: this._nluResult.skillConfigPath,
+        actionName: this._nluResult.classification.action,
+        domain: this._nluResult.classification.domain,
         intent,
-        entities: this.nluResult.entities
+        entities: this._nluResult.entities
       })
       // Pass current utterance entities to the NLU result object
-      this.nluResult.currentEntities =
+      this._nluResult.currentEntities =
         this.conversation.activeContext.currentEntities
       // Pass context entities to the NLU result object
-      this.nluResult.entities = this.conversation.activeContext.entities
+      this._nluResult.entities = this.conversation.activeContext.entities
 
       try {
-        const processedData = await BRAIN.execute(this.nluResult)
+        const processedData = await BRAIN.execute(this._nluResult)
 
         // Prepare next action if there is one queuing
         if (processedData.nextAction) {
@@ -284,6 +368,7 @@ export default class NLU {
             slots: {},
             isInActionLoop: !!processedData.nextAction.loop,
             originalUtterance: processedData.utterance ?? '',
+            newUtterance: utterance ?? '',
             skillConfigPath: processedData.skillConfigPath || '',
             actionName: processedData.action?.next_action || '',
             domain: processedData.classification?.domain || '',
@@ -298,6 +383,7 @@ export default class NLU {
         return resolve({
           processingTime, // In ms, total time
           ...processedData,
+          newUtterance: utterance,
           nluProcessingTime:
             processingTime - (processedData?.executionTime || 0) // In ms, NLU processing time only
         })
@@ -320,7 +406,7 @@ export default class NLU {
    * according to the wished skill action
    */
   private fallback(fallbacks: Language['fallbacks']): NLUResult | null {
-    const words = this.nluResult.utterance.toLowerCase().split(' ')
+    const words = this._nluResult.utterance.toLowerCase().split(' ')
 
     if (fallbacks.length > 0) {
       LogHelper.info('Looking for fallbacks...')
@@ -334,16 +420,16 @@ export default class NLU {
         }
 
         if (JSON.stringify(tmpWords) === JSON.stringify(fallbacks[i]?.words)) {
-          this.nluResult.entities = []
-          this.nluResult.classification.domain = fallbacks[i]
+          this._nluResult.entities = []
+          this._nluResult.classification.domain = fallbacks[i]
             ?.domain as NLPDomain
-          this.nluResult.classification.skill = fallbacks[i]?.skill as NLPSkill
-          this.nluResult.classification.action = fallbacks[i]
+          this._nluResult.classification.skill = fallbacks[i]?.skill as NLPSkill
+          this._nluResult.classification.action = fallbacks[i]
             ?.action as NLPAction
-          this.nluResult.classification.confidence = 1
+          this._nluResult.classification.confidence = 1
 
           LogHelper.success('Fallback found')
-          return this.nluResult
+          return this._nluResult
         }
       }
     }

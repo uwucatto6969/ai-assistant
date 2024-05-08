@@ -34,6 +34,7 @@ export class SlotFilling {
           slots: processedData.slots || {},
           isInActionLoop: !!processedData.nextAction?.loop,
           originalUtterance: processedData.utterance ?? null,
+          newUtterance: utterance,
           skillConfigPath: processedData.skillConfigPath || '',
           actionName: processedData.action.next_action,
           domain: processedData.classification?.domain || '',
@@ -68,16 +69,18 @@ export class SlotFilling {
       BRAIN.lang + '.json'
     )
 
-    NLU.nluResult = {
+    await NLU.setNLUResult({
       ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
       utterance,
+      newUtterance: utterance,
+      skillConfigPath,
       classification: {
         domain,
         skill: skillName,
         action: actionName,
         confidence: 1
       }
-    }
+    })
 
     const entities = await NER.extractEntities(
       BRAIN.lang,
@@ -97,8 +100,7 @@ export class SlotFilling {
 
         notFilledSlot = NLU.conversation.getNotFilledSlot()
         if (notFilledSlot) {
-          BRAIN.talk(notFilledSlot.pickedQuestion)
-          SOCKET_SERVER.socket?.emit('is-typing', false)
+          await BRAIN.talk(notFilledSlot.pickedQuestion)
 
           return {}
         }
@@ -106,27 +108,44 @@ export class SlotFilling {
     }
 
     if (!NLU.conversation.areSlotsAllFilled()) {
-      BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
+      await BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
     } else {
-      NLU.nluResult = {
+      const { actions } = await SkillDomainHelper.getSkillConfig(
+        skillConfigPath,
+        BRAIN.lang
+      )
+      const nextActionName = NLU.conversation.activeContext.nextAction
+      const hasNextAction = !!nextActionName
+      const doesNextActionHaveAnswers =
+        !!actions[NLU.conversation.activeContext.nextAction]?.answers
+
+      await NLU.setNLUResult({
         ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
         // Assign slots only if there is a next action
-        slots: NLU.conversation.activeContext.nextAction
-          ? NLU.conversation.activeContext.slots
-          : {},
+        slots: hasNextAction ? NLU.conversation.activeContext.slots : {},
         utterance: NLU.conversation.activeContext.originalUtterance ?? '',
+        newUtterance: utterance,
         skillConfigPath,
         classification: {
           domain,
           skill: skillName,
           action: NLU.conversation.activeContext.nextAction,
           confidence: 1
-        }
-      }
+        },
+        // Prepare answers if the next action has them
+        answers:
+          hasNextAction && doesNextActionHaveAnswers
+            ? (actions[nextActionName]?.answers?.map((answer) => ({
+                answer
+              })) as { answer: string }[])
+            : []
+      })
+
+      const processedData = await BRAIN.execute(NLU.nluResult)
 
       NLU.conversation.cleanActiveContext()
 
-      return BRAIN.execute(NLU.nluResult)
+      return processedData
     }
 
     NLU.conversation.cleanActiveContext()
@@ -139,7 +158,10 @@ export class SlotFilling {
    * 2. If the context is expecting slots, then loop over questions to slot fill
    * 3. Or go to the brain executor if all slots have been filled in one shot
    */
-  public static async route(intent: string): Promise<boolean> {
+  public static async route(
+    intent: string,
+    utterance: NLPUtterance
+  ): Promise<boolean> {
     const slots =
       await MODEL_LOADER.mainNLPContainer.slotManager.getMandatorySlots(intent)
     const hasMandatorySlots = Object.keys(slots)?.length > 0
@@ -151,6 +173,7 @@ export class SlotFilling {
         slots,
         isInActionLoop: false,
         originalUtterance: NLU.nluResult.utterance,
+        newUtterance: utterance,
         skillConfigPath: NLU.nluResult.skillConfigPath,
         actionName: NLU.nluResult.classification.action,
         domain: NLU.nluResult.classification.domain,
@@ -171,8 +194,7 @@ export class SlotFilling {
           ) ?? []
 
         SOCKET_SERVER.socket?.emit('suggest', currentSlot?.suggestions)
-        BRAIN.talk(notFilledSlot.pickedQuestion)
-        SOCKET_SERVER.socket?.emit('is-typing', false)
+        await BRAIN.talk(notFilledSlot.pickedQuestion)
 
         return true
       }

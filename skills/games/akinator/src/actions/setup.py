@@ -39,4 +39,9 @@ def run(params: ActionParams) -> None:
             }
         })
     except BaseException:
-        leon.answer({'key': 'network_error'})
+        leon.answer({
+            'key': 'network_error',
+            'core': {
+                'isInActionLoop': False
+            }
+        })

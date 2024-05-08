@@ -30,10 +30,11 @@ export class ActionLoop {
       'config',
       BRAIN.lang + '.json'
     )
-    NLU.nluResult = {
+    const newNLUResult = {
       ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
       slots: NLU.conversation.activeContext.slots,
       utterance,
+      newUtterance: utterance,
       skillConfigPath,
       classification: {
         domain,
@@ -42,11 +43,15 @@ export class ActionLoop {
         confidence: 1
       }
     }
-    NLU.nluResult.entities = await NER.extractEntities(
+    const newNLUResultEntities = await NER.extractEntities(
       BRAIN.lang,
       skillConfigPath,
-      NLU.nluResult
+      newNLUResult
     )
+    await NLU.setNLUResult({
+      ...newNLUResult,
+      entities: newNLUResultEntities
+    })
 
     const { actions, resolvers } = await SkillDomainHelper.getSkillConfig(
       skillConfigPath,
@@ -56,10 +61,13 @@ export class ActionLoop {
     if (action?.loop) {
       const { name: expectedItemName, type: expectedItemType } =
         action.loop.expected_item
+      let hasMatchingUtterance = false
       let hasMatchingEntity = false
       let hasMatchingResolver = false
 
-      if (expectedItemType === 'entity') {
+      if (expectedItemType === 'utterance') {
+        hasMatchingUtterance = true
+      } else if (expectedItemType === 'entity') {
         hasMatchingEntity =
           NLU.nluResult.entities.filter(
             ({ entity }) => expectedItemName === entity
@@ -112,11 +120,16 @@ export class ActionLoop {
         ) {
           LogHelper.title('NLU')
           LogHelper.success('Resolvers resolved:')
-          NLU.nluResult.resolvers = await resolveResolvers(
+
+          const resolvedResolvers = await resolveResolvers(
             expectedItemName,
             intent
           )
-          NLU.nluResult.resolvers.forEach((resolver) =>
+          await NLU.setNLUResult({
+            ...NLU.nluResult,
+            resolvers: resolvedResolvers
+          })
+          resolvedResolvers.forEach((resolver) =>
             LogHelper.success(`${intent}: ${JSON.stringify(resolver)}`)
           )
           hasMatchingResolver = NLU.nluResult.resolvers.length > 0
@@ -124,8 +137,8 @@ export class ActionLoop {
       }
 
       // Ensure expected items are in the utterance, otherwise clean context and reprocess
-      if (!hasMatchingEntity && !hasMatchingResolver) {
-        BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
+      if (!hasMatchingEntity && !hasMatchingResolver && !hasMatchingUtterance) {
+        await BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
         NLU.conversation.cleanActiveContext()
         await NLU.process(utterance)
         return null

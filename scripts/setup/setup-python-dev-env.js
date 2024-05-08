@@ -9,7 +9,7 @@ import {
   FR_SPACY_MODEL_NAME,
   FR_SPACY_MODEL_VERSION,
   PYTHON_BRIDGE_SRC_PATH,
-  TCP_SERVER_SRC_PATH
+  PYTHON_TCP_SERVER_SRC_PATH
 } from '@/constants'
 import { CPUArchitectures, OSTypes } from '@/types'
 import { LogHelper } from '@/helpers/log-helper'
@@ -53,9 +53,9 @@ SETUP_TARGETS.set('python-bridge', {
 })
 SETUP_TARGETS.set('tcp-server', {
   name: 'TCP server',
-  pipfilePath: path.join(TCP_SERVER_SRC_PATH, 'Pipfile'),
-  dotVenvPath: path.join(TCP_SERVER_SRC_PATH, '.venv'),
-  dotProjectPath: path.join(TCP_SERVER_SRC_PATH, '.venv', '.project')
+  pipfilePath: path.join(PYTHON_TCP_SERVER_SRC_PATH, 'Pipfile'),
+  dotVenvPath: path.join(PYTHON_TCP_SERVER_SRC_PATH, '.venv'),
+  dotProjectPath: path.join(PYTHON_TCP_SERVER_SRC_PATH, '.venv', '.project')
 })
 
 SPACY_MODELS.set('en', {

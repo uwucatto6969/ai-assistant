@@ -34,3 +34,13 @@ export enum CPUArchitectures {
   X64 = 'x64',
   ARM64 = 'arm64'
 }
+
+/**
+ * Logger
+ */
+
+export interface MessageLog {
+  who: 'owner' | 'leon'
+  sentAt: number
+  message: string
+}

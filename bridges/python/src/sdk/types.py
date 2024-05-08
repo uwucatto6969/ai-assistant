@@ -1,5 +1,7 @@
 from typing import Dict, Any, Optional, Union, Literal, TypedDict
 
+from .widget import Widget
+
 
 class NLUResultSentiment(TypedDict):
     vote: Optional[Union[Literal['positive'], Literal['neutral'], Literal['negative']]]
@@ -19,6 +21,7 @@ class ExtraContextData(TypedDict):
 class ActionParams(TypedDict):
     lang: str
     utterance: str
+    new_utterance: str
     current_entities: list[Any]
     entities: list[Any]
     current_resolvers: list[Any]
@@ -39,7 +42,7 @@ class Answer(TypedDict):
 
 class AnswerInput(TypedDict, total=False):
     key: Optional[str]
-    widget: Any
+    widget: Optional[Widget]
     data: Optional[AnswerData]
     core: Dict[str, Any]
 

@@ -13,7 +13,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]
+        # @see https://github.com/actions/runner-images/tree/main/images/macos
+        # Use macos-12 instead of macos-latest because the latter use ARM64 (M1) architecture
+        os: [ubuntu-20.04, macos-12]
+        # Temporarily disable Windows release
+        # os: [ubuntu-20.04, macos-12, windows-latest]
 
     runs-on: ${{ matrix.os }}
 
