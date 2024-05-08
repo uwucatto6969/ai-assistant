@@ -1,3 +1,4 @@
+import { IS_GITHUB_ACTIONS } from '@/constants'
 import { LoaderHelper } from '@/helpers/loader-helper'
 import { LogHelper } from '@/helpers/log-helper'
 
@@ -24,7 +25,12 @@ import createInstanceID from './create-instance-id'
     await setupCore()
     await setupSkills()
     LoaderHelper.stop()
-    await setupLLM()
+    if (!IS_GITHUB_ACTIONS) {
+      await setupLLM()
+    } else {
+      LogHelper.info('Skipping LLM setup because it is running in CI')
+    }
+
     await setupBinaries()
     await generateHTTPAPIKey()
     await generateJSONSchemas()

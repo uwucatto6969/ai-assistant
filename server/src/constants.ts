@@ -238,4 +238,5 @@ export const MINIMUM_REQUIRED_RAM = 4
 export const INSTANCE_ID = fs.existsSync(LEON_FILE_PATH)
   ? JSON.parse(fs.readFileSync(LEON_FILE_PATH, 'utf8')).instanceID
   : null
+export const IS_GITHUB_ACTIONS = process.env['GITHUB_ACTIONS'] !== undefined
 export const IS_GITPOD = process.env['GITPOD_WORKSPACE_URL'] !== undefined
