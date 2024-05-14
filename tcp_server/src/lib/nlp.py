@@ -41,9 +41,9 @@ def load_spacy_model() -> None:
     model = spacy_model_mapping[lang]['model']
     exclude = spacy_model_mapping[lang]['exclude']
 
-    print(f'Loading {model} spaCy model...')
+    log(f'Loading {model} spaCy model...')
     spacy_nlp = spacy.load(model, exclude=exclude)
-    print('spaCy model loaded')
+    log('spaCy model loaded')
 
 
 def delete_unneeded_country_data(data: dict) -> None:
@@ -115,3 +115,7 @@ def extract_spacy_entities(utterance: str) -> list[dict]:
             })
 
     return entities
+
+
+def log(*args, **kwargs):
+    print('[NLP]', *args, **kwargs)

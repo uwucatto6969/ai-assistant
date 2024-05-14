@@ -3,7 +3,7 @@ from os.path import join, dirname
 from dotenv import load_dotenv
 
 import lib.nlp as nlp
-from lib.TCPServer import TCPServer
+from lib.tcp_server import TCPServer
 
 dotenv_path = join(dirname(__file__), '../../../../../.env')
 load_dotenv(dotenv_path)

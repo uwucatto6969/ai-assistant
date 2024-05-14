@@ -32,6 +32,7 @@ tcp_server/src/Pipfile.lock
 skills/**/src/settings.json
 skills/**/memory/*.json
 core/data/models/*.nlp
+core/data/models/tts/*.pth
 core/data/models/llm/*
 package.json.backup
 .python-version

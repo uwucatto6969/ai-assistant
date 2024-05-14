@@ -3,6 +3,7 @@ import json
 from typing import Union
 
 import lib.nlp as nlp
+from .tts.tts import TTS
 
 
 class TCPServer:
@@ -12,6 +13,11 @@ class TCPServer:
         self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn = None
         self.addr = None
+        self.tts = TTS()
+
+    @staticmethod
+    def log(*args, **kwargs):
+        print('[TCP Server]', *args, **kwargs)
 
     def init(self):
         # Make sure to establish TCP connection by reusing the address so it does not conflict with port already in use
@@ -21,13 +27,13 @@ class TCPServer:
 
         while True:
             # Flush buffered output to make it IPC friendly (readable on stdout)
-            print('Waiting for connection...', flush=True)
+            self.log('Waiting for connection...', flush=True)
 
             # Our TCP server only needs to support one connection
             self.conn, self.addr = self.tcp_socket.accept()
 
             try:
-                print(f'Client connected: {self.addr}')
+                self.log(f'Client connected: {self.addr}')
 
                 while True:
                     socket_data = self.conn.recv(1024)
@@ -46,7 +52,7 @@ class TCPServer:
 
                         self.conn.sendall(json.dumps(res).encode('utf-8'))
             finally:
-                print(f'Client disconnected: {self.addr}')
+                self.log(f'Client disconnected: {self.addr}')
                 self.conn.close()
 
     def get_spacy_entities(self, utterance: str) -> dict:
