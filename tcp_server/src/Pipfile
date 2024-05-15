@@ -7,10 +7,28 @@ name = "pypi"
 python_version = "3.9.10"
 
 [packages]
+# Setup
 setuptools = "*"
 wheel = "*"
+
+# Build
 cx-freeze = "==6.11.1"
-spacy = "==3.5.4"
-torch = "==1.12.1"
+
+# Common
 python-dotenv = "==0.19.2"
+
+# TCP server
+spacy = "==3.5.4"
 geonamescache = "==1.6.0"
+
+# TCP server; TTS
+torch = "==1.12.1"
+
+# TTS
+transformers = "==4.27.4"
+g2p-en = "==2.1.0"
+gruut = {version = "==2.2.3", extras = ["de", "es", "fr"]}
+inflect = "==7.0.0"
+tqdm = "==4.66.4"
+soundfile = "==0.12.1"
+numba = "==0.59.1"

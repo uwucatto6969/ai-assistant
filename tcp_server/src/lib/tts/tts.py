@@ -32,6 +32,18 @@ class TTS:
         self.num_tones = self.hyper_params.num_tones
         self.symbols = self.hyper_params.symbols
 
+        model = SynthesizerTrn(
+            len(self.symbols),
+            self.hyper_params.data.filter_length // 2 + 1,
+            self.hyper_params.train.segment_size // self.hyper_params.data.hop_length,
+            n_speakers=self.hyper_params.data.n_speakers,
+            num_tones=self.num_tones,
+            num_languages=self.num_languages,
+            **self.hyper_params.model,
+        ).to(self.device)
+        model.eval()
+        self.model = model
+
         self.log('Model loaded')
 
     def set_device(self):
