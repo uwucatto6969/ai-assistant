@@ -17,14 +17,21 @@ class TTS(nn.Module):
                 config_path=None,
                 ckpt_path=None):
         super().__init__()
+
+        self.log('Loading model...')
+
         if device == 'auto':
             device = 'cpu'
+
             if torch.cuda.is_available(): device = 'cuda'
+            else: self.log('GPU not available. CUDA is not installed?')
+
             if torch.backends.mps.is_available(): device = 'mps'
         if 'cuda' in device:
             assert torch.cuda.is_available()
 
-        # config_path =
+        self.log(f'Device: {device}')
+
         hps = utils.get_hparams_from_file(config_path)
 
         num_languages = hps.num_languages
@@ -53,6 +60,8 @@ class TTS(nn.Module):
         
         language = language.split('_')[0]
         self.language = 'ZH_MIX_EN' if language == 'ZH' else language # we support a ZH_MIX_EN model
+
+        self.log('Model loaded')
 
     @staticmethod
     def audio_numpy_concat(segment_data_list, sr, speed=1.):
@@ -125,3 +134,8 @@ class TTS(nn.Module):
                 soundfile.write(output_path, audio, self.hps.data.sampling_rate, format=format)
             else:
                 soundfile.write(output_path, audio, self.hps.data.sampling_rate)
+
+
+    @staticmethod
+    def log(*args, **kwargs):
+        print('[TTS]', *args, **kwargs)

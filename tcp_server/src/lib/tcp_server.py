@@ -1,9 +1,11 @@
 import socket
 import json
+import os
 from typing import Union
 
 import lib.nlp as nlp
-from .tts.tts import TTS
+from .tts.api import TTS
+from .constants import TTS_MODEL_CONFIG_PATH, TTS_MODEL_PATH, IS_TTS_ENABLED
 
 
 class TCPServer:
@@ -13,11 +15,39 @@ class TCPServer:
         self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn = None
         self.addr = None
-        self.tts = TTS()
+        self.tts = None
 
     @staticmethod
     def log(*args, **kwargs):
         print('[TCP Server]', *args, **kwargs)
+
+    def init_tts(self):
+        print('IS_TTS_ENABLED', IS_TTS_ENABLED)
+        # TODO: FIX IT
+        if not IS_TTS_ENABLED:
+            self.log('TTS is disabled')
+            return
+
+        if not os.path.exists(TTS_MODEL_CONFIG_PATH):
+            self.log(f'TTS model config not found at {TTS_MODEL_CONFIG_PATH}')
+            return
+
+        if not os.path.exists(TTS_MODEL_PATH):
+            self.log(f'TTS model not found at {TTS_MODEL_PATH}')
+            return
+
+        self.tts = TTS(language='EN',
+                       device='auto',
+                       config_path=TTS_MODEL_CONFIG_PATH,
+                       ckpt_path=TTS_MODEL_PATH
+        )
+
+        text = 'Hello, I am Leon. How can I help you?'
+        speaker_ids = self.tts.hps.data.spk2id
+        output_path = 'output.wav'
+        speed = 1.0
+
+        self.tts.tts_to_file(text, speaker_ids['EN-Leon-V1'], output_path, speed=speed)
 
     def init(self):
         # Make sure to establish TCP connection by reusing the address so it does not conflict with port already in use

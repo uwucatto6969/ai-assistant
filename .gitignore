@@ -24,6 +24,7 @@ debug.log
 leon.json
 bridges/python/src/Pipfile.lock
 tcp_server/src/Pipfile.lock
+tcp_server/src/lib/tts/models/*.pth
 !tcp_server/**/.gitkeep
 !bridges/python/**/.gitkeep
 !bridges/nodejs/**/.gitkeep
@@ -32,7 +33,6 @@ tcp_server/src/Pipfile.lock
 skills/**/src/settings.json
 skills/**/memory/*.json
 core/data/models/*.nlp
-core/data/models/tts/*.pth
 core/data/models/llm/*
 package.json.backup
 .python-version
