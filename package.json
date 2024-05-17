@@ -54,7 +54,7 @@
     "build:nodejs-bridge": "tsx scripts/build-binaries.js nodejs-bridge",
     "build:python-bridge": "tsx scripts/build-binaries.js python-bridge",
     "build:tcp-server": "tsx scripts/build-binaries.js tcp-server",
-    "start:tcp-server": "cross-env PIPENV_PIPFILE=tcp_server/src/Pipfile pipenv run python tcp_server/src/main.py",
+    "start:tcp-server": "cross-env HF_HUB_VERBOSITY=debug PIPENV_PIPFILE=tcp_server/src/Pipfile pipenv run python tcp_server/src/main.py",
     "start": "cross-env LEON_NODE_ENV=production node server/dist/pre-check.js && node server/dist/index.js",
     "python-bridge": "cross-env PIPENV_PIPFILE=bridges/python/src/Pipfile pipenv run python bridges/python/src/main.py server/src/intent-object.sample.json",
     "train": "tsx scripts/train/run-train.js",

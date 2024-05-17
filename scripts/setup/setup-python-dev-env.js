@@ -131,26 +131,37 @@ SPACY_MODELS.set('fr', {
   const hasDotVenv = fs.existsSync(dotVenvPath)
   const { type: osType, cpuArchitecture } = SystemHelper.getInformation()
   /**
-   * Install PyTorch nightly to support CUDA 12.4
-   * as it is required by the latest NVIDIA drivers for CUDA runtime APIs
+   * Install PyTorch with CUDA support
+   * as it is required by the latest NVIDIA drivers for CUDA runtime APIs.
+   * PyTorch will automatically download nvidia-* packages and bundle them.
    *
+   * It is important to specify the "--ignore-installed" flag to make sure the
+   * "~/.pyenv/versions/3.9.10/lib/python3.9/site-packages" is not used in case
+   * NVIDIA deps are already installed. Otherwise, it won't install it in our
+   * TCP server .venv as it is already installed (satisfied) in
+   * the path mentioned above
+   *
+   * @see https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix
+   * @see https://pytorch.org/get-started/locally/
    * @see https://stackoverflow.com/a/76972265/1768162
+   * @see https://docs.nvidia.com/deeplearning/cudnn/latest/reference/support-matrix.html
    */
   const installPytorch = async () => {
-    LogHelper.info('Installing PyTorch nightly with CUDA support...')
+    LogHelper.info('Installing PyTorch with CUDA support...')
     try {
-      await command(
-        'pipenv run pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu124',
-        {
-          shell: true,
-          stdio: 'inherit'
-        }
-      )
-      LogHelper.success('PyTorch nightly with CUDA support installed')
+      // There is no CUDA support on macOS
+      const commandToExecute =
+        osType === OSTypes.MacOS
+          ? 'pipenv run pip install --ignore-installed torch==2.3.0'
+          : 'pipenv run pip install --ignore-installed torch==2.3.0 --index-url https://download.pytorch.org/whl/cu121'
+
+      await command(commandToExecute, {
+        shell: true,
+        stdio: 'inherit'
+      })
+      LogHelper.success('PyTorch with CUDA support installed')
     } catch (e) {
-      LogHelper.error(
-        `Failed to install PyTorch nightly with CUDA support: ${e}`
-      )
+      LogHelper.error(`Failed to install PyTorch with CUDA support: ${e}`)
       process.exit(1)
     }
   }

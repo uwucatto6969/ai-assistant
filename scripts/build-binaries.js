@@ -19,7 +19,6 @@ import {
 } from '@/constants'
 import { OSTypes } from '@/types'
 import { LogHelper } from '@/helpers/log-helper'
-import { LoaderHelper } from '@/helpers/loader-helper'
 import { SystemHelper } from '@/helpers/system-helper'
 
 /**
@@ -57,8 +56,6 @@ BUILD_TARGETS.set('tcp-server', {
   dotVenvPath: path.join(PYTHON_TCP_SERVER_SRC_PATH, '.venv')
 })
 ;(async () => {
-  LoaderHelper.start()
-
   const { argv } = process
   const givenBuildTarget = argv[2].toLowerCase()
 
@@ -117,8 +114,12 @@ BUILD_TARGETS.set('tcp-server', {
       process.env.PIPENV_PIPFILE = pipfilePath
       process.env.PIPENV_VENV_IN_PROJECT = true
 
+      /**
+       * cx_Freeze usage
+       * @see https://cx-freeze.readthedocs.io/en/latest/setup_script.html#build-exe
+       */
       await command(
-        `pipenv run python ${setupFilePath} build --build-exe ${buildPath}`,
+        `pipenv run python ${setupFilePath} build_exe --build-exe ${buildPath}`,
         {
           shell: true,
           stdio: 'inherit'

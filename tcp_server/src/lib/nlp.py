@@ -1,6 +1,7 @@
 import copy
 from sys import argv
 import spacy
+import time
 from geonamescache import GeonamesCache
 
 lang = argv[1] or 'en'
@@ -41,9 +42,12 @@ def load_spacy_model() -> None:
     model = spacy_model_mapping[lang]['model']
     exclude = spacy_model_mapping[lang]['exclude']
 
+    tic = time.perf_counter()
     log(f'Loading {model} spaCy model...')
     spacy_nlp = spacy.load(model, exclude=exclude)
     log('spaCy model loaded')
+    toc = time.perf_counter()
+    log(f"Time taken to load spaCy model: {toc - tic:0.4f} seconds")
 
 
 def delete_unneeded_country_data(data: dict) -> None:

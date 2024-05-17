@@ -2,6 +2,7 @@ import socket
 import json
 import os
 from typing import Union
+import time
 
 import lib.nlp as nlp
 from .tts.api import TTS
@@ -47,7 +48,11 @@ class TCPServer:
         output_path = 'output.wav'
         speed = 1.0
 
+        tic = time.perf_counter()
         self.tts.tts_to_file(text, speaker_ids['EN-Leon-V1'], output_path, speed=speed)
+        toc = time.perf_counter()
+
+        self.log(f"Time taken to generate audio: {toc - tic:0.4f} seconds")
 
     def init(self):
         # Make sure to establish TCP connection by reusing the address so it does not conflict with port already in use

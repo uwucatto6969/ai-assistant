@@ -1,6 +1,9 @@
 import os
+import sys
 
-SRC_PATH = os.path.join(os.getcwd(), 'tcp_server', 'src')
+IS_RAN_FROM_BINARY = getattr(sys, 'frozen', False)
+
+SRC_PATH = os.path.join(os.getcwd(), 'tcp_server', 'src') if not IS_RAN_FROM_BINARY else '.'
 
 # TTS
 TTS_MODEL_VERSION = 'V1'

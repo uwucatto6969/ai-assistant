@@ -1,6 +1,7 @@
+from transformers import AutoTokenizer
+
 from .fr_phonemizer import cleaner as fr_cleaner
 from .fr_phonemizer import fr_to_ipa
-from transformers import AutoTokenizer
 
 
 def distribute_phone(n_phone, n_word):

@@ -4,10 +4,13 @@ import numpy as np
 import torch.nn as nn
 from tqdm import tqdm
 import torch
+import time
 
 from . import utils
 from .models import SynthesizerTrn
 from .split_utils import split_sentence
+
+# torch.backends.cudnn.enabled = False
 
 class TTS(nn.Module):
     def __init__(self, 
@@ -18,6 +21,7 @@ class TTS(nn.Module):
                 ckpt_path=None):
         super().__init__()
 
+        tic = time.perf_counter()
         self.log('Loading model...')
 
         if device == 'auto':
@@ -62,6 +66,9 @@ class TTS(nn.Module):
         self.language = 'ZH_MIX_EN' if language == 'ZH' else language # we support a ZH_MIX_EN model
 
         self.log('Model loaded')
+        toc = time.perf_counter()
+
+        self.log(f"Time taken to load model: {toc - tic:0.4f} seconds")
 
     @staticmethod
     def audio_numpy_concat(segment_data_list, sr, speed=1.):

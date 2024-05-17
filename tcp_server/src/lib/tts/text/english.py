@@ -2,6 +2,7 @@ import pickle
 import os
 import re
 from g2p_en import G2p
+from transformers import AutoTokenizer
 
 from . import symbols
 
@@ -9,7 +10,6 @@ from .english_utils.abbreviations import expand_abbreviations
 from .english_utils.time_norm import expand_time_english
 from .english_utils.number_norm import normalize_numbers
 
-from transformers import AutoTokenizer
 
 current_file_path = os.path.dirname(__file__)
 CMU_DICT_PATH = os.path.join(current_file_path, "cmudict.rep")

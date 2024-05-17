@@ -10,21 +10,16 @@ python_version = "3.9.10"
 # Setup
 setuptools = "*"
 wheel = "*"
-
 # Build
-cx-freeze = "==6.11.1"
-
+cx-freeze = "==7.0.0"
 # Common
 python-dotenv = "==0.19.2"
-
 # TCP server
 spacy = "==3.5.4"
 geonamescache = "==1.6.0"
-
 # TCP server; TTS
 # PyTorch is installed via the setup script
 # torch = "*"
-
 # TTS
 transformers = "==4.27.4"
 g2p-en = "==2.1.0"
