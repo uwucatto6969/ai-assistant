@@ -130,6 +130,30 @@ SPACY_MODELS.set('fr', {
   const pipfileMtime = fs.statSync(pipfilePath).mtime
   const hasDotVenv = fs.existsSync(dotVenvPath)
   const { type: osType, cpuArchitecture } = SystemHelper.getInformation()
+  /**
+   * Install PyTorch nightly to support CUDA 12.4
+   * as it is required by the latest NVIDIA drivers for CUDA runtime APIs
+   *
+   * @see https://stackoverflow.com/a/76972265/1768162
+   */
+  const installPytorch = async () => {
+    LogHelper.info('Installing PyTorch nightly with CUDA support...')
+    try {
+      await command(
+        'pipenv run pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu124',
+        {
+          shell: true,
+          stdio: 'inherit'
+        }
+      )
+      LogHelper.success('PyTorch nightly with CUDA support installed')
+    } catch (e) {
+      LogHelper.error(
+        `Failed to install PyTorch nightly with CUDA support: ${e}`
+      )
+      process.exit(1)
+    }
+  }
   const installPythonPackages = async () => {
     LogHelper.info(`Installing Python packages from ${pipfilePath}.lock...`)
 
@@ -177,6 +201,8 @@ SPACY_MODELS.set('fr', {
       }
 
       LogHelper.success('Python packages installed')
+
+      await installPytorch()
     } catch (e) {
       LogHelper.error(`Failed to install Python packages: ${e}`)
 

@@ -22,7 +22,8 @@ spacy = "==3.5.4"
 geonamescache = "==1.6.0"
 
 # TCP server; TTS
-torch = "==1.12.1"
+# PyTorch is installed via the setup script
+# torch = "*"
 
 # TTS
 transformers = "==4.27.4"
