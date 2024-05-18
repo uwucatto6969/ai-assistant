@@ -1,14 +1,26 @@
 from cx_Freeze import setup, Executable
 import sysconfig
 import sys
+import os
 
 from version import __version__
+from lib.constants import TMP_PATH
 
 """
 Increase the recursion limit to avoid RecursionError
 @see: https://github.com/marcelotduarte/cx_Freeze/issues/2240
 """
 sys.setrecursionlimit(sys.getrecursionlimit() * 10)
+
+"""
+Delete content of all temporary directory. Only keep ".gitkeep" file.
+"""
+print(f"Deleting content of {TMP_PATH}")
+for root, dirs, files in os.walk(TMP_PATH):
+    for file in files:
+        if file != '.gitkeep':
+            os.remove(os.path.join(root, file))
+print(f"Deleted content of {TMP_PATH}")
 
 """
 Instead of injecting everything from a package,

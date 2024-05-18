@@ -89,6 +89,8 @@ class TTS(nn.Module):
         return texts
 
     def tts_to_file(self, text, speaker_id, output_path=None, sdp_ratio=0.2, noise_scale=0.6, noise_scale_w=0.8, speed=1.0, pbar=None, format=None, position=None, quiet=False,):
+        tic = time.perf_counter()
+        self.log(f"Generating audio for:\n{text}")
         language = self.language
         texts = self.split_sentences_into_pieces(text, language, quiet)
         audio_list = []
@@ -133,6 +135,8 @@ class TTS(nn.Module):
             audio_list.append(audio)
         torch.cuda.empty_cache()
         audio = self.audio_numpy_concat(audio_list, sr=self.hps.data.sampling_rate, speed=speed)
+        toc = time.perf_counter()
+        self.log(f"Time taken to generate audio: {toc - tic:0.4f} seconds")
 
         if output_path is None:
             return audio

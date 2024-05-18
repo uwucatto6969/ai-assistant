@@ -34,6 +34,29 @@ import { LogHelper } from '@/helpers/log-helper'
       detached: IS_DEVELOPMENT_ENV
     }
   )
+  global.pythonTCPServerProcess.stdout.on('data', (data: Buffer) => {
+    LogHelper.title('Python TCP Server')
+    LogHelper.info(data.toString())
+  })
+  global.pythonTCPServerProcess.stderr.on('data', (data: Buffer) => {
+    const formattedData = data.toString().trim()
+    const skipError = [
+      'RuntimeWarning:',
+      'FutureWarning:',
+      'UserWarning:',
+      '<00:00',
+      '00:00<',
+      'CUDNN_STATUS_NOT_SUPPORTED',
+      'cls.seq_relationship.weight'
+    ]
+
+    if (skipError.some((error) => formattedData.includes(error))) {
+      return
+    }
+
+    LogHelper.title('Python TCP Server')
+    LogHelper.error(data.toString())
+  })
 
   // Connect the Python TCP client to the Python TCP server
   PYTHON_TCP_CLIENT.connect()
