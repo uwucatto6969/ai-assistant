@@ -71,7 +71,8 @@ class TCPServer:
                 self.log(f'Client connected: {self.addr}')
 
                 while True:
-                    socket_data = self.conn.recv(1024)
+                    # socket_data = self.conn.recv(1024)
+                    socket_data = self.conn.recv(8096)
 
                     if not socket_data:
                         break
