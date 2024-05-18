@@ -16,6 +16,7 @@ export default class Client {
     this.chatbot = new Chatbot()
     this._recorder = {}
     this._suggestions = []
+    // this._ttsAudioContextes = {}
   }
 
   set input(newInput) {
@@ -88,6 +89,26 @@ export default class Client {
 
     this.socket.on('widget', (data) => {
       this.chatbot.createBubble('leon', data)
+    })
+
+    /**
+     * Only used for "local" TTS provider as a PoC for now.
+     * Target to do a better implementation in the future
+     * with streaming support
+     */
+    this.socket.on('tts-stream', (data) => {
+      // const { audioId, chunk } = data
+      const { chunk } = data
+      const ctx = new AudioContext()
+      // this._ttsAudioContextes[audioId] = ctx
+
+      const source = ctx.createBufferSource()
+      ctx.decodeAudioData(chunk, (buffer) => {
+        source.buffer = buffer
+
+        source.connect(ctx.destination)
+        source.start(0)
+      })
     })
 
     this.socket.on('audio-forwarded', (data, cb) => {

@@ -19,6 +19,7 @@ import {
 } from '@/constants'
 import { OSTypes } from '@/types'
 import { LogHelper } from '@/helpers/log-helper'
+import { LoaderHelper } from '@/helpers/loader-helper'
 import { SystemHelper } from '@/helpers/system-helper'
 
 /**
@@ -56,6 +57,8 @@ BUILD_TARGETS.set('tcp-server', {
   dotVenvPath: path.join(PYTHON_TCP_SERVER_SRC_PATH, '.venv')
 })
 ;(async () => {
+  LoaderHelper.start()
+
   const { argv } = process
   const givenBuildTarget = argv[2].toLowerCase()
 

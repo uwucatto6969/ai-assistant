@@ -5,6 +5,8 @@ import torch.nn as nn
 from tqdm import tqdm
 import torch
 import time
+import wave
+import os
 
 from . import utils
 from .models import SynthesizerTrn
@@ -88,11 +90,13 @@ class TTS(nn.Module):
             print(" > ===========================")
         return texts
 
-    def tts_to_file(self, text, speaker_id, output_path=None, sdp_ratio=0.2, noise_scale=0.6, noise_scale_w=0.8, speed=1.0, pbar=None, format=None, position=None, quiet=False,):
+    def tts_to_file(self, text, speaker_id, output_path=None, sdp_ratio=0.2, noise_scale=0.6, noise_scale_w=0.8, speed=1.0, pbar=None, format=None, position=None, quiet=False, stream=False):
         tic = time.perf_counter()
         self.log(f"Generating audio for:\n{text}")
         language = self.language
+
         texts = self.split_sentences_into_pieces(text, language, quiet)
+
         audio_list = []
         if pbar:
             tx = pbar(texts)
@@ -131,21 +135,50 @@ class TTS(nn.Module):
                         length_scale=1. / speed,
                     )[0][0, 0].data.cpu().float().numpy()
                 del x_tst, tones, lang_ids, bert, ja_bert, x_tst_lengths, speakers
-                # 
-            audio_list.append(audio)
+
+            # Save audio data chunk by chunk
+            if stream:
+                # Convert audio to 16-bit PCM format
+                audio = (audio * 32767).astype(np.int16)
+
+                if not os.path.exists(output_path):
+                    # If the file doesn't exist, create it and write the audio data to it
+                    with wave.open(output_path, 'wb') as wf:
+                        wf.setnchannels(1)
+                        wf.setsampwidth(2) # 2 bytes for 16-bit PCM
+                        wf.setframerate(self.hps.data.sampling_rate)
+                        wf.writeframes(audio.tobytes())
+                else:
+                    with wave.open(output_path, 'rb') as wf:
+                        params = wf.getparams()
+                        old_audio = np.frombuffer(wf.readframes(params.nframes), dtype=np.int16)
+                    new_audio = np.concatenate([old_audio, audio])
+
+                    with wave.open(output_path, 'wb') as wf:
+                        wf.setparams(params)
+                        wf.writeframes(new_audio.tobytes())
+
+                time.sleep(2)
+                self.log(f"Audio chunk saved")
+            else:
+                audio_list.append(audio)
+
         torch.cuda.empty_cache()
-        audio = self.audio_numpy_concat(audio_list, sr=self.hps.data.sampling_rate, speed=speed)
+
         toc = time.perf_counter()
         self.log(f"Time taken to generate audio: {toc - tic:0.4f} seconds")
 
-        if output_path is None:
-            return audio
-        else:
-            if format:
-                soundfile.write(output_path, audio, self.hps.data.sampling_rate, format=format)
-            else:
-                soundfile.write(output_path, audio, self.hps.data.sampling_rate)
+        # Concatenate audio segments and save the entire audio to file
+        if not stream:
+            audio = self.audio_numpy_concat(audio_list, sr=self.hps.data.sampling_rate, speed=speed)
 
+            if output_path is None:
+                return audio
+            else:
+                if format:
+                    soundfile.write(output_path, audio, self.hps.data.sampling_rate, format=format)
+                else:
+                    soundfile.write(output_path, audio, self.hps.data.sampling_rate)
 
     @staticmethod
     def log(*args, **kwargs):

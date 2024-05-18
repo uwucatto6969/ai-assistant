@@ -16,6 +16,7 @@ interface Speech {
 }
 
 const PROVIDERS_MAP = {
+  [TTSProviders.Local]: TTSSynthesizers.Local,
   [TTSProviders.GoogleCloudTTS]: TTSSynthesizers.GoogleCloudTTS,
   [TTSProviders.WatsonTTS]: TTSSynthesizers.WatsonTTS,
   [TTSProviders.AmazonPolly]: TTSSynthesizers.AmazonPolly,
@@ -104,6 +105,11 @@ export default class TTS {
     if (this.synthesizer) {
       const result = await this.synthesizer.synthesize(speech.text)
 
+      // Support custom TTS providers such as the local synthesizer
+      if (result?.audioFilePath === '') {
+        return
+      }
+
       if (!result) {
         LogHelper.error(
           'The TTS synthesizer failed to synthesize the speech as the result is null'
@@ -120,7 +126,7 @@ export default class TTS {
             duration
           },
           (confirmation: string) => {
-            if (confirmation === 'audio-received') {
+            if (confirmation === 'audio-received' && audioFilePath !== '') {
               fs.unlinkSync(audioFilePath)
             }
           }

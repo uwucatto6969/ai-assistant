@@ -41,18 +41,23 @@ class TCPServer:
                        ckpt_path=TTS_MODEL_PATH
         )
 
-        text = 'Hello, I am Leon. How can I help you?'
-        speaker_ids = self.tts.hps.data.spk2id
-        output_path = os.path.join(TMP_PATH, 'output.wav')
-        speed = 1.0
-
-        self.tts.tts_to_file(text, speaker_ids['EN-Leon-V1'], output_path, speed=speed, quiet=True)
-
     def init(self):
-        # Make sure to establish TCP connection by reusing the address so it does not conflict with port already in use
-        self.tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.tcp_socket.bind((self.host, int(self.port)))
-        self.tcp_socket.listen()
+        try:
+            # Make sure to establish TCP connection by reusing the address so it does not conflict with port already in use
+            self.tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.tcp_socket.bind((self.host, int(self.port)))
+            self.tcp_socket.listen()
+        except OSError as e:
+            # If the port is already in use, close the connection and retry
+            if 'Address already in use' in str(e):
+                self.log(f'Port {self.port} is already in use. Disconnecting client and retrying...')
+                if self.conn:
+                    self.conn.close()
+                # Wait for a moment before retrying
+                time.sleep(1)
+                self.init()
+            else:
+                raise
 
         while True:
             # Flush buffered output to make it IPC friendly (readable on stdout)
@@ -91,5 +96,41 @@ class TCPServer:
             'topic': 'spacy-entities-received',
             'data': {
                 'spacyEntities': entities
+            }
+        }
+
+    def tts_synthesize(self, speech: str) -> dict:
+        """
+        TODO:
+        - Implement one speaker per style (joyful, sad, angry, tired, etc.)
+        - Need to train a new model with default voice speaker and other speakers with different styles
+        - EN-Leon-Joyful-V1; EN-Leon-Sad-V1; etc.
+        """
+        speaker_ids = self.tts.hps.data.spk2id
+        # Random file name to avoid conflicts
+        audio_id = f'{int(time.time())}_{os.urandom(2).hex()}'
+        output_file_name = f'{audio_id}.wav'
+        output_path = os.path.join(TMP_PATH, output_file_name)
+        speed = 0.88
+
+        formatted_speech = speech.replace(' - ', '.')
+        # formatted_speech = speech.replace(',', '.').replace('.', '...')
+
+        # TODO: should not wait to finish for streaming support
+        self.tts.tts_to_file(
+            formatted_speech,
+            speaker_ids['EN-Leon-V1'],
+            output_path=output_path,
+            speed=speed,
+            quiet=True,
+            format='wav',
+            stream=False
+        )
+
+        return {
+            'topic': 'tts-audio-streaming',
+            'data': {
+                'outputPath': output_path,
+                'audioId': audio_id
             }
         }
