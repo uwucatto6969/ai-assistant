@@ -3,6 +3,7 @@ import json
 import os
 from typing import Union
 import time
+import re
 
 import lib.nlp as nlp
 from .tts.api import TTS
@@ -113,7 +114,10 @@ class TCPServer:
         output_path = os.path.join(TMP_PATH, output_file_name)
         speed = 0.88
 
-        formatted_speech = speech.replace(' - ', '.')
+        formatted_speech = speech.replace(' - ', '.').replace(',', '.')
+        # Clean up emojis
+        formatted_speech = re.sub(r'[\U00010000-\U0010ffff]', '', formatted_speech)
+        formatted_speech = formatted_speech.strip()
         # formatted_speech = speech.replace(',', '.').replace('.', '...')
 
         # TODO: should not wait to finish for streaming support
