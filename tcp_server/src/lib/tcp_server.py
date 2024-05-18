@@ -115,7 +115,7 @@ class TCPServer:
         output_path = os.path.join(TMP_PATH, output_file_name)
         speed = 0.88
 
-        formatted_speech = speech.replace(' - ', '.').replace(',', '.')
+        formatted_speech = speech.replace(' - ', '.').replace(',', '.').replace(': ', '. ')
         # Clean up emojis
         formatted_speech = re.sub(r'[\U00010000-\U0010ffff]', '', formatted_speech)
         formatted_speech = formatted_speech.strip()
