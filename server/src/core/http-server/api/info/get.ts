@@ -9,6 +9,7 @@ import {
   TTS_PROVIDER,
   IS_TELEMETRY_ENABLED
 } from '@/constants'
+import { PERSONA } from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
 import type { APIOptions } from '@/core/http-server/http-server'
 
@@ -39,6 +40,7 @@ export const getInfo: FastifyPluginAsync<APIOptions> = async (
           enabled: HAS_TTS,
           provider: TTS_PROVIDER
         },
+        mood: PERSONA.mood.type,
         version: LEON_VERSION
       })
     }

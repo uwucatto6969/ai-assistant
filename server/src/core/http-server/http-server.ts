@@ -18,7 +18,7 @@ import { infoPlugin } from '@/core/http-server/api/info'
 import { llmInferencePlugin } from '@/core/http-server/api/llm-inference'
 import { keyMidd } from '@/core/http-server/plugins/key'
 import { utterancePlugin } from '@/core/http-server/api/utterance'
-import { LLM_MANAGER } from '@/core'
+import { LLM_MANAGER, PERSONA } from '@/core'
 
 const API_VERSION = 'v1'
 
@@ -62,6 +62,8 @@ export default class HTTPServer {
     LogHelper.info(`Time zone: ${DateHelper.getTimeZone()}`)
 
     LogHelper.info(`LLM provider: ${LLM_PROVIDER}`)
+
+    LogHelper.info(`Mood: ${PERSONA.mood.type}`)
 
     const isLLMEnabled = LLM_MANAGER.isLLMEnabled ? 'enabled' : 'disabled'
     LogHelper.info(`LLM: ${isLLMEnabled}`)
