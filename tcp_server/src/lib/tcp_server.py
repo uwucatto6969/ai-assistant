@@ -7,7 +7,7 @@ import re
 
 import lib.nlp as nlp
 from .tts.api import TTS
-from .constants import TTS_MODEL_CONFIG_PATH, TTS_MODEL_PATH, IS_TTS_ENABLED, TMP_PATH
+from .constants import TTS_MODEL_CONFIG_PATH, TTS_MODEL_PATH, IS_TTS_ENABLED, TMP_PATH, IS_ASR_ENABLED
 
 
 class TCPServer:
@@ -41,6 +41,13 @@ class TCPServer:
                        config_path=TTS_MODEL_CONFIG_PATH,
                        ckpt_path=TTS_MODEL_PATH
         )
+
+    def init_asr(self):
+        if not IS_ASR_ENABLED:
+            self.log('ASR is disabled')
+            return
+
+        # TODO
 
     def init(self):
         try:

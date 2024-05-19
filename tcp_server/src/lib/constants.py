@@ -21,3 +21,6 @@ TTS_MODEL_FOLDER_PATH = os.path.join(TTS_LIB_PATH, 'models')
 TTS_MODEL_CONFIG_PATH = os.path.join(TTS_MODEL_FOLDER_PATH, 'config.json')
 TTS_MODEL_PATH = os.path.join(TTS_MODEL_FOLDER_PATH, TTS_MODEL_FILE_NAME)
 IS_TTS_ENABLED = os.environ.get('LEON_TTS', 'true') == 'true'
+
+# ASR
+IS_ASR_ENABLED = os.environ.get('LEON_STT', 'true') == 'true'
