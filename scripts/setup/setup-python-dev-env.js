@@ -217,6 +217,12 @@ SPACY_MODELS.set('fr', {
     } catch (e) {
       LogHelper.error(`Failed to install Python packages: ${e}`)
 
+      if (osType === OSTypes.Linux || osType === OSTypes.MacOS) {
+        LogHelper.error(
+          'If the error is related to "PortAudio" not installed or found, you can install it by running: "sudo apt install portaudio19-dev" or "brew install portaudio". Then retry. PortAudio is required for the "pyaudio" package used to record audio'
+        )
+      }
+
       if (osType === OSTypes.Windows) {
         LogHelper.error(
           'Please check the error above. It might be related to Microsoft C++ Build Tools. If it is, you can check here: "https://stackoverflow.com/a/64262038/1768162" then restart your machine and retry'
