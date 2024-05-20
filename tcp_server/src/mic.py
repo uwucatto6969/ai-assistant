@@ -3,7 +3,7 @@ import pyaudio
 
 # Set up a TCP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = ('localhost', 12345)  # Replace with your server's IP and port
+server_address = ('127.0.0.1', 1342)  # Replace with your server's IP and port
 sock.connect(server_address)
 
 # Set up the audio stream
