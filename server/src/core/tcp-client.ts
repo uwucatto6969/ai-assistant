@@ -1,10 +1,12 @@
 import Net from 'node:net'
 import { EventEmitter } from 'node:events'
 
-import { IS_PRODUCTION_ENV } from '@/constants'
+import { IS_PRODUCTION_ENV, STT_PROVIDER } from '@/constants'
+import { STT } from '@/core'
 import { OSTypes } from '@/types'
 import { LogHelper } from '@/helpers/log-helper'
 import { SystemHelper } from '@/helpers/system-helper'
+import { STTProviders } from '@/core/stt/types'
 
 // Time interval between each try (in ms)
 const INTERVAL = IS_PRODUCTION_ENV ? 3000 : 500
@@ -60,6 +62,18 @@ export default class TCPClient {
       LogHelper.info(`Received data: ${String(chunk)}`)
 
       const data = JSON.parse(String(chunk))
+
+      /**
+       * If the topic is related to ASR, then parse the data
+       */
+      if (data.topic.includes('asr-')) {
+        if (STT_PROVIDER === STTProviders.Local) {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
+          STT.parser?.parse()
+        }
+      }
+
       this.ee.emit(data.topic, data.data)
     })
 

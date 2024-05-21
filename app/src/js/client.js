@@ -93,10 +93,12 @@ export default class Client {
 
     this.socket.on('asr-speech', (text) => {
       console.log('Wake word detected', text)
+      this._input.value = text
     })
 
     this.socket.on('asr-end-of-owner-speech', () => {
       console.log('End of owner speech')
+      this.send('utterance')
     })
 
     /**
