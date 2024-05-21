@@ -6,6 +6,7 @@ import time
 import re
 
 import lib.nlp as nlp
+from .asr import ASR
 from .tts.api import TTS
 from .constants import TTS_MODEL_CONFIG_PATH, TTS_MODEL_PATH, IS_TTS_ENABLED, TMP_PATH, IS_ASR_ENABLED
 
@@ -18,6 +19,7 @@ class TCPServer:
         self.conn = None
         self.addr = None
         self.tts = None
+        self.asr = None
 
     @staticmethod
     def log(*args, **kwargs):
@@ -47,7 +49,9 @@ class TCPServer:
             self.log('ASR is disabled')
             return
 
-        # TODO
+        # TODO: local model path
+        self.asr = ASR(device='auto')
+        self.asr.start_recording()
 
     def init(self):
         try:
