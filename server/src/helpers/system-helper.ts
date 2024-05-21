@@ -155,4 +155,34 @@ export class SystemHelper {
 
     return str.replace(new RegExp(username, 'g'), '{username}')
   }
+
+  /**
+   * Check if the current OS is Windows
+   * @example isWindows() // false
+   */
+  public static isWindows(): boolean {
+    const { type } = this.getInformation()
+
+    return type === OSTypes.Windows
+  }
+
+  /**
+   * Check if the current OS is macOS
+   * @example isMacOS() // false
+   */
+  public static isMacOS(): boolean {
+    const { type } = this.getInformation()
+
+    return type === OSTypes.MacOS
+  }
+
+  /**
+   * Check if the current OS is Linux
+   * @example isLinux() // true
+   */
+  public static isLinux(): boolean {
+    const { type } = this.getInformation()
+
+    return type === OSTypes.Linux
+  }
 }

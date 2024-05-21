@@ -47,7 +47,8 @@ import { LogHelper } from '@/helpers/log-helper'
       '<00:00',
       '00:00<',
       'CUDNN_STATUS_NOT_SUPPORTED',
-      'cls.seq_relationship.weight'
+      'cls.seq_relationship.weight',
+      'ALSA lib'
     ]
 
     if (skipError.some((error) => formattedData.includes(error))) {

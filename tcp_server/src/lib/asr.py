@@ -25,6 +25,13 @@ class ASR:
 
         self.log(f'Device: {device}')
 
+        compute_type = "float16"
+
+        if device == 'cpu':
+            compute_type = "int8_float32"
+
+        self.compute_type = compute_type
+
         self.transcription_callback = transcription_callback
         self.wake_word_callback = wake_word_callback
         self.end_of_owner_speech_callback = end_of_owner_speech_callback
@@ -51,8 +58,22 @@ class ASR:
         self.buffer_size = 64  # Size of the circular buffer
 
         self.audio = pyaudio.PyAudio()
-        self.model = WhisperModel(self.model_size, device=self.device, compute_type="float16")
         self.stream = None
+        self.model = None
+
+        if self.device == 'cpu':
+            self.model = WhisperModel(
+                self.model_size,
+                device=self.device,
+                compute_type=self.compute_type,
+                cpu_threads=4
+            )
+        else:
+            self.model = WhisperModel(
+                self.model_size,
+                device=self.device,
+                compute_type=self.compute_type
+            )
 
         self.log('Model loaded')
 

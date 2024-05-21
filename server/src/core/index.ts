@@ -2,7 +2,8 @@ import {
   HOST,
   PORT,
   PYTHON_TCP_SERVER_HOST,
-  PYTHON_TCP_SERVER_PORT
+  PYTHON_TCP_SERVER_PORT,
+  PYTHON_TCP_SERVER_LD_LIBRARY_PATH
 } from '@/constants'
 import TCPClient from '@/core/tcp-client'
 import HTTPServer from '@/core/http-server/http-server'
@@ -18,6 +19,17 @@ import LLMManager from '@/core/llm-manager/llm-manager'
 import LLMProvider from '@/core/llm-manager/llm-provider'
 import Persona from '@/core/llm-manager/persona'
 import { ConversationLogger } from '@/conversation-logger'
+import { SystemHelper } from '@/helpers/system-helper'
+import { LogHelper } from '@/helpers/log-helper'
+
+/**
+ * Set environment variables
+ */
+
+if (SystemHelper.isLinux()) {
+  process.env['LD_LIBRARY_PATH'] = PYTHON_TCP_SERVER_LD_LIBRARY_PATH
+  LogHelper.info(`LD_LIBRARY_PATH set to: ${process.env['LD_LIBRARY_PATH']}`)
+}
 
 /**
  * Register core nodes

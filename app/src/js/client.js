@@ -91,8 +91,8 @@ export default class Client {
       this.chatbot.createBubble('leon', data)
     })
 
-    this.socket.on('asr-speech', (data) => {
-      console.log('Wake word detected', data)
+    this.socket.on('asr-speech', (text) => {
+      console.log('Wake word detected', text)
     })
 
     this.socket.on('asr-end-of-owner-speech', () => {

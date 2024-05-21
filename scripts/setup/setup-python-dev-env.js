@@ -160,6 +160,32 @@ SPACY_MODELS.set('fr', {
         stdio: 'inherit'
       })
       LogHelper.success('PyTorch with CUDA support installed')
+
+      if (osType === OSTypes.Linux) {
+        LogHelper.info(
+          'Exporting LD_LIBRARY_PATH to map NVIDIA libs as it is needed by Whisper Faster. Cf. https://github.com/SYSTRAN/faster-whisper/issues/153...'
+        )
+
+        try {
+          await command(
+            // eslint-disable-next-line no-useless-escape
+            'export LD_LIBRARY_PATH=`pipenv run python -c "import os; import nvidia.cublas.lib; import nvidia.cudnn.lib; print(os.path.dirname(nvidia.cublas.lib.__file__) + ":" + os.path.dirname(nvidia.cudnn.lib.__file__))"`',
+            {
+              shell: true,
+              stdio: 'inherit'
+            }
+          )
+          await command('echo $LD_LIBRARY_PATH', {
+            shell: true,
+            stdio: 'inherit'
+          })
+
+          LogHelper.success('LD_LIBRARY_PATH exported')
+        } catch (e) {
+          LogHelper.error(`Failed to export LD_LIBRARY_PATH: ${e}`)
+          process.exit(1)
+        }
+      }
     } catch (e) {
       LogHelper.error(`Failed to install PyTorch with CUDA support: ${e}`)
       process.exit(1)

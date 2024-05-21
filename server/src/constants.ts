@@ -72,6 +72,28 @@ export const NODEJS_BRIDGE_BIN_NAME = 'leon-nodejs-bridge.js'
 export const PYTHON_BRIDGE_BIN_NAME = 'leon-python-bridge'
 export const PYTHON_TCP_SERVER_BIN_NAME = 'leon-tcp-server'
 
+/**
+ * NVIDIA libraries paths for CUDA. Needed by Whisper Faster
+ * @see https://github.com/SYSTRAN/faster-whisper/issues/153
+ */
+export const PYTHON_TCP_SERVER_NVIDIA_CUBLAS_LIB_PATH = path.join(
+  PYTHON_TCP_SERVER_DIST_PATH,
+  BINARIES_FOLDER_NAME,
+  'lib',
+  'nvidia',
+  'cublas',
+  'lib'
+)
+export const PYTHON_TCP_SERVER_NVIDIA_CUDNN_LIB_PATH = path.join(
+  PYTHON_TCP_SERVER_DIST_PATH,
+  BINARIES_FOLDER_NAME,
+  'lib',
+  'nvidia',
+  'cudnn',
+  'lib'
+)
+export const PYTHON_TCP_SERVER_LD_LIBRARY_PATH = `${PYTHON_TCP_SERVER_NVIDIA_CUBLAS_LIB_PATH}:${PYTHON_TCP_SERVER_NVIDIA_CUDNN_LIB_PATH}`
+
 export const PYTHON_TCP_SERVER_BIN_PATH = path.join(
   PYTHON_TCP_SERVER_DIST_PATH,
   BINARIES_FOLDER_NAME,

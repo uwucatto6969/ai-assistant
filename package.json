@@ -63,7 +63,8 @@
     "pre-release:nodejs-bridge": "tsx scripts/release/pre-release-binaries.js nodejs-bridge",
     "pre-release:python-bridge": "tsx scripts/release/pre-release-binaries.js python-bridge",
     "pre-release:tcp-server": "tsx scripts/release/pre-release-binaries.js tcp-server",
-    "check": "tsx scripts/check.js"
+    "check": "tsx scripts/check.js",
+    "kill": "pkill -f node && pkill -f leon-tcp-server && pkill -f pt_main_thread"
   },
   "dependencies": {
     "@aws-sdk/client-polly": "3.18.0",
