@@ -9,6 +9,7 @@ import { STTParserNames, STTProviders } from '@/core/stt/types'
 import { LogHelper } from '@/helpers/log-helper'
 
 const PROVIDERS_MAP = {
+  [STTProviders.Local]: STTParserNames.Local,
   [STTProviders.GoogleCloudSTT]: STTParserNames.GoogleCloudSTT,
   [STTProviders.WatsonSTT]: STTParserNames.WatsonSTT,
   [STTProviders.CoquiSTT]: STTParserNames.CoquiSTT
@@ -75,6 +76,16 @@ export default class STT {
       )
     )
     this.parser = new parser() as STTParser
+
+    /**
+     * If the provider is local, parse an empty buffer to
+     * initialize the parser
+     */
+    if (STT_PROVIDER === STTProviders.Local) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      this.parser?.parse()
+    }
 
     LogHelper.title('STT')
     LogHelper.success('STT initialized')

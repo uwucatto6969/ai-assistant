@@ -6,7 +6,11 @@ import numpy as np
 from faster_whisper import WhisperModel
 
 class ASR:
-    def __init__(self, device='auto'):
+    def __init__(self,
+                 device='auto',
+                 transcription_callback=None,
+                 wake_word_callback=None,
+                 end_of_owner_speech_callback=None):
         self.log('Loading model...')
 
         if device == 'auto':
@@ -21,7 +25,14 @@ class ASR:
 
         self.log(f'Device: {device}')
 
+        self.transcription_callback = transcription_callback
+        self.wake_word_callback = wake_word_callback
+        self.end_of_owner_speech_callback = end_of_owner_speech_callback
+
+        self.wake_words = ["ok leon", "okay leon", "hi leon", "hey leon", "hello leon"]
+
         self.device = device
+        self.tcp_conn = None
         self.utterance = []
         self.circular_buffer = []
         self.is_voice_activity_detected = False
@@ -47,8 +58,8 @@ class ASR:
 
     def detect_wake_word(self, speech: str) -> bool:
         lowercased_speech = speech.lower().strip()
-        wake_words = ["ok leon", "okay leon", "hi leon", "hey leon"]
-        for wake_word in wake_words:
+
+        for wake_word in self.wake_words:
             if wake_word in lowercased_speech:
                 return True
         return False
@@ -56,6 +67,7 @@ class ASR:
     def process_circular_buffer(self):
         if len(self.circular_buffer) > self.buffer_size:
             self.circular_buffer.pop(0)
+
         audio_data = np.concatenate(self.circular_buffer)
         segments, info = self.model.transcribe(
             audio_data,
@@ -68,12 +80,17 @@ class ASR:
         for segment in segments:
             words = segment.text.split()
             self.segment_text += ' '.join(words) + ' '
+
             if self.is_wake_word_detected:
                 self.utterance.append(self.segment_text)
+                self.transcription_callback(" ".join(self.utterance))
             if self.detect_wake_word(segment.text):
                 self.log('Wake word detected')
+                self.wake_word_callback(segment.text)
                 self.is_wake_word_detected = True
-            self.log("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+            else:
+                self.log("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+
             self.segment_text = ''
 
     def start_recording(self):
@@ -98,6 +115,7 @@ class ASR:
             if rms >= self.threshold:  # audio threshold
                 if not self.is_voice_activity_detected:
                     self.is_voice_activity_detected = True
+
                 self.circular_buffer.append(data_np)
                 self.process_circular_buffer()
             else:
@@ -107,6 +125,8 @@ class ASR:
                 if time.time() - self.silence_start_time > self.silence_duration:  # If silence for SILENCE_DURATION seconds
                     if len(self.utterance) > 0:
                         self.log('Reset')
+                        # Take last utterance of the utterance list
+                        self.end_of_owner_speech_callback(self.utterance[-1])
 
                     if self.is_wake_word_detected:
                         self.saved_utterances.append(" ".join(self.utterance))

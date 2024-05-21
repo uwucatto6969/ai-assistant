@@ -4,6 +4,7 @@ import os
 from typing import Union
 import time
 import re
+import string
 
 import lib.nlp as nlp
 from .asr import ASR
@@ -24,6 +25,13 @@ class TCPServer:
     @staticmethod
     def log(*args, **kwargs):
         print('[TCP Server]', *args, **kwargs)
+
+    def send_tcp_message(self, data: dict):
+        if not self.conn:
+            self.log('No client connection found. Cannot send message')
+            return
+
+        self.conn.sendall(json.dumps(data).encode('utf-8'))
 
     def init_tts(self):
         if not IS_TTS_ENABLED:
@@ -49,8 +57,53 @@ class TCPServer:
             self.log('ASR is disabled')
             return
 
+        def transcription_callback(utterance):
+            # self.log('Transcription:', utterance)
+            pass
+
+        def clean_up_wake_word_text(text: str) -> str:
+            """Remove everything before the wake word (included), remove punctuation right after it, trim and
+            capitalize the first letter"""
+            lowercased_text = text.lower()
+            for wake_word in self.asr.wake_words:
+                if wake_word in lowercased_text:
+                    start_index = lowercased_text.index(wake_word)
+                    end_index = start_index + len(wake_word)
+                    end_whitespace_index = end_index
+                    while end_whitespace_index < len(text) and (text[end_whitespace_index] in string.whitespace + string.punctuation):
+                        end_whitespace_index += 1
+                    cleaned_text = text[end_whitespace_index:].strip()
+                    if cleaned_text:  # Check if cleaned_text is not empty
+                        return cleaned_text[0].upper() + cleaned_text[1:]
+                    else:
+                        return ""  # Return an empty string if cleaned_text is empty
+            return text
+
+        def wake_word_callback(text):
+            cleaned_text = clean_up_wake_word_text(text)
+            self.log('Wake word detected:', cleaned_text)
+            self.send_tcp_message({
+                'topic': 'asr-wake-word-detected',
+                'data': {
+                    'text': cleaned_text
+                }
+            })
+
+        def end_of_owner_speech_callback(utterance):
+            self.log('End of owner speech:', utterance)
+            self.send_tcp_message({
+                'topic': 'asr-end-of-owner-speech-detected',
+                'data': {
+                    'utterance': utterance
+                }
+            })
+
         # TODO: local model path
-        self.asr = ASR(device='auto')
+        self.asr = ASR(device='auto',
+                       transcription_callback=transcription_callback,
+                       wake_word_callback=wake_word_callback,
+                       end_of_owner_speech_callback=end_of_owner_speech_callback
+        )
         self.asr.start_recording()
 
     def init(self):
@@ -97,7 +150,7 @@ class TCPServer:
                         method = getattr(self, method)
                         res = method(data)
 
-                        self.conn.sendall(json.dumps(res).encode('utf-8'))
+                        self.send_tcp_message(res)
             finally:
                 self.log(f'Client disconnected: {self.addr}')
                 self.conn.close()
@@ -124,7 +177,7 @@ class TCPServer:
         audio_id = f'{int(time.time())}_{os.urandom(2).hex()}'
         output_file_name = f'{audio_id}.wav'
         output_path = os.path.join(TMP_PATH, output_file_name)
-        speed = 0.88
+        speed = 0.87
 
         formatted_speech = speech.replace(' - ', '.').replace(',', '.').replace(': ', '. ')
         # Clean up emojis

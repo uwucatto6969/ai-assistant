@@ -91,6 +91,14 @@ export default class Client {
       this.chatbot.createBubble('leon', data)
     })
 
+    this.socket.on('asr-speech', (data) => {
+      console.log('Wake word detected', data)
+    })
+
+    this.socket.on('asr-end-of-owner-speech', () => {
+      console.log('End of owner speech')
+    })
+
     /**
      * Only used for "local" TTS provider as a PoC for now.
      * Target to do a better implementation in the future

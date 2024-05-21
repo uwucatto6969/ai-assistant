@@ -1,3 +1,4 @@
+import type LocalSynthesizer from '@/core/tts/synthesizers/local-synthesizer'
 import type AmazonPollySynthesizer from '@/core/tts/synthesizers/amazon-polly-synthesizer'
 import type FliteSynthesizer from '@/core/tts/synthesizers/flite-synthesizer'
 import type GoogleCloudTTSSynthesizer from '@/core/tts/synthesizers/google-cloud-tts-synthesizer'
@@ -25,6 +26,7 @@ export interface SynthesizeResult {
 }
 
 export type TTSSynthesizer =
+  | LocalSynthesizer
   | AmazonPollySynthesizer
   | FliteSynthesizer
   | GoogleCloudTTSSynthesizer

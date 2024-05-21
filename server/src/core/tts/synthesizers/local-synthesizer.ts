@@ -32,11 +32,11 @@ export default class LocalSynthesizer extends TTSSynthesizerBase {
   }
 
   public async synthesize(speech: string): Promise<SynthesizeResult | null> {
-    const eventName = 'tts-receiving-stream'
+    const eventName = 'tts-audio-streaming'
     const eventHasListeners = PYTHON_TCP_CLIENT.ee.listenerCount(eventName) > 0
 
     if (!eventHasListeners) {
-      PYTHON_TCP_CLIENT.ee.on('tts-audio-streaming', (data: ChunkData) => {
+      PYTHON_TCP_CLIENT.ee.on(eventName, (data: ChunkData) => {
         /**
          * Send audio stream chunk by chunk to the client as long as
          * the temporary file is being written from the TCP server
