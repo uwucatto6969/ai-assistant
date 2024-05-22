@@ -23,4 +23,8 @@ TTS_MODEL_PATH = os.path.join(TTS_MODEL_FOLDER_PATH, TTS_MODEL_FILE_NAME)
 IS_TTS_ENABLED = os.environ.get('LEON_TTS', 'true') == 'true'
 
 # ASR
+ASR_LIB_PATH = os.path.join(LIB_PATH, 'asr')
+ASR_MODEL_FOLDER_PATH = os.path.join(ASR_LIB_PATH, 'models')
+ASR_MODEL_PATH_FOR_GPU = os.path.join(ASR_MODEL_FOLDER_PATH, 'gpu')
+ASR_MODEL_PATH_FOR_CPU = os.path.join(ASR_MODEL_FOLDER_PATH, 'cpu')
 IS_ASR_ENABLED = os.environ.get('LEON_STT', 'true') == 'true'

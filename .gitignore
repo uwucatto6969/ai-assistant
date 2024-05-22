@@ -25,6 +25,7 @@ leon.json
 bridges/python/src/Pipfile.lock
 tcp_server/src/Pipfile.lock
 tcp_server/src/lib/tts/models/*.pth
+tcp_server/src/lib/asr/models/**/*.bin
 !tcp_server/**/.gitkeep
 !bridges/python/**/.gitkeep
 !bridges/nodejs/**/.gitkeep

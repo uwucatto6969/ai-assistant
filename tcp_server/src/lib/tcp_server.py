@@ -7,9 +7,15 @@ import re
 import string
 
 import lib.nlp as nlp
-from .asr import ASR
+from .asr.api import ASR
 from .tts.api import TTS
-from .constants import TTS_MODEL_CONFIG_PATH, TTS_MODEL_PATH, IS_TTS_ENABLED, TMP_PATH, IS_ASR_ENABLED
+from .constants import (
+    TTS_MODEL_CONFIG_PATH,
+    TTS_MODEL_PATH,
+    IS_TTS_ENABLED,
+    TMP_PATH,
+    IS_ASR_ENABLED
+)
 
 
 class TCPServer:
@@ -98,7 +104,6 @@ class TCPServer:
                 }
             })
 
-        # TODO: local model path
         self.asr = ASR(device='auto',
                        transcription_callback=transcription_callback,
                        wake_word_callback=wake_word_callback,

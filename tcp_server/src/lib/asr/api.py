@@ -5,12 +5,15 @@ import torch
 import numpy as np
 from faster_whisper import WhisperModel
 
+from ..constants import ASR_MODEL_PATH_FOR_GPU, ASR_MODEL_PATH_FOR_CPU
+
 class ASR:
     def __init__(self,
                  device='auto',
                  transcription_callback=None,
                  wake_word_callback=None,
                  end_of_owner_speech_callback=None):
+        tic = time.perf_counter()
         self.log('Loading model...')
 
         if device == 'auto':
@@ -54,7 +57,6 @@ class ASR:
         self.chunk = 4096
         self.threshold = 200
         self.silence_duration = 1  # duration of silence in seconds
-        self.model_size = "distil-large-v3"
         self.buffer_size = 64  # Size of the circular buffer
 
         self.audio = pyaudio.PyAudio()
@@ -62,20 +64,27 @@ class ASR:
         self.model = None
 
         if self.device == 'cpu':
+            model_path = ASR_MODEL_PATH_FOR_CPU
             self.model = WhisperModel(
-                self.model_size,
+                model_path,
                 device=self.device,
                 compute_type=self.compute_type,
+                local_files_only=True,
                 cpu_threads=4
             )
         else:
+            model_path = ASR_MODEL_PATH_FOR_GPU
             self.model = WhisperModel(
-                self.model_size,
+                model_path,
                 device=self.device,
-                compute_type=self.compute_type
+                compute_type=self.compute_type,
+                local_files_only=True
             )
 
         self.log('Model loaded')
+        toc = time.perf_counter()
+
+        self.log(f"Time taken to load model: {toc - tic:0.4f} seconds")
 
     def detect_wake_word(self, speech: str) -> bool:
         lowercased_speech = speech.lower().strip()
@@ -90,14 +99,17 @@ class ASR:
             self.circular_buffer.pop(0)
 
         audio_data = np.concatenate(self.circular_buffer)
-        segments, info = self.model.transcribe(
-            audio_data,
-            beam_size=5,
-            language="en",
-            task="transcribe",
-            condition_on_previous_text=False,
-            hotwords="talking to Leon"
-        )
+        transcribe_params = {
+            "beam_size": 5,
+            "language": "en",
+            "task": "transcribe",
+            "condition_on_previous_text": False,
+            "hotwords": "talking to Leon"
+        }
+        if self.device == 'cpu':
+            transcribe_params["temperature"] = 0
+
+        segments, info = self.model.transcribe(audio_data, **transcribe_params)
         for segment in segments:
             words = segment.text.split()
             self.segment_text += ' '.join(words) + ' '

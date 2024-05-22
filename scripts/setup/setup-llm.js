@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import dns from 'node:dns'
 import stream from 'node:stream'
 
 import { command } from 'execa'
@@ -13,7 +12,6 @@ import {
   LLM_PATH,
   LLM_VERSION,
   LLM_HF_DOWNLOAD_URL,
-  LLM_MIRROR_DOWNLOAD_URL,
   LLM_LLAMA_CPP_RELEASE_TAG
 } from '@/constants'
 import { OSTypes, CPUArchitectures } from '@/types'
@@ -37,17 +35,7 @@ function checkMinimumHardwareRequirements() {
   return SystemHelper.getTotalRAM() >= LLM_MINIMUM_TOTAL_RAM
 }
 
-async function canAccessHuggingFace() {
-  try {
-    await dns.promises.resolve('huggingface.co')
-
-    return true
-  } catch {
-    return false
-  }
-}
-
-async function downloadLLM(retryWithMirror = false) {
+async function downloadLLM() {
   try {
     LogHelper.info('Downloading LLM...')
 
@@ -61,22 +49,20 @@ async function downloadLLM(retryWithMirror = false) {
     }
 
     if (!manifest || manifest.version !== LLM_VERSION) {
-      const downloadURL =
-        (await canAccessHuggingFace()) && !retryWithMirror
-          ? LLM_HF_DOWNLOAD_URL
-          : LLM_MIRROR_DOWNLOAD_URL
-
       // Just in case the LLM file already exists, delete it first
       if (fs.existsSync(LLM_PATH)) {
         await fs.promises.unlink(LLM_PATH)
       }
 
       LogHelper.info(
-        `Downloading ${LLM_NAME_WITH_VERSION} from ${downloadURL}...`
+        `Downloading ${LLM_NAME_WITH_VERSION} from ${LLM_HF_DOWNLOAD_URL}...`
       )
 
       const llmWriter = fs.createWriteStream(LLM_PATH)
-      const response = await FileHelper.downloadFile(downloadURL, 'stream')
+      const response = await FileHelper.downloadFile(
+        LLM_HF_DOWNLOAD_URL,
+        'stream'
+      )
 
       response.data.pipe(llmWriter)
       await stream.promises.finished(llmWriter)
@@ -102,13 +88,6 @@ async function downloadLLM(retryWithMirror = false) {
     }
   } catch (e) {
     LogHelper.error(`Failed to download LLM: ${e}`)
-
-    if (e.code === 'EAI_AGAIN') {
-      LogHelper.warning(
-        'Failed to download from Hugging Face, retrying from mirror...'
-      )
-      await downloadLLM(true)
-    }
   }
 }
 

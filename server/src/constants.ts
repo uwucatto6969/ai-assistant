@@ -5,6 +5,7 @@ import dotenv from 'dotenv'
 
 import type { LongLanguageCode } from '@/types'
 import { SystemHelper } from '@/helpers/system-helper'
+import { NetworkHelper } from '@/helpers/network-helper'
 
 dotenv.config()
 
@@ -45,6 +46,41 @@ export const PYTHON_TCP_SERVER_SRC_PATH = path.join(
   PYTHON_TCP_SERVER_ROOT_PATH,
   'src'
 )
+export const PYTHON_TCP_SERVER_SRC_TTS_MODEL_FILE_NAME =
+  'EN-Leon-V1-G_699000.pth'
+export const PYTHON_TCP_SERVER_SRC_TTS_MODEL_PATH = path.join(
+  PYTHON_TCP_SERVER_SRC_PATH,
+  'lib',
+  'tts',
+  'models',
+  PYTHON_TCP_SERVER_SRC_TTS_MODEL_FILE_NAME
+)
+export const PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH = path.join(
+  PYTHON_TCP_SERVER_SRC_PATH,
+  'lib',
+  'asr',
+  'models'
+)
+export const PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_GPU = path.join(
+  PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH,
+  'gpu'
+)
+export const PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_CPU = path.join(
+  PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH,
+  'cpu'
+)
+export const PYTHON_TCP_SERVER_TTS_MODEL_HF_DOWNLOAD_URL =
+  NetworkHelper.setHuggingFaceURL(
+    `https://huggingface.co/Louistiti/Voice-EN-Leon-V1/resolve/main/${PYTHON_TCP_SERVER_SRC_TTS_MODEL_FILE_NAME}?download=true`
+  )
+export const PYTHON_TCP_SERVER_ASR_MODEL_GPU_HF_PREFIX_DOWNLOAD_URL =
+  NetworkHelper.setHuggingFaceURL(
+    'https://huggingface.co/Systran/faster-distil-whisper-large-v3/resolve/main'
+  )
+export const PYTHON_TCP_SERVER_ASR_MODEL_CPU_HF_PREFIX_DOWNLOAD_URL =
+  NetworkHelper.setHuggingFaceURL(
+    'https://huggingface.co/Systran/faster-whisper-medium/resolve/main'
+  )
 
 const NODEJS_BRIDGE_VERSION_FILE_PATH = path.join(
   NODEJS_BRIDGE_SRC_PATH,
@@ -73,7 +109,8 @@ export const PYTHON_BRIDGE_BIN_NAME = 'leon-python-bridge'
 export const PYTHON_TCP_SERVER_BIN_NAME = 'leon-tcp-server'
 
 /**
- * NVIDIA libraries paths for CUDA. Needed by Whisper Faster
+ * NVIDIA libraries paths for CUDA. Needed by Whisper Faster.
+ * Otherwise, an error similar to "libcudnn_ops_infer.so.8: cannot open shared object file" occurs.
  * @see https://github.com/SYSTRAN/faster-whisper/issues/153
  */
 export const PYTHON_TCP_SERVER_NVIDIA_CUBLAS_LIB_PATH = path.join(
@@ -216,38 +253,30 @@ export const LLM_DIR_PATH = path.join(MODELS_PATH, 'llm')
 export const LLM_PATH = path.join(LLM_DIR_PATH, LLM_FILE_NAME)
 export const LLM_MINIMUM_TOTAL_RAM = 8
 export const LLM_MINIMUM_FREE_RAM = 8
-/*export const LLM_HF_DOWNLOAD_URL =
-  'https://huggingface.co/QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct.Q5_K_S.gguf?download=true'*/
-/*export const LLM_HF_DOWNLOAD_URL =
-  'https://huggingface.co/QuantFactory/dolphin-2.9-llama3-8b-GGUF/resolve/main/dolphin-2.9-llama3-8b.Q5_K_S.gguf?download=true'*/
-export const LLM_HF_DOWNLOAD_URL =
+/*export const LLM_HF_DOWNLOAD_URL = NetworkHelper.setHuggingFaceURL(
+  'https://huggingface.co/QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct.Q5_K_S.gguf?download=true'
+)*/
+/*export const LLM_HF_DOWNLOAD_URL = NetworkHelper.setHuggingFaceURL(
+  'https://huggingface.co/QuantFactory/dolphin-2.9-llama3-8b-GGUF/resolve/main/dolphin-2.9-llama3-8b.Q5_K_S.gguf?download=true'
+)*/
+export const LLM_HF_DOWNLOAD_URL = NetworkHelper.setHuggingFaceURL(
   'https://huggingface.co/bartowski/Lexi-Llama-3-8B-Uncensored-GGUF/resolve/main/Lexi-Llama-3-8B-Uncensored-Q5_K_S.gguf?download=true'
-/*export const LLM_HF_DOWNLOAD_URL =
-  'https://huggingface.co/PrunaAI/Phi-3-mini-128k-instruct-GGUF-Imatrix-smashed/resolve/main/Phi-3-mini-128k-instruct.Q5_K_S.gguf?download=true'*/
-/*export const LLM_HF_DOWNLOAD_URL =
-  'https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf?download=true'*/
-/*export const LLM_HF_DOWNLOAD_URL =
-  'https://huggingface.co/bartowski/gemma-1.1-7b-it-GGUF/resolve/main/gemma-1.1-7b-it-Q4_K_M.gguf?download=true'*/
-/*export const LLM_HF_DOWNLOAD_URL =
-  'https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_S.gguf?download=true'*/
-/*export const LLM_HF_DOWNLOAD_URL =
-  'https://huggingface.co/bartowski/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q4_K_S.gguf?download=true'*/
-/*export const LLM_MIRROR_DOWNLOAD_URL =
-  'https://hf-mirror.com/bartowski/gemma-1.1-7b-it-GGUF/resolve/main/gemma-1.1-7b-it-Q4_K_M.gguf?download=true'*/
-/*export const LLM_MIRROR_DOWNLOAD_URL =
-  'https://hf-mirror.com/QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct.Q5_K_S.gguf?download=true'*/
-/*export const LLM_MIRROR_DOWNLOAD_URL =
-  'https://hf-mirror.com/QuantFactory/dolphin-2.9-llama3-8b-GGUF/resolve/main/dolphin-2.9-llama3-8b.Q5_K_S.gguf?download=true'*/
-export const LLM_MIRROR_DOWNLOAD_URL =
-  'https://hf-mirror.com/bartowski/Lexi-Llama-3-8B-Uncensored-GGUF/resolve/main/Lexi-Llama-3-8B-Uncensored-Q5_K_S.gguf?download=true'
-/*export const LLM_MIRROR_DOWNLOAD_URL =
-  'https://hf-mirror.com/PrunaAI/Phi-3-mini-128k-instruct-GGUF-Imatrix-smashed/resolve/main/Phi-3-mini-128k-instruct.Q5_K_S.gguf?download=true'*/
-/*export const LLM_MIRROR_DOWNLOAD_URL =
-  'https://hf-mirror.com/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf?download=true'*/
-/*export const LLM_MIRROR_DOWNLOAD_URL =
-  'https://hf-mirror.com/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_S.gguf?download=true'*/
-/*export const LLM_MIRROR_DOWNLOAD_URL =
-  'https://hf-mirror.com/bartowski/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q4_K_S.gguf?download=true'*/
+)
+/*export const LLM_HF_DOWNLOAD_URL = NetworkHelper.setHuggingFaceURL(
+  'https://huggingface.co/PrunaAI/Phi-3-mini-128k-instruct-GGUF-Imatrix-smashed/resolve/main/Phi-3-mini-128k-instruct.Q5_K_S.gguf?download=true'
+)*/
+/*export const LLM_HF_DOWNLOAD_URL = NetworkHelper.setHuggingFaceURL(
+  'https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf?download=true'
+)*/
+/*export const LLM_HF_DOWNLOAD_URL = NetworkHelper.setHuggingFaceURL(
+  'https://huggingface.co/bartowski/gemma-1.1-7b-it-GGUF/resolve/main/gemma-1.1-7b-it-Q4_K_M.gguf?download=true'
+)*/
+/*export const LLM_HF_DOWNLOAD_URL = NetworkHelper.setHuggingFaceURL(
+  'https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_S.gguf?download=true'
+)*/
+/*export const LLM_HF_DOWNLOAD_URL = NetworkHelper.setHuggingFaceURL(
+  'https://huggingface.co/bartowski/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q4_K_S.gguf?download=true'
+)*/
 /**
  * @see llama.cpp releases: https://github.com/ggerganov/llama.cpp/releases
  */

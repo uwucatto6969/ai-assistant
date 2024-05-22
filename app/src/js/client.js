@@ -98,7 +98,9 @@ export default class Client {
 
     this.socket.on('asr-end-of-owner-speech', () => {
       console.log('End of owner speech')
-      this.send('utterance')
+      setTimeout(() => {
+        this.send('utterance')
+      }, 300)
     })
 
     /**
