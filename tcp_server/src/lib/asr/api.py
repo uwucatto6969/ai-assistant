@@ -56,7 +56,7 @@ class ASR:
         self.rate = 16000
         self.chunk = 4096
         self.threshold = 200
-        self.silence_duration = 1  # duration of silence in seconds
+        self.silence_duration = 1.5  # duration of silence in seconds
         self.buffer_size = 64  # Size of the circular buffer
 
         self.audio = pyaudio.PyAudio()
