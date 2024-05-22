@@ -146,6 +146,7 @@ export default class LLMProvider {
       completionOptions.temperature || DEFAULT_TEMPERATURE
     completionOptions.maxTokens =
       completionOptions.maxTokens || DEFAULT_MAX_TOKENS
+    completionOptions.onToken = completionOptions.onToken || ((): void => {})
 
     const isJSONMode = completionOptions.data !== null
 

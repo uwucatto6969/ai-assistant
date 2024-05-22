@@ -25,7 +25,8 @@ export default class LocalLLMProvider {
         const isJSONMode = completionOptions.data !== null
         let promptParams = {
           maxTokens: completionOptions.maxTokens as number,
-          temperature: completionOptions.temperature as number
+          temperature: completionOptions.temperature as number,
+          onToken: completionOptions.onToken as (tokens: unknown) => void
         }
 
         if (isJSONMode) {

@@ -98,13 +98,17 @@ export default class Chatbot {
     })
   }
 
-  createBubble(who, string, save = true) {
+  createBubble(who, string, save = true, bubbleId) {
     const container = document.createElement('div')
     const bubble = document.createElement('p')
 
     container.className = `bubble-container ${who}`
     bubble.className = 'bubble'
     bubble.innerHTML = string
+
+    if (bubbleId) {
+      container.classList.add(bubbleId)
+    }
 
     this.feed.appendChild(container).appendChild(bubble)
 
@@ -134,6 +138,8 @@ export default class Chatbot {
     if (save) {
       this.saveBubble(who, string)
     }
+
+    return container
   }
 
   saveBubble(who, string) {

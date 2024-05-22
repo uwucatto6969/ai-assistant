@@ -1,3 +1,8 @@
+interface RandomStringOptions {
+  onlyLetters?: boolean
+  onlyNumbers?: boolean
+}
+
 export class StringHelper {
   /**
    * Parse, map (with object) and replace value(s) in a string
@@ -39,9 +44,30 @@ export class StringHelper {
   /**
    * Random string
    * @param length Length of the string
+   * @param options Options
    * @example random(6) // 4f3a2b
+   * @example random(6, { onlyLetters: true }) // abcdef
+   * @example random(6, { onlyNumbers: true }) // 123456
    */
-  public static random(length: number): string {
+  public static random(length: number, options?: RandomStringOptions): string {
+    options = options || {}
+    options.onlyLetters = options.onlyLetters || false
+    options.onlyNumbers = options.onlyNumbers || false
+
+    if (options.onlyLetters) {
+      return Math.random()
+        .toString(36)
+        .replace(/[^a-z]+/g, '')
+        .slice(0, length)
+    }
+    if (options.onlyNumbers) {
+      // generate only numbers. do not use substr
+      return Math.random()
+        .toString()
+        .replace(/[^0-9]+/g, '')
+        .slice(0, length)
+    }
+
     return Math.random().toString(36).slice(-length)
   }
 

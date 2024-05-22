@@ -1,4 +1,4 @@
-import type { LlamaChatSession } from 'node-llama-cpp'
+import type { LlamaChatSession, Token } from 'node-llama-cpp'
 
 import type { LLMDuty } from '@/core/llm-manager/llm-duty'
 import type { MessageLog } from '@/types'
@@ -33,4 +33,5 @@ export interface CompletionOptions {
   duty?: LLMDuty
   data?: Record<string, unknown> | null
   history?: MessageLog[]
+  onToken?: (tokens: Token[]) => void
 }

@@ -4,10 +4,11 @@ import {
   LLMDuty
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
-import { LLM_MANAGER, LLM_PROVIDER, PERSONA } from '@/core'
+import { LLM_MANAGER, LLM_PROVIDER, PERSONA, SOCKET_SERVER } from '@/core'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
 import { LLMProviders } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
+import { StringHelper } from '@/helpers/string-helper'
 
 interface ParaphraseLLMDutyParams extends LLMDutyParams {}
 
@@ -73,10 +74,19 @@ The sun is a star, it is the closest star to Earth.`
           systemPrompt: completionParams.systemPrompt
         })
 
+        const generationId = StringHelper.random(6, { onlyLetters: true })
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
           session,
-          maxTokens: context.contextSize
+          maxTokens: context.contextSize,
+          onToken: (chunk) => {
+            const detokenizedChunk = LLM_MANAGER.model.detokenize(chunk)
+
+            SOCKET_SERVER.socket?.emit('llm-token', {
+              token: detokenizedChunk,
+              generationId
+            })
+          }
         })
       } else {
         completionResult = await LLM_PROVIDER.prompt(prompt, completionParams)

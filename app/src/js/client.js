@@ -16,6 +16,7 @@ export default class Client {
     this.chatbot = new Chatbot()
     this._recorder = {}
     this._suggestions = []
+    this.answerGenerationId = 'xxx'
     // this._ttsAudioContextes = {}
   }
 
@@ -67,7 +68,22 @@ export default class Client {
     })
 
     this.socket.on('answer', (data) => {
-      this.chatbot.receivedFrom('leon', data)
+      /**
+       * Just save the bubble if the newest bubble is from the streaming.
+       * Otherwise, create a new bubble
+       */
+      const newestBubbleContainerElement =
+        document.querySelector('.leon:last-child')
+      const isNewestBubbleFromStreaming =
+        newestBubbleContainerElement?.classList.contains(
+          this.answerGenerationId
+        )
+
+      if (isNewestBubbleFromStreaming) {
+        this.chatbot.saveBubble('leon', data)
+      } else {
+        this.chatbot.receivedFrom('leon', data)
+      }
     })
 
     this.socket.on('suggest', (data) => {
@@ -91,13 +107,41 @@ export default class Client {
       this.chatbot.createBubble('leon', data)
     })
 
+    this.socket.on('llm-token', (data) => {
+      const previousGenerationId = this.answerGenerationId
+      const newGenerationId = data.generationId
+      this.answerGenerationId = newGenerationId
+      const isSameGeneration = previousGenerationId === newGenerationId
+      let bubbleContainerElement = null
+
+      if (!isSameGeneration) {
+        bubbleContainerElement = this.chatbot.createBubble(
+          'leon',
+          data.token,
+          false,
+          newGenerationId
+        )
+      } else {
+        bubbleContainerElement = document.querySelector(
+          `.${previousGenerationId}`
+        )
+      }
+
+      const bubbleElement = bubbleContainerElement.querySelector('p.bubble')
+
+      // Token is already appened when it's a new generation
+      if (isSameGeneration) {
+        bubbleElement.innerHTML += data.token
+      }
+
+      this.chatbot.scrollDown()
+    })
+
     this.socket.on('asr-speech', (text) => {
-      console.log('Wake word detected', text)
       this._input.value = text
     })
 
     this.socket.on('asr-end-of-owner-speech', () => {
-      console.log('End of owner speech')
       setTimeout(() => {
         this.send('utterance')
       }, 200)

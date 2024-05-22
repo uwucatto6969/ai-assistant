@@ -12,11 +12,13 @@ import {
   PERSONA,
   NLU,
   LOOP_CONVERSATION_LOGGER,
-  LLM_PROVIDER
+  LLM_PROVIDER,
+  SOCKET_SERVER
 } from '@/core'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
 import { LLMProviders } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
+import { StringHelper } from '@/helpers/string-helper'
 
 export class ChitChatLLMDuty extends LLMDuty {
   private static instance: ChitChatLLMDuty
@@ -106,10 +108,19 @@ export class ChitChatLLMDuty extends LLMDuty {
       let completionResult
 
       if (LLM_PROVIDER_NAME === LLMProviders.Local) {
+        const generationId = StringHelper.random(6, { onlyLetters: true })
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
           session: ChitChatLLMDuty.session,
-          maxTokens: ChitChatLLMDuty.context.contextSize
+          maxTokens: ChitChatLLMDuty.context.contextSize,
+          onToken: (chunk) => {
+            const detokenizedChunk = LLM_MANAGER.model.detokenize(chunk)
+
+            SOCKET_SERVER.socket?.emit('llm-token', {
+              token: detokenizedChunk,
+              generationId
+            })
+          }
         })
       } else {
         completionResult = await LLM_PROVIDER.prompt(prompt, {
