@@ -315,7 +315,7 @@ input {
 }
 
 .bubble {
-  padding: 6px 12px;
+  padding: 10px 16px;
   border-radius: 16px;
   display: inline-block;
   max-width: 60%;
@@ -324,8 +324,8 @@ input {
   opacity: 0;
   animation: fadeIn 0.2s ease-in forwards;
   overflow: hidden;
-  font-size: 1.4rem;
-  line-height: 2rem;
+  font-size: 1.8rem;
+  line-height: 2.4rem;
 }
 #feed .me .bubble {
   background-color: #1c75db;
