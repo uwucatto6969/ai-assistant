@@ -60,6 +60,15 @@ export default class NLU {
   }
 
   async setNLUResult(newNLUResult: NLUResult): Promise<void> {
+    /**
+     * If the NLU process did not find any intent match, then immediately set the NLU result
+     * as it is to avoid conflict
+     */
+    if (newNLUResult.classification.skill === 'None') {
+      this._nluResult = newNLUResult
+      return
+    }
+
     const skillConfigPath = newNLUResult.skillConfigPath
       ? newNLUResult.skillConfigPath
       : join(
