@@ -100,7 +100,7 @@ export default class Client {
       console.log('End of owner speech')
       setTimeout(() => {
         this.send('utterance')
-      }, 300)
+      }, 200)
     })
 
     /**

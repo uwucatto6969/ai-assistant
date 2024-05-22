@@ -28,11 +28,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const input = document.querySelector('#utterance')
     const mic = document.querySelector('#mic-button')
     const v = document.querySelector('#version small')
+    const moodContainer = document.querySelector('#mood')
     const client = new Client(config.app, serverUrl, input, response.data)
     let rec = {}
     let chunks = []
 
     v.innerHTML += client.info.version
+
+    if (client.info.llm.enabled) {
+      moodContainer.innerHTML = `Leon's mood: ${client.info.mood.emoji}`
+      moodContainer.setAttribute('title', client.info.mood.type)
+    }
 
     client.init(loader)
 

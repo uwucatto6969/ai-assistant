@@ -7,6 +7,7 @@ import { LogHelper } from '@/helpers/log-helper'
 interface Mood {
   type: Moods
   description: string
+  emoji: string
 }
 
 enum Moods {
@@ -50,11 +51,11 @@ const SAD_MOOD_DESC = `You are sad, feeling down and depressing.`
 const ANGRY_MOOD_DESC = `You grumble, you are angry and you are not in a mood. You use irony and sarcasm.`
 const COCKY_MOOD_DESC = `You are cocky, you are over confident and proud of yourself. You like to show off.`
 const MOODS: Mood[] = [
-  { type: Moods.Default, description: DEFAULT_MOOD_DESC },
-  { type: Moods.Tired, description: TIRING_MOOD_DESC },
-  { type: Moods.Sad, description: SAD_MOOD_DESC },
-  { type: Moods.Angry, description: ANGRY_MOOD_DESC },
-  { type: Moods.Cocky, description: COCKY_MOOD_DESC }
+  { type: Moods.Default, description: DEFAULT_MOOD_DESC, emoji: '😃' },
+  { type: Moods.Tired, description: TIRING_MOOD_DESC, emoji: '😪' },
+  { type: Moods.Sad, description: SAD_MOOD_DESC, emoji: '😓' },
+  { type: Moods.Angry, description: ANGRY_MOOD_DESC, emoji: '😈' },
+  { type: Moods.Cocky, description: COCKY_MOOD_DESC, emoji: '😎' }
 ]
 const DEFAULT_MOOD = MOODS.find((mood) => mood.type === Moods.Default) as Mood
 const BAD_MOODS = [Moods.Tired, Moods.Sad, Moods.Angry]
