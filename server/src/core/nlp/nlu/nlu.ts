@@ -157,246 +157,253 @@ export default class NLU {
     const processingTimeStart = Date.now()
 
     return new Promise(async (resolve, reject) => {
-      LogHelper.title('NLU')
-      LogHelper.info('Processing...')
+      try {
+        LogHelper.title('NLU')
+        LogHelper.info('Processing...')
 
-      if (!MODEL_LOADER.hasNlpModels()) {
-        if (!BRAIN.isMuted) {
-          await BRAIN.talk(`${BRAIN.wernicke('random_errors')}!`)
+        if (!MODEL_LOADER.hasNlpModels()) {
+          if (!BRAIN.isMuted) {
+            await BRAIN.talk(`${BRAIN.wernicke('random_errors')}!`)
+          }
+
+          const msg =
+            'An NLP model is missing, please rebuild the project or if you are in dev run: npm run train'
+          LogHelper.error(msg)
+          return reject(msg)
         }
 
-        const msg =
-          'An NLP model is missing, please rebuild the project or if you are in dev run: npm run train'
-        LogHelper.error(msg)
-        return reject(msg)
-      }
+        if (this.shouldBreakActionLoop(utterance)) {
+          this.conversation.cleanActiveContext()
 
-      if (this.shouldBreakActionLoop(utterance)) {
-        this.conversation.cleanActiveContext()
+          await BRAIN.talk(`${BRAIN.wernicke('action_loop_stopped')}.`, true)
 
-        await BRAIN.talk(`${BRAIN.wernicke('action_loop_stopped')}.`, true)
-
-        return resolve({})
-      }
-
-      // Add spaCy entities
-      await NER.mergeSpacyEntities(utterance)
-
-      // Pre NLU processing according to the active context if there is one
-      if (this.conversation.hasActiveContext()) {
-        // When the active context is in an action loop, then directly trigger the action
-        if (this.conversation.activeContext.isInActionLoop) {
-          return resolve(await ActionLoop.handle(utterance))
+          return resolve({})
         }
 
-        // When the active context has slots filled
-        if (Object.keys(this.conversation.activeContext.slots).length > 0) {
+        // Add spaCy entities
+        await NER.mergeSpacyEntities(utterance)
+
+        // Pre NLU processing according to the active context if there is one
+        if (this.conversation.hasActiveContext()) {
+          // When the active context is in an action loop, then directly trigger the action
+          if (this.conversation.activeContext.isInActionLoop) {
+            return resolve(await ActionLoop.handle(utterance))
+          }
+
+          // When the active context has slots filled
+          if (Object.keys(this.conversation.activeContext.slots).length > 0) {
+            try {
+              return resolve(await SlotFilling.handle(utterance))
+            } catch (e) {
+              return reject({})
+            }
+          }
+        }
+
+        const result: NLPJSProcessResult =
+          await MODEL_LOADER.mainNLPContainer.process(utterance)
+        const { locale, answers, classifications } = result
+        const sentiment = {
+          vote: result.sentiment.vote,
+          score: result.sentiment.score
+        }
+        let { score, intent, domain } = result
+
+        /**
+         * If a context is active, then use the appropriate classification based on score probability.
+         * E.g. 1. Create my shopping list; 2. Actually delete it.
+         * If there are several "delete it" across skills, Leon needs to make use of
+         * the current context ({domain}.{skill}) to define the most accurate classification
+         */
+        if (this.conversation.hasActiveContext()) {
+          classifications.forEach(({ intent: newIntent, score: newScore }) => {
+            if (newScore > 0.6) {
+              const [skillName] = newIntent.split('.')
+              const newDomain = MODEL_LOADER.mainNLPContainer.getIntentDomain(
+                locale,
+                newIntent
+              )
+              const contextName = `${newDomain}.${skillName}`
+              if (this.conversation.activeContext.name === contextName) {
+                score = newScore
+                intent = newIntent
+                domain = newDomain
+              }
+            }
+          })
+        }
+
+        const [skillName, actionName] = intent.split('.')
+        await this.setNLUResult({
+          ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
+          utterance,
+          newUtterance: utterance,
+          answers, // For dialog action type
+          sentiment,
+          classification: {
+            domain,
+            skill: skillName || '',
+            action: actionName || '',
+            confidence: score
+          }
+        })
+
+        const isSupportedLanguage = LangHelper.getShortCodes().includes(locale)
+        if (!isSupportedLanguage) {
+          await BRAIN.talk(
+            `${BRAIN.wernicke('random_language_not_supported')}.`,
+            true
+          )
+          return resolve({})
+        }
+
+        // Trigger language switching
+        if (BRAIN.lang !== locale) {
+          await this.switchLanguage(utterance, locale)
+          return resolve(null)
+        }
+
+        if (intent === 'None') {
+          const fallback = this.fallback(
+            langs[LangHelper.getLongCode(locale)].fallbacks
+          )
+
+          if (!fallback) {
+            if (!BRAIN.isMuted) {
+              await BRAIN.talk(
+                `${BRAIN.wernicke('random_unknown_intents')}.`,
+                true
+              )
+            }
+
+            LogHelper.title('NLU')
+            const msg = 'Intent not found'
+            LogHelper.warning(msg)
+
+            Telemetry.utterance({ utterance, lang: BRAIN.lang })
+
+            return resolve(null)
+          }
+
+          await this.setNLUResult(fallback)
+        }
+
+        LogHelper.title('NLU')
+        LogHelper.success(
+          `Intent found: ${this._nluResult.classification.skill}.${
+            this._nluResult.classification.action
+          } (domain: ${
+            this._nluResult.classification.domain
+          }); Confidence: ${this._nluResult.classification.confidence.toFixed(
+            2
+          )}`
+        )
+
+        const skillConfigPath = join(
+          process.cwd(),
+          'skills',
+          this._nluResult.classification.domain,
+          this._nluResult.classification.skill,
+          'config',
+          BRAIN.lang + '.json'
+        )
+        this._nluResult.skillConfigPath = skillConfigPath
+
+        try {
+          this._nluResult.entities = await NER.extractEntities(
+            BRAIN.lang,
+            skillConfigPath,
+            this._nluResult
+          )
+        } catch (e) {
+          LogHelper.error(`Failed to extract entities: ${e}`)
+        }
+
+        const shouldSlotLoop = await SlotFilling.route(intent, utterance)
+        if (shouldSlotLoop) {
+          return resolve({})
+        }
+
+        // In case all slots have been filled in the first utterance
+        if (
+          this.conversation.hasActiveContext() &&
+          Object.keys(this.conversation.activeContext.slots).length > 0
+        ) {
           try {
             return resolve(await SlotFilling.handle(utterance))
           } catch (e) {
             return reject({})
           }
         }
-      }
 
-      const result: NLPJSProcessResult =
-        await MODEL_LOADER.mainNLPContainer.process(utterance)
-      const { locale, answers, classifications } = result
-      const sentiment = {
-        vote: result.sentiment.vote,
-        score: result.sentiment.score
-      }
-      let { score, intent, domain } = result
-
-      /**
-       * If a context is active, then use the appropriate classification based on score probability.
-       * E.g. 1. Create my shopping list; 2. Actually delete it.
-       * If there are several "delete it" across skills, Leon needs to make use of
-       * the current context ({domain}.{skill}) to define the most accurate classification
-       */
-      if (this.conversation.hasActiveContext()) {
-        classifications.forEach(({ intent: newIntent, score: newScore }) => {
-          if (newScore > 0.6) {
-            const [skillName] = newIntent.split('.')
-            const newDomain = MODEL_LOADER.mainNLPContainer.getIntentDomain(
-              locale,
-              newIntent
-            )
-            const contextName = `${newDomain}.${skillName}`
-            if (this.conversation.activeContext.name === contextName) {
-              score = newScore
-              intent = newIntent
-              domain = newDomain
-            }
-          }
-        })
-      }
-
-      const [skillName, actionName] = intent.split('.')
-      await this.setNLUResult({
-        ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
-        utterance,
-        newUtterance: utterance,
-        answers, // For dialog action type
-        sentiment,
-        classification: {
-          domain,
-          skill: skillName || '',
-          action: actionName || '',
-          confidence: score
-        }
-      })
-
-      const isSupportedLanguage = LangHelper.getShortCodes().includes(locale)
-      if (!isSupportedLanguage) {
-        await BRAIN.talk(
-          `${BRAIN.wernicke('random_language_not_supported')}.`,
-          true
-        )
-        return resolve({})
-      }
-
-      // Trigger language switching
-      if (BRAIN.lang !== locale) {
-        await this.switchLanguage(utterance, locale)
-        return resolve(null)
-      }
-
-      if (intent === 'None') {
-        const fallback = this.fallback(
-          langs[LangHelper.getLongCode(locale)].fallbacks
-        )
-
-        if (!fallback) {
-          if (!BRAIN.isMuted) {
-            await BRAIN.talk(
-              `${BRAIN.wernicke('random_unknown_intents')}.`,
-              true
-            )
-          }
-
-          LogHelper.title('NLU')
-          const msg = 'Intent not found'
-          LogHelper.warning(msg)
-
-          Telemetry.utterance({ utterance, lang: BRAIN.lang })
-
-          return resolve(null)
-        }
-
-        await this.setNLUResult(fallback)
-      }
-
-      LogHelper.title('NLU')
-      LogHelper.success(
-        `Intent found: ${this._nluResult.classification.skill}.${
-          this._nluResult.classification.action
-        } (domain: ${
-          this._nluResult.classification.domain
-        }); Confidence: ${this._nluResult.classification.confidence.toFixed(2)}`
-      )
-
-      const skillConfigPath = join(
-        process.cwd(),
-        'skills',
-        this._nluResult.classification.domain,
-        this._nluResult.classification.skill,
-        'config',
-        BRAIN.lang + '.json'
-      )
-      this._nluResult.skillConfigPath = skillConfigPath
-
-      try {
-        this._nluResult.entities = await NER.extractEntities(
-          BRAIN.lang,
-          skillConfigPath,
-          this._nluResult
-        )
-      } catch (e) {
-        LogHelper.error(`Failed to extract entities: ${e}`)
-      }
-
-      const shouldSlotLoop = await SlotFilling.route(intent, utterance)
-      if (shouldSlotLoop) {
-        return resolve({})
-      }
-
-      // In case all slots have been filled in the first utterance
-      if (
-        this.conversation.hasActiveContext() &&
-        Object.keys(this.conversation.activeContext.slots).length > 0
-      ) {
-        try {
-          return resolve(await SlotFilling.handle(utterance))
-        } catch (e) {
-          return reject({})
-        }
-      }
-
-      const newContextName = `${this._nluResult.classification.domain}.${skillName}`
-      if (this.conversation.activeContext.name !== newContextName) {
-        this.conversation.cleanActiveContext()
-      }
-      await this.conversation.setActiveContext({
-        ...DEFAULT_ACTIVE_CONTEXT,
-        lang: BRAIN.lang,
-        slots: {},
-        isInActionLoop: false,
-        originalUtterance: this._nluResult.utterance,
-        newUtterance: utterance,
-        skillConfigPath: this._nluResult.skillConfigPath,
-        actionName: this._nluResult.classification.action,
-        domain: this._nluResult.classification.domain,
-        intent,
-        entities: this._nluResult.entities
-      })
-      // Pass current utterance entities to the NLU result object
-      this._nluResult.currentEntities =
-        this.conversation.activeContext.currentEntities
-      // Pass context entities to the NLU result object
-      this._nluResult.entities = this.conversation.activeContext.entities
-
-      try {
-        const processedData = await BRAIN.execute(this._nluResult)
-
-        // Prepare next action if there is one queuing
-        if (processedData.nextAction) {
+        const newContextName = `${this._nluResult.classification.domain}.${skillName}`
+        if (this.conversation.activeContext.name !== newContextName) {
           this.conversation.cleanActiveContext()
-          await this.conversation.setActiveContext({
-            ...DEFAULT_ACTIVE_CONTEXT,
-            lang: BRAIN.lang,
-            slots: {},
-            isInActionLoop: !!processedData.nextAction.loop,
-            originalUtterance: processedData.utterance ?? '',
-            newUtterance: utterance ?? '',
-            skillConfigPath: processedData.skillConfigPath || '',
-            actionName: processedData.action?.next_action || '',
-            domain: processedData.classification?.domain || '',
-            intent: `${processedData.classification?.skill}.${processedData.action?.next_action}`,
-            entities: []
-          })
         }
-
-        const processingTimeEnd = Date.now()
-        const processingTime = processingTimeEnd - processingTimeStart
-
-        return resolve({
-          processingTime, // In ms, total time
-          ...processedData,
+        await this.conversation.setActiveContext({
+          ...DEFAULT_ACTIVE_CONTEXT,
+          lang: BRAIN.lang,
+          slots: {},
+          isInActionLoop: false,
+          originalUtterance: this._nluResult.utterance,
           newUtterance: utterance,
-          nluProcessingTime:
-            processingTime - (processedData?.executionTime || 0) // In ms, NLU processing time only
+          skillConfigPath: this._nluResult.skillConfigPath,
+          actionName: this._nluResult.classification.action,
+          domain: this._nluResult.classification.domain,
+          intent,
+          entities: this._nluResult.entities
         })
-      } catch (e) {
-        const errorMessage = `Failed to execute action: ${e}`
+        // Pass current utterance entities to the NLU result object
+        this._nluResult.currentEntities =
+          this.conversation.activeContext.currentEntities
+        // Pass context entities to the NLU result object
+        this._nluResult.entities = this.conversation.activeContext.entities
 
-        LogHelper.error(errorMessage)
+        try {
+          const processedData = await BRAIN.execute(this._nluResult)
 
-        if (!BRAIN.isMuted) {
-          SOCKET_SERVER.socket?.emit('is-typing', false)
+          // Prepare next action if there is one queuing
+          if (processedData.nextAction) {
+            this.conversation.cleanActiveContext()
+            await this.conversation.setActiveContext({
+              ...DEFAULT_ACTIVE_CONTEXT,
+              lang: BRAIN.lang,
+              slots: {},
+              isInActionLoop: !!processedData.nextAction.loop,
+              originalUtterance: processedData.utterance ?? '',
+              newUtterance: utterance ?? '',
+              skillConfigPath: processedData.skillConfigPath || '',
+              actionName: processedData.action?.next_action || '',
+              domain: processedData.classification?.domain || '',
+              intent: `${processedData.classification?.skill}.${processedData.action?.next_action}`,
+              entities: []
+            })
+          }
+
+          const processingTimeEnd = Date.now()
+          const processingTime = processingTimeEnd - processingTimeStart
+
+          return resolve({
+            processingTime, // In ms, total time
+            ...processedData,
+            newUtterance: utterance,
+            nluProcessingTime:
+              processingTime - (processedData?.executionTime || 0) // In ms, NLU processing time only
+          })
+        } catch (e) {
+          const errorMessage = `Failed to execute action: ${e}`
+
+          LogHelper.error(errorMessage)
+
+          if (!BRAIN.isMuted) {
+            SOCKET_SERVER.socket?.emit('is-typing', false)
+          }
+
+          return reject(new Error(errorMessage))
         }
-
-        return reject(new Error(errorMessage))
+      } catch (e) {
+        LogHelper.title('NLU')
+        LogHelper.error(`Failed to process the utterance: ${e}`)
       }
     })
   }

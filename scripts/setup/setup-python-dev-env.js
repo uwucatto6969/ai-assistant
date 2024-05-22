@@ -173,8 +173,8 @@ SPACY_MODELS.set('fr', {
       // There is no CUDA support on macOS
       const commandToExecute =
         osType === OSTypes.MacOS
-          ? 'pipenv run pip install --ignore-installed torch==2.3.0'
-          : 'pipenv run pip install --ignore-installed torch==2.3.0 --index-url https://download.pytorch.org/whl/cu121'
+          ? 'pipenv run pip install --ignore-installed --force-reinstall torch==2.3.0'
+          : 'pipenv run pip install --ignore-installed --force-reinstall torch==2.3.0 --index-url https://download.pytorch.org/whl/cu121'
 
       await command(commandToExecute, {
         shell: true,

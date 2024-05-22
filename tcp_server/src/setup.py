@@ -1,5 +1,4 @@
 from cx_Freeze import setup, Executable
-import sysconfig
 import sys
 import os
 
@@ -47,11 +46,11 @@ options = {
 }
 
 # Include private libraries from the tokenizers package for Linux
-if 'linux' in sysconfig.get_platform():
-    options['build_exe']['include_files'] = [
-        *options['build_exe']['include_files'],
-        ('tcp_server/src/.venv/lib/python3.9/site-packages/tokenizers.libs', 'lib/tokenizers.libs')
-    ]
+# if 'linux' in sysconfig.get_platform():
+#     options['build_exe']['include_files'] = [
+#         *options['build_exe']['include_files'],
+#         ('tcp_server/src/.venv/lib/python3.9/site-packages/tokenizers.libs', 'lib/tokenizers.libs')
+#     ]
 
 executables = [
     Executable(
