@@ -72,6 +72,11 @@ class TTS(nn.Module):
 
         self.log(f"Time taken to load model: {toc - tic:0.4f} seconds")
 
+        self.log('Warming up model...')
+        speaker_ids = self.hps.data.spk2id
+        self.tts_to_file('This is a test.', speaker_ids['EN-Leon-V1'], quiet=True, format='wav')
+        self.log('Model warmed up')
+
     @staticmethod
     def audio_numpy_concat(segment_data_list, sr, speed=1.):
         audio_segments = []
