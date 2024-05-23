@@ -22,7 +22,7 @@ export default class LocalParser extends STTParserBase {
    * Read audio buffer and return the transcript (decoded string)
    */
   public async parse(): Promise<string | null> {
-    const wakeWordEventName = 'asr-wake-word-detected'
+    const wakeWordEventName = 'asr-new-speech'
     const endOfOwnerSpeechDetected = 'asr-end-of-owner-speech-detected'
     const wakeWordEventHasListeners =
       PYTHON_TCP_CLIENT.ee.listenerCount(wakeWordEventName) > 0

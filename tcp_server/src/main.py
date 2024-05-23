@@ -26,4 +26,5 @@ asr_thread.start()
 
 tcp_server.init_tts()
 
-tcp_server.init()
+tcp_server_thread = threading.Thread(target=tcp_server.init)
+tcp_server_thread.start()

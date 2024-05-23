@@ -11,7 +11,7 @@ class ASR:
     def __init__(self,
                  device='auto',
                  transcription_callback=None,
-                 wake_word_callback=None,
+                 wake_word_or_active_listening_callback=None,
                  end_of_owner_speech_callback=None):
         tic = time.perf_counter()
         self.log('Loading model...')
@@ -36,7 +36,7 @@ class ASR:
         self.compute_type = compute_type
 
         self.transcription_callback = transcription_callback
-        self.wake_word_callback = wake_word_callback
+        self.wake_word_or_active_listening_callback = wake_word_or_active_listening_callback
         self.end_of_owner_speech_callback = end_of_owner_speech_callback
 
         self.wake_words = ["ok leon", "okay leon", "hi leon", "hey leon", "hello leon", "heilion", "alion", "hyleon"]
@@ -48,6 +48,7 @@ class ASR:
         self.is_voice_activity_detected = False
         self.silence_start_time = 0
         self.is_wake_word_detected = False
+        self.is_active_listening_enabled = False
         self.saved_utterances = []
         self.segment_text = ''
 
@@ -56,7 +57,14 @@ class ASR:
         self.rate = 16000
         self.chunk = 4096
         self.threshold = 128
-        self.silence_duration = 1.5  # duration of silence in seconds
+        # Duration of silence after which the audio data is considered as a new utterance (in seconds)
+        self.silence_duration = 1.5
+        """
+        Duration of silence after which the active listening is stopped (in seconds).
+        Once stopped, the active listening can be resumed by saying the wake word again
+        """
+        self.base_active_listening_duration = 12
+        self.active_listening_duration = self.base_active_listening_duration
         self.buffer_size = 64  # Size of the circular buffer
 
         self.audio = pyaudio.PyAudio()
@@ -117,10 +125,15 @@ class ASR:
             if self.is_wake_word_detected:
                 self.utterance.append(self.segment_text)
                 self.transcription_callback(" ".join(self.utterance))
-            if self.detect_wake_word(segment.text):
-                self.log('Wake word detected')
-                self.wake_word_callback(segment.text)
+
+            has_dected_wake_word = self.detect_wake_word(segment.text)
+            if has_dected_wake_word or self.is_active_listening_enabled:
+                if has_dected_wake_word:
+                    self.log('Wake word detected')
+                self.wake_word_or_active_listening_callback(segment.text)
                 self.is_wake_word_detected = True
+                self.is_active_listening_enabled = True
+                self.log('Active listening enabled')
             else:
                 self.log("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
 
@@ -155,7 +168,8 @@ class ASR:
                 if self.is_voice_activity_detected:
                     self.silence_start_time = time.time()
                     self.is_voice_activity_detected = False
-                if time.time() - self.silence_start_time > self.silence_duration:  # If silence for SILENCE_DURATION seconds
+                is_end_of_speech = time.time() - self.silence_start_time > self.silence_duration
+                if is_end_of_speech:
                     if len(self.utterance) > 0:
                         self.log('Reset')
                         # Take last utterance of the utterance list
@@ -164,9 +178,16 @@ class ASR:
                     if self.is_wake_word_detected:
                         self.saved_utterances.append(" ".join(self.utterance))
                         self.utterance = []
-                        self.is_wake_word_detected = False
+                        # self.is_wake_word_detected = False
 
                     self.circular_buffer = []
+
+                should_stop_active_listening = self.is_active_listening_enabled and time.time() - self.silence_start_time > self.active_listening_duration
+                if should_stop_active_listening:
+                    self.is_wake_word_detected = False
+                    self.is_active_listening_enabled = False
+                    self.log('Active listening disabled')
+
                 # self.log('Silence detected')
 
     def stop_recording(self):

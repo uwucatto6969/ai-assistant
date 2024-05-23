@@ -59,6 +59,8 @@ export default class LocalSynthesizer extends TTSSynthesizerBase {
           try {
             const duration = await this.getAudioDuration(outputPath)
             TTS.em.emit('saved', duration)
+
+            PYTHON_TCP_CLIENT.emit('leon-speech-audio-ended', duration / 1_000)
           } catch (e) {
             LogHelper.title(this.name)
             LogHelper.warning(`Failed to get audio duration: ${e}`)

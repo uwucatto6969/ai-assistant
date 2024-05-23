@@ -56,7 +56,7 @@ class TCPServer:
                        device='auto',
                        config_path=TTS_MODEL_CONFIG_PATH,
                        ckpt_path=TTS_MODEL_PATH
-        )
+                       )
 
     def init_asr(self):
         if not IS_ASR_ENABLED:
@@ -67,8 +67,8 @@ class TCPServer:
             # self.log('Transcription:', utterance)
             pass
 
-        def clean_up_wake_word_text(text: str) -> str:
-            """Remove everything before the wake word (included), remove punctuation right after it, trim and
+        def clean_up_speech(text: str) -> str:
+            """Remove everything before the wake word if there is (included), remove punctuation right after it, trim and
             capitalize the first letter"""
             lowercased_text = text.lower()
             for wake_word in self.asr.wake_words:
@@ -76,7 +76,8 @@ class TCPServer:
                     start_index = lowercased_text.index(wake_word)
                     end_index = start_index + len(wake_word)
                     end_whitespace_index = end_index
-                    while end_whitespace_index < len(text) and (text[end_whitespace_index] in string.whitespace + string.punctuation):
+                    while end_whitespace_index < len(text) and (
+                        text[end_whitespace_index] in string.whitespace + string.punctuation):
                         end_whitespace_index += 1
                     cleaned_text = text[end_whitespace_index:].strip()
                     if cleaned_text:  # Check if cleaned_text is not empty
@@ -85,11 +86,11 @@ class TCPServer:
                         return ""  # Return an empty string if cleaned_text is empty
             return text
 
-        def wake_word_callback(text):
-            cleaned_text = clean_up_wake_word_text(text)
-            self.log('Wake word detected:', cleaned_text)
+        def wake_word_or_active_listening_callback(text):
+            cleaned_text = clean_up_speech(text)
+            self.log('Cleaned speech:', cleaned_text)
             self.send_tcp_message({
-                'topic': 'asr-wake-word-detected',
+                'topic': 'asr-new-speech',
                 'data': {
                     'text': cleaned_text
                 }
@@ -106,9 +107,9 @@ class TCPServer:
 
         self.asr = ASR(device='auto',
                        transcription_callback=transcription_callback,
-                       wake_word_callback=wake_word_callback,
+                       wake_word_or_active_listening_callback=wake_word_or_active_listening_callback,
                        end_of_owner_speech_callback=end_of_owner_speech_callback
-        )
+                       )
         self.asr.start_recording()
 
     def init(self):
@@ -170,7 +171,7 @@ class TCPServer:
             }
         }
 
-    def tts_synthesize(self, speech: str) -> Union[dict, None]:
+    def tts_synthesize(self, speech: str) -> dict:
         # If TTS is not initialized yet, then wait for 2 seconds before synthesizing
         if not self.tts:
             self.log('TTS is not initialized yet. Waiting for 2 seconds before synthesizing...')
@@ -211,5 +212,19 @@ class TCPServer:
             'data': {
                 'outputPath': output_path,
                 'audioId': audio_id
+            }
+        }
+
+    def leon_speech_audio_ended(self, audio_duration: float) -> dict:
+        if self.asr:
+            if not audio_duration:
+                audio_duration = 0
+            self.asr.active_listening_duration = self.asr.base_active_listening_duration + audio_duration
+            self.log(f'ASR active listening duration increased to {self.asr.active_listening_duration}s')
+
+        return {
+            'topic': 'asr-active-listening-duration-increased',
+            'data': {
+                'activeListeningDuration': self.asr.active_listening_duration
             }
         }
