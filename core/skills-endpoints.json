@@ -53,17 +53,6 @@
       "params": []
     },
     {
-      "method": "POST",
-      "route": "/api/action/news/github_trends/run",
-      "params": ["number", "daterange"],
-      "entitiesType": "builtIn"
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/news/product_hunt_trends/run",
-      "params": []
-    },
-    {
       "method": "GET",
       "route": "/api/action/leon/age/run",
       "params": []
@@ -140,6 +129,17 @@
     },
     {
       "method": "POST",
+      "route": "/api/action/news/github_trends/run",
+      "params": ["number", "daterange"],
+      "entitiesType": "builtIn"
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/news/product_hunt_trends/run",
+      "params": []
+    },
+    {
+      "method": "POST",
       "route": "/api/action/productivity/todo_list/create_list",
       "params": ["list"],
       "entitiesType": "trim"
@@ -187,11 +187,6 @@
     },
     {
       "method": "GET",
-      "route": "/api/action/unknown/widget-playground/run",
-      "params": []
-    },
-    {
-      "method": "GET",
       "route": "/api/action/social_communication/chit_chat/setup",
       "params": []
     },
@@ -208,6 +203,11 @@
     {
       "method": "GET",
       "route": "/api/action/social_communication/mbti/quiz",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/unknown/widget-playground/run",
       "params": []
     },
     {

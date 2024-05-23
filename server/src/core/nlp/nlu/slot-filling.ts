@@ -108,7 +108,7 @@ export class SlotFilling {
     }
 
     if (!NLU.conversation.areSlotsAllFilled()) {
-      await BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
+      // await BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
     } else {
       const { actions } = await SkillDomainHelper.getSkillConfig(
         skillConfigPath,
