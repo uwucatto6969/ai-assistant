@@ -1,6 +1,9 @@
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 
+import psList from 'ps-list'
+import kill from 'tree-kill'
+
 import {
   IS_DEVELOPMENT_ENV,
   IS_PRODUCTION_ENV,
@@ -25,6 +28,17 @@ import { LangHelper } from '@/helpers/lang-helper'
 import { LogHelper } from '@/helpers/log-helper'
 ;(async (): Promise<void> => {
   process.title = 'leon'
+
+  // Kill any existing Python TCP server process before starting a new one
+  const processList = await psList()
+  processList
+    .filter((process) => process.cmd?.includes(PYTHON_TCP_SERVER_BIN_PATH))
+    .forEach((process) => {
+      kill(process.pid)
+      LogHelper.info(
+        `Killed existing Python TCP server process: ${process.pid}`
+      )
+    })
 
   // Start the Python TCP server
   global.pythonTCPServerProcess = spawn(
@@ -174,12 +188,10 @@ import { LogHelper } from '@/helpers/log-helper'
     'uncaughtException',
     'SIGTERM'
   ].forEach((eventType) => {
-    process.on(eventType, () => {
+    process.on(eventType, async () => {
       if (IS_TELEMETRY_ENABLED) {
         Telemetry.stop()
       }
-
-      global.pythonTCPServerProcess.kill()
 
       setTimeout(() => {
         process.exit(0)
