@@ -155,6 +155,9 @@ export default class LLMProvider {
       completionOptions.temperature || DEFAULT_TEMPERATURE
     completionOptions.maxTokens =
       completionOptions.maxTokens || DEFAULT_MAX_TOKENS
+    /**
+     * TODO: support onToken (stream) for Groq provider too
+     */
     completionOptions.onToken = completionOptions.onToken || ((): void => {})
 
     const isJSONMode = completionOptions.data !== null

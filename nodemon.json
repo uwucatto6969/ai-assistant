@@ -1,5 +1,5 @@
 {
-  "verbose": false,
+  "verbose": true,
   "watch": ["server/src"],
   "ext": "ts,js,json",
   "ignore": [".git", "node_modules", "server/src/tmp", "server/dist"],

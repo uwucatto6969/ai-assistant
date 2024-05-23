@@ -173,6 +173,7 @@ class TCPServer:
     def tts_synthesize(self, speech: str) -> Union[dict, None]:
         # If TTS is not initialized yet, then wait for 2 seconds before synthesizing
         if not self.tts:
+            self.log('TTS is not initialized yet. Waiting for 2 seconds before synthesizing...')
             time.sleep(2)
 
         """

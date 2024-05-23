@@ -191,6 +191,21 @@ export default class Brain {
           TTS.add(speech, end)
         }
 
+        /**
+         * Unify stream feeling for all answers.
+         * But need to ensure that tokens aren't already sent via the onToken
+         * callback on the completion. Can check with LLM_PROVIDER to implement
+         * a mechanism to avoid sending the same tokens twice
+         */
+        /*const generationId = StringHelper.random(6, { onlyLetters: true })
+        const tokens = textAnswer.split(' ')
+        tokens.forEach((token) => {
+          SOCKET_SERVER.socket?.emit('llm-token', {
+            token,
+            generationId
+          })
+        })*/
+
         SOCKET_SERVER.socket?.emit('answer', textAnswer)
         SOCKET_SERVER.socket?.emit('is-typing', false)
 

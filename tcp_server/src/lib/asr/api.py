@@ -39,7 +39,7 @@ class ASR:
         self.wake_word_callback = wake_word_callback
         self.end_of_owner_speech_callback = end_of_owner_speech_callback
 
-        self.wake_words = ["ok leon", "okay leon", "hi leon", "hey leon", "hello leon", "heilion", "alion"]
+        self.wake_words = ["ok leon", "okay leon", "hi leon", "hey leon", "hello leon", "heilion", "alion", "hyleon"]
 
         self.device = device
         self.tcp_conn = None

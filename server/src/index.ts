@@ -188,7 +188,8 @@ import { LogHelper } from '@/helpers/log-helper'
     'SIGUSR1',
     'SIGUSR2',
     'uncaughtException',
-    'SIGTERM'
+    'SIGTERM',
+    'SIGHUP'
   ].forEach((eventType) => {
     process.on(eventType, () => {
       kill(global.pythonTCPServerProcess.pid as number)
