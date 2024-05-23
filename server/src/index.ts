@@ -29,15 +29,17 @@ import { LogHelper } from '@/helpers/log-helper'
 ;(async (): Promise<void> => {
   process.title = 'leon'
 
-  // Kill any existing Python TCP server process before starting a new one
+  // Kill any existing Leon process before starting a new one
   const processList = await psList()
   processList
-    .filter((process) => process.cmd?.includes(PYTHON_TCP_SERVER_BIN_PATH))
-    .forEach((process) => {
-      kill(process.pid)
-      LogHelper.info(
-        `Killed existing Python TCP server process: ${process.pid}`
-      )
+    .filter(
+      (p) =>
+        p.cmd?.includes(PYTHON_TCP_SERVER_BIN_PATH) ||
+        (p.cmd === process.title && p.pid !== process.pid)
+    )
+    .forEach((p) => {
+      kill(p.pid)
+      LogHelper.info(`Killed existing Leon process: ${p.pid}`)
     })
 
   // Start the Python TCP server
@@ -188,7 +190,9 @@ import { LogHelper } from '@/helpers/log-helper'
     'uncaughtException',
     'SIGTERM'
   ].forEach((eventType) => {
-    process.on(eventType, async () => {
+    process.on(eventType, () => {
+      kill(global.pythonTCPServerProcess.pid as number)
+
       if (IS_TELEMETRY_ENABLED) {
         Telemetry.stop()
       }
