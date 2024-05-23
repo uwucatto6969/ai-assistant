@@ -122,6 +122,15 @@ export default class LLMProvider {
     }
   }
 
+  public cleanUpResult(str: string): string {
+    // If starts and end with a double quote, remove them
+    if (str.startsWith('"') && str.endsWith('"')) {
+      return str.slice(1, -1)
+    }
+
+    return str
+  }
+
   /**
    * Run the completion inference
    */
@@ -223,10 +232,7 @@ export default class LLMProvider {
 
     rawResultString = rawResult as string
 
-    // If starts and end with a double quote, remove them
-    if (rawResultString.startsWith('"') && rawResultString.endsWith('"')) {
-      rawResultString = rawResultString.slice(1, -1)
-    }
+    rawResultString = this.cleanUpResult(rawResultString)
 
     if (isJSONMode) {
       // If a closing bracket is missing, add it

@@ -80,7 +80,9 @@ The sun is a star, it is the closest star to Earth.`
           session,
           maxTokens: context.contextSize,
           onToken: (chunk) => {
-            const detokenizedChunk = LLM_MANAGER.model.detokenize(chunk)
+            const detokenizedChunk = LLM_PROVIDER.cleanUpResult(
+              LLM_MANAGER.model.detokenize(chunk)
+            )
 
             SOCKET_SERVER.socket?.emit('llm-token', {
               token: detokenizedChunk,

@@ -114,7 +114,9 @@ export class ChitChatLLMDuty extends LLMDuty {
           session: ChitChatLLMDuty.session,
           maxTokens: ChitChatLLMDuty.context.contextSize,
           onToken: (chunk) => {
-            const detokenizedChunk = LLM_MANAGER.model.detokenize(chunk)
+            const detokenizedChunk = LLM_PROVIDER.cleanUpResult(
+              LLM_MANAGER.model.detokenize(chunk)
+            )
 
             SOCKET_SERVER.socket?.emit('llm-token', {
               token: detokenizedChunk,

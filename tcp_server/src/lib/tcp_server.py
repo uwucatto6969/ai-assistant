@@ -170,7 +170,11 @@ class TCPServer:
             }
         }
 
-    def tts_synthesize(self, speech: str) -> dict:
+    def tts_synthesize(self, speech: str) -> Union[dict, None]:
+        # If TTS is not initialized yet, then wait for 2 seconds before synthesizing
+        if not self.tts:
+            time.sleep(2)
+
         """
         TODO:
         - Implement one speaker per style (joyful, sad, angry, tired, etc.)

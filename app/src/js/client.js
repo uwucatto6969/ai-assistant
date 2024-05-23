@@ -81,6 +81,8 @@ export default class Client {
 
       if (isNewestBubbleFromStreaming) {
         this.chatbot.saveBubble('leon', data)
+        // Update the text of the bubble (quick emoji fix)
+        newestBubbleContainerElement.querySelector('p.bubble').innerHTML = data
       } else {
         this.chatbot.receivedFrom('leon', data)
       }
