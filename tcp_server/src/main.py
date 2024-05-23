@@ -20,10 +20,10 @@ tcp_server_port = os.environ.get('LEON_PY_TCP_SERVER_PORT', 1342)
 
 tcp_server = TCPServer(tcp_server_host, tcp_server_port)
 
+# Use thread as ASR starts recording audio and it blocks the main thread
 asr_thread = threading.Thread(target=tcp_server.init_asr)
 asr_thread.start()
 
-tts_thread = threading.Thread(target=tcp_server.init_tts)
-tts_thread.start()
+tcp_server.init_tts()
 
 tcp_server.init()

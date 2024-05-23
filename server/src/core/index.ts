@@ -49,8 +49,6 @@ export const LLM_PROVIDER = new LLMProvider()
 
 export const LLM_MANAGER = new LLMManager()
 
-export const PERSONA = new Persona()
-
 export const CONVERSATION_LOGGER = new ConversationLogger({
   loggerName: 'Conversation Logger',
   fileName: 'conversation_log.json',
@@ -67,6 +65,8 @@ export const LOOP_CONVERSATION_LOGGER = new ConversationLogger({
 export const HTTP_SERVER = new HTTPServer(String(HOST), PORT)
 
 export const SOCKET_SERVER = new SocketServer()
+
+export const PERSONA = new Persona()
 
 export const STT = new SpeechToText()
 

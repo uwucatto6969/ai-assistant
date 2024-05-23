@@ -34,6 +34,15 @@ export default class Client {
     return this._recorder
   }
 
+  updateMood(mood) {
+    if (this.info.llm.enabled) {
+      const moodContainer = document.querySelector('#mood')
+
+      moodContainer.innerHTML = `Leon's mood: ${mood.emoji}`
+      moodContainer.setAttribute('title', mood.type)
+    }
+  }
+
   async sendInitMessages() {
     for (let i = 0; i < INIT_MESSAGES.length; i++) {
       const messages = INIT_MESSAGES[i]
@@ -107,6 +116,10 @@ export default class Client {
 
     this.socket.on('widget', (data) => {
       this.chatbot.createBubble('leon', data)
+    })
+
+    this.socket.on('new-mood', (mood) => {
+      this.updateMood(mood)
     })
 
     this.socket.on('llm-token', (data) => {

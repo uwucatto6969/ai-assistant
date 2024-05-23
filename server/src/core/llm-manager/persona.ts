@@ -1,3 +1,4 @@
+import { SOCKET_SERVER } from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
 
 /**
@@ -19,8 +20,10 @@ enum Moods {
 }
 
 /**
- * TODO: add environment context such as time of the day, day of the week, weather, etc.
- * TODO: make sure the new system prompt is then being updated for long-lived duty such as chit-chat
+ * TODO:
+ * Add environment context such as time of the day, day of the week, weather, etc.
+ * Make sure the new system prompt is then being updated for long-lived duty such as chit-chat.
+ * Provide more user context to the persona (habits, preferences, etc.)
  */
 const WHO_YOU_ARE = `WHO YOU ARE:
 Your name is Leon, you are a helpful AI assistant.
@@ -132,7 +135,12 @@ export default class Persona {
       this._mood = pickedMood
     }
 
-    // TODO: send socket message to the client to display the new mood represented by an emoji
+    if (SOCKET_SERVER) {
+      SOCKET_SERVER.socket?.emit('new-mood', {
+        type: this._mood.type,
+        emoji: this._mood.emoji
+      })
+    }
 
     LogHelper.info(`Mood set to: ${this._mood.type}`)
   }
