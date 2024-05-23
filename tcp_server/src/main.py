@@ -1,13 +1,17 @@
 import os
 import threading
-from os.path import join, dirname
+from os.path import join
 from dotenv import load_dotenv
+
+"""
+os.getcwd() is the same as when we run it from npm run start:tcp-server en
+and when we run it from the binary
+"""
+dotenv_path = join(os.getcwd(), '.env')
+load_dotenv(dotenv_path)
 
 import lib.nlp as nlp
 from lib.tcp_server import TCPServer
-
-dotenv_path = join(dirname(__file__), '../../../../../.env')
-load_dotenv(dotenv_path)
 
 nlp.load_spacy_model()
 
