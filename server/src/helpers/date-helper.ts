@@ -18,6 +18,14 @@ export class DateHelper {
   }
 
   /**
+   * Get friendly date
+   * @example setFriendlyDate() // Thursday, May 23, 2024
+   */
+  public static setFriendlyDate(date: Date): string {
+    return dayjs(date).tz(this.getTimeZone()).format('dddd, MMMM D, YYYY')
+  }
+
+  /**
    * Get time zone
    * @example getTimeZone() // Asia/Shanghai
    */

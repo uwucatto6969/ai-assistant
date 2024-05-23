@@ -174,4 +174,30 @@ export class SkillDomainHelper {
 
     return result
   }
+
+  /**
+   * Get a memory from a skill
+   * @param domain Domain where the skill belongs
+   * @param skill Skill to get memory from
+   * @param memory Memory name
+   */
+  public static async getSkillMemory(
+    domain: SkillDomain['name'],
+    skill: SkillSchema['name'],
+    memory: string
+  ): Promise<Record<string, unknown> | null> {
+    const skillMemoryPath = path.join(
+      SKILLS_PATH,
+      domain,
+      skill,
+      'memory',
+      `${memory}.json`
+    )
+
+    if (!fs.existsSync(skillMemoryPath)) {
+      return null
+    }
+
+    return JSON.parse(await fs.promises.readFile(skillMemoryPath, 'utf-8'))
+  }
 }

@@ -128,6 +128,9 @@ export default class LLMProvider {
       return str.slice(1, -1)
     }
 
+    str = str.replace(/\*laugh\*/g, '😂')
+    str = str.replace(/\*winks?\*/g, '😉')
+
     return str
   }
 
