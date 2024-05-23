@@ -130,6 +130,7 @@ export default class LLMProvider {
 
     str = str.replace(/\*laugh\*/g, '😂')
     str = str.replace(/\*winks?\*/g, '😉')
+    str = str.replace(/\*sigh\*/g, '😔')
 
     return str
   }
