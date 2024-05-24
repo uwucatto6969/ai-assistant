@@ -6,6 +6,8 @@ import numpy as np
 from faster_whisper import WhisperModel
 
 from ..constants import ASR_MODEL_PATH_FOR_GPU, ASR_MODEL_PATH_FOR_CPU
+from ..utils import ThrottledCallback
+
 
 class ASR:
     def __init__(self,
@@ -37,6 +39,13 @@ class ASR:
 
         self.transcription_callback = transcription_callback
         self.wake_word_or_active_listening_callback = wake_word_or_active_listening_callback
+        """
+        Throttle the wake word or active listening callback to avoid sending too many messages to the client.
+        The callback is called at most once every x seconds
+        """
+        self.throttled_wake_word_or_active_listening_callback = ThrottledCallback(
+            wake_word_or_active_listening_callback, 0.5
+        )
         self.end_of_owner_speech_callback = end_of_owner_speech_callback
 
         self.wake_words = ["ok leon", "okay leon", "hi leon", "hey leon", "hello leon", "heilion", "alion", "hyleon"]
@@ -51,6 +60,7 @@ class ASR:
         self.is_active_listening_enabled = False
         self.saved_utterances = []
         self.segment_text = ''
+        self.complete_text = ''
 
         self.audio_format = pyaudio.paInt16
         self.channels = 1
@@ -65,7 +75,11 @@ class ASR:
         """
         self.base_active_listening_duration = 12
         self.active_listening_duration = self.base_active_listening_duration
-        self.buffer_size = 64  # Size of the circular buffer
+        """
+        Size of the circular buffer.
+        Meaning how many audio frames can be stored in the buffer
+        """
+        self.buffer_size = 256
 
         self.audio = pyaudio.PyAudio()
         self.stream = None
@@ -103,6 +117,8 @@ class ASR:
         return False
 
     def process_circular_buffer(self):
+        self.complete_text = ''
+
         if len(self.circular_buffer) > self.buffer_size:
             self.circular_buffer.pop(0)
 
@@ -130,7 +146,7 @@ class ASR:
             if has_dected_wake_word or self.is_active_listening_enabled:
                 if has_dected_wake_word:
                     self.log('Wake word detected')
-                self.wake_word_or_active_listening_callback(segment.text)
+                self.complete_text += segment.text
                 self.is_wake_word_detected = True
                 self.is_active_listening_enabled = True
                 self.log('Active listening enabled')
@@ -138,6 +154,8 @@ class ASR:
                 self.log("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
 
             self.segment_text = ''
+        if self.complete_text:
+            self.throttled_wake_word_or_active_listening_callback(self.complete_text)
 
     def start_recording(self):
         self.stream = self.audio.open(format=self.audio_format,
@@ -172,8 +190,11 @@ class ASR:
                 if is_end_of_speech:
                     if len(self.utterance) > 0:
                         self.log('Reset')
-                        # Take last utterance of the utterance list
-                        self.end_of_owner_speech_callback(self.utterance[-1])
+                        # Send the latest up-to-date text
+                        self.wake_word_or_active_listening_callback(self.complete_text)
+                        time.sleep(0.1)
+                        # Notify the end of the owner's speech
+                        self.end_of_owner_speech_callback(self.complete_text)
 
                     if self.is_wake_word_detected:
                         self.saved_utterances.append(" ".join(self.utterance))

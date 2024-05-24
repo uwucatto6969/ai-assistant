@@ -81,16 +81,6 @@ export default class STT {
     )
     this._parser = new parser() as STTParser
 
-    /**
-     * If the provider is local, parse an empty buffer to
-     * initialize the parser
-     */
-    if (STT_PROVIDER === STTProviders.Local) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      this._parser?.parse()
-    }
-
     LogHelper.title('STT')
     LogHelper.success('STT initialized')
 
@@ -110,6 +100,8 @@ export default class STT {
     }
 
     const buffer = fs.readFileSync(audioFilePath)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     const transcript = await this._parser?.parse(buffer)
 
     if (transcript && transcript !== '') {

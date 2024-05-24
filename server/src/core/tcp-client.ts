@@ -13,9 +13,9 @@ const INTERVAL = IS_PRODUCTION_ENV ? 3000 : 500
 // Number of retries to connect to the TCP server
 const RETRIES_NB = IS_PRODUCTION_ENV ? 8 : 30
 
-interface ChunkData {
+export interface ChunkData {
   topic: string
-  data: unknown
+  data: Record<string, unknown>
 }
 type TCPClientName = 'Python'
 
@@ -61,20 +61,29 @@ export default class TCPClient {
       LogHelper.title(`${this.name} TCP Client`)
       LogHelper.info(`Received data: ${String(chunk)}`)
 
-      const data = JSON.parse(String(chunk))
+      const strChunk = String(chunk)
 
       /**
-       * If the topic is related to ASR, then parse the data
+       * If the topic is related to ASR, then parse the data manually
+       * in the local STT parser
        */
-      if (data.topic.includes('asr-')) {
+      if (strChunk.includes('"topic": "asr-')) {
         if (STT_PROVIDER === STTProviders.Local) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error
-          STT.parser?.parse()
+          STT.parser?.parse(strChunk)
+        }
+      } else {
+        try {
+          const data = JSON.parse(strChunk)
+
+          this.ee.emit(data.topic, data.data)
+        } catch (e) {
+          LogHelper.title(`${this.name} TCP Client`)
+          LogHelper.error(`Failed to parse the data: ${e}`)
+          LogHelper.error(`Received data: ${String(chunk)}`)
         }
       }
-
-      this.ee.emit(data.topic, data.data)
     })
 
     this.tcpSocket.on('error', (err: NodeJS.ErrnoException) => {

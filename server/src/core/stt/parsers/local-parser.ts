@@ -1,6 +1,40 @@
+import type { ChunkData } from '@/core/tcp-client'
 import { STTParserBase } from '@/core/stt/stt-parser-base'
 import { LogHelper } from '@/helpers/log-helper'
-import { BRAIN, PYTHON_TCP_CLIENT, SOCKET_SERVER } from '@/core'
+import { BRAIN, SOCKET_SERVER } from '@/core'
+
+interface EventHandler {
+  [key: string]: (firstEvent: ChunkData) => void
+}
+
+const NEW_SPEECH_EVENT = 'asr-new-speech'
+const END_OF_OWNER_SPEECH_DETECTED_EVENT = 'asr-end-of-owner-speech-detected'
+const ACTIVE_LISTENING_DURATION_INCREASED_EVENT =
+  'asr-active-listening-duration-increased'
+
+const EVENT_HANDLERS: EventHandler = {
+  [NEW_SPEECH_EVENT]: (firstEvent): void => {
+    /**
+     * If Leon is talking with voice, then interrupt him
+     */
+    if (BRAIN.isTalkingWithVoice) {
+      BRAIN.setIsTalkingWithVoice(false, { shouldInterrupt: true })
+    }
+
+    // Send the owner speech to the client
+    SOCKET_SERVER.socket?.emit('asr-speech', firstEvent.data['text'])
+  },
+
+  [END_OF_OWNER_SPEECH_DETECTED_EVENT]: (firstEvent): void => {
+    SOCKET_SERVER.socket?.emit('asr-end-of-owner-speech', {
+      completeSpeech: firstEvent.data['utterance']
+    })
+  },
+
+  [ACTIVE_LISTENING_DURATION_INCREASED_EVENT]: (): void => {
+    //
+  }
+}
 
 export default class LocalParser extends STTParserBase {
   protected readonly name = 'Local STT Parser'
@@ -19,36 +53,75 @@ export default class LocalParser extends STTParserBase {
   }
 
   /**
-   * Read audio buffer and return the transcript (decoded string)
+   * Parse the string chunk and emit the events to the client
+   * @param strChunk - The string chunk to parse. E.g. `{"topic": "asr-new-speech", "data": {"text": " the other day I was thinking about the"}}{"topic": "asr-new-speech", "data": {"text": " magic number but"}}`
    */
-  public async parse(): Promise<string | null> {
-    const newSpeechEventName = 'asr-new-speech'
-    const endOfOwnerSpeechDetected = 'asr-end-of-owner-speech-detected'
-    const newSpeechEventHasListeners =
-      PYTHON_TCP_CLIENT.ee.listenerCount(newSpeechEventName) > 0
-    const endOfOwnerSpeechDetectedHasListeners =
-      PYTHON_TCP_CLIENT.ee.listenerCount(endOfOwnerSpeechDetected) > 0
+  public async parse(strChunk: string): Promise<string | null> {
+    const rawEvents = strChunk.match(/{"topic": "asr-[^}]+}/g)
 
-    if (!newSpeechEventHasListeners) {
-      PYTHON_TCP_CLIENT.ee.on(newSpeechEventName, (data) => {
-        /**
-         * If Leon is talking with voice, then interrupt him
-         */
-        if (BRAIN.isTalkingWithVoice) {
-          BRAIN.setIsTalkingWithVoice(false, { shouldInterrupt: true })
-        }
-
-        // Send the owner speech to the client
-        SOCKET_SERVER.socket?.emit('asr-speech', data.text)
-      })
+    if (!rawEvents) {
+      LogHelper.title(this.name)
+      LogHelper.error(`No topics found in the chunk: ${strChunk}`)
+      return null
     }
 
-    if (!endOfOwnerSpeechDetectedHasListeners) {
-      PYTHON_TCP_CLIENT.ee.on(endOfOwnerSpeechDetected, (data) => {
-        SOCKET_SERVER.socket?.emit('asr-end-of-owner-speech', {
-          completeSpeech: data.utterance
-        })
-      })
+    let events: ChunkData[] = rawEvents.map((topic) => {
+      return JSON.parse(`${topic}}`)
+    })
+    const [firstEvent] = events
+
+    if (!firstEvent) {
+      LogHelper.title(this.name)
+      LogHelper.error(`No first event found in the chunk: ${strChunk}`)
+      return null
+    }
+
+    // Verify if all topics are similar to be ready to merge them
+    const areAllTopicsSimilar = events.every(
+      (event) => event.topic === firstEvent?.topic
+    )
+    if (areAllTopicsSimilar) {
+      try {
+        /**
+         * Merge the topics in one and concat the text
+         * if all topics are a new speech event
+         */
+        if (firstEvent.topic === NEW_SPEECH_EVENT) {
+          const mergedText = events
+            .map((event) => event.data['text'])
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+
+          events = [{ topic: NEW_SPEECH_EVENT, data: { text: mergedText } }]
+        }
+
+        /**
+         * Can handle additional merge here if needed...
+         */
+      } catch (e) {
+        LogHelper.title(this.name)
+        LogHelper.error(`Failed to merge the topics: ${e}`)
+        LogHelper.error(`Events: ${events}`)
+
+        return null
+      }
+    }
+
+    const [updatedEvent]: ChunkData[] = events
+
+    if (!updatedEvent) {
+      LogHelper.title(this.name)
+      LogHelper.error(`No updated event found in the chunk: ${strChunk}`)
+      return null
+    }
+
+    const handler = EVENT_HANDLERS[updatedEvent.topic]
+    if (handler) {
+      handler(updatedEvent)
+    } else {
+      LogHelper.title(this.name)
+      LogHelper.error(`No handler found for the topic: ${updatedEvent?.topic}`)
     }
 
     return null
