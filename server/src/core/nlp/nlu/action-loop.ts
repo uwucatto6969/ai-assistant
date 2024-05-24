@@ -118,7 +118,7 @@ export class ActionLoop {
           (intent.includes('resolver.global') ||
             intent.includes(`resolver.${skillName}`))
         ) {
-          LogHelper.title('NLU')
+          LogHelper.title('Action Loop')
           LogHelper.success('Resolvers resolved:')
 
           const resolvedResolvers = await resolveResolvers(
@@ -138,6 +138,8 @@ export class ActionLoop {
 
       // Ensure expected items are in the utterance, otherwise clean context and reprocess
       if (!hasMatchingEntity && !hasMatchingResolver && !hasMatchingUtterance) {
+        LogHelper.title('Action Loop')
+        LogHelper.info('Expected item not found in the utterance')
         // await BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
         NLU.conversation.cleanActiveContext()
         await NLU.process(utterance)

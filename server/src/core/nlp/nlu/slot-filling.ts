@@ -5,6 +5,7 @@ import type { BrainProcessResult } from '@/core/brain/types'
 import { BRAIN, MODEL_LOADER, NER, NLU, SOCKET_SERVER } from '@/core'
 import { DEFAULT_NLU_RESULT } from '@/core/nlp/nlu/nlu'
 import { SkillDomainHelper } from '@/helpers/skill-domain-helper'
+import { LogHelper } from '@/helpers/log-helper'
 import { DEFAULT_ACTIVE_CONTEXT } from '@/core/nlp/conversation'
 
 export class SlotFilling {
@@ -108,6 +109,8 @@ export class SlotFilling {
     }
 
     if (!NLU.conversation.areSlotsAllFilled()) {
+      LogHelper.title('Slot Filling')
+      LogHelper.info('Slots are not all filled')
       // await BRAIN.talk(`${BRAIN.wernicke('random_context_out_of_topic')}.`)
     } else {
       const { actions } = await SkillDomainHelper.getSkillConfig(

@@ -16,7 +16,8 @@ export default class Client {
     this.chatbot = new Chatbot()
     this._recorder = {}
     this._suggestions = []
-    this.answerGenerationId = 'xxx'
+    this._answerGenerationId = 'xxx'
+    this._ttsAudioContext = null
     // this._ttsAudioContextes = {}
   }
 
@@ -85,7 +86,7 @@ export default class Client {
         document.querySelector('.leon:last-child')
       const isNewestBubbleFromStreaming =
         newestBubbleContainerElement?.classList.contains(
-          this.answerGenerationId
+          this._answerGenerationId
         )
 
       if (isNewestBubbleFromStreaming) {
@@ -123,9 +124,9 @@ export default class Client {
     })
 
     this.socket.on('llm-token', (data) => {
-      const previousGenerationId = this.answerGenerationId
+      const previousGenerationId = this._answerGenerationId
       const newGenerationId = data.generationId
-      this.answerGenerationId = newGenerationId
+      this._answerGenerationId = newGenerationId
       const isSameGeneration = previousGenerationId === newGenerationId
       let bubbleContainerElement = null
 
@@ -170,16 +171,26 @@ export default class Client {
     this.socket.on('tts-stream', (data) => {
       // const { audioId, chunk } = data
       const { chunk } = data
-      const ctx = new AudioContext()
+      this._ttsAudioContext = new AudioContext()
       // this._ttsAudioContextes[audioId] = ctx
 
-      const source = ctx.createBufferSource()
-      ctx.decodeAudioData(chunk, (buffer) => {
+      const source = this._ttsAudioContext.createBufferSource()
+      this._ttsAudioContext.decodeAudioData(chunk, (buffer) => {
         source.buffer = buffer
 
-        source.connect(ctx.destination)
+        source.connect(this._ttsAudioContext.destination)
         source.start(0)
       })
+    })
+
+    /**
+     * When Leon got interrupted by the owner voice
+     * while he is speaking
+     */
+    this.socket.on('tts-interruption', async () => {
+      if (this._ttsAudioContext) {
+        await this._ttsAudioContext.close()
+      }
     })
 
     this.socket.on('audio-forwarded', (data, cb) => {

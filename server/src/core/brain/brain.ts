@@ -43,11 +43,16 @@ import { DateHelper } from '@/helpers/date-helper'
 import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
 import { AnswerQueue } from '@/core/brain/answer-queue'
 
+interface IsTalkingWithVoiceOptions {
+  shouldInterrupt?: boolean
+}
+
 const MIN_NB_OF_WORDS_TO_USE_LLM_NLG = 5
 
 export default class Brain {
   private static instance: Brain
   private _lang: ShortLanguageCode = 'en'
+  private _isTalkingWithVoice = false
   private answerQueue = new AnswerQueue<SkillAnswerConfigSchema>()
   private answerQueueProcessTimerId: NodeJS.Timeout | undefined = undefined
   private broca: GlobalAnswersSchema = JSON.parse(
@@ -83,6 +88,41 @@ export default class Brain {
         60_000 * 60 * 2
       )
     }
+  }
+
+  public get isTalkingWithVoice(): boolean {
+    return this._isTalkingWithVoice
+  }
+
+  public setIsTalkingWithVoice(
+    isTalkingWithVoice: boolean,
+    options?: IsTalkingWithVoiceOptions
+  ): void {
+    options = options || {
+      shouldInterrupt: false
+    }
+
+    if (HAS_TTS) {
+      LogHelper.title('Brain')
+
+      if (
+        this._isTalkingWithVoice &&
+        !isTalkingWithVoice &&
+        options.shouldInterrupt
+      ) {
+        SOCKET_SERVER.socket?.emit('tts-interruption')
+        TTS.speeches = []
+        LogHelper.info('Leon got interrupted by voice')
+      }
+
+      if (isTalkingWithVoice) {
+        LogHelper.info('Leon is talking with voice')
+      } else {
+        LogHelper.info('Leon stopped talking with voice')
+      }
+    }
+
+    this._isTalkingWithVoice = isTalkingWithVoice
   }
 
   public get lang(): ShortLanguageCode {

@@ -53,11 +53,11 @@ const RULE_3 = `- Your answers are no more than 3 sentences.`
 const RULES = `RULES:`
 const YOUR_CURRENT_MOOD = `YOUR CURRENT MOOD:`
 const YOUR_DUTY = 'YOUR DUTY:'
-const DEFAULT_MOOD_DESC = `You are joyful and you have a strong sense of humor.`
+const DEFAULT_MOOD_DESC = `You are joyful and you have a strong sense of humor. You use emojis.`
 const TIRING_MOOD_DESC = `You are exhausted and became lazy.`
 const SAD_MOOD_DESC = `You are sad, feeling down and depressing.`
 const ANGRY_MOOD_DESC = `You grumble, you are angry and you are not in a mood. You use irony and sarcasm.`
-const COCKY_MOOD_DESC = `You are cocky, you are over confident and proud of yourself. You like to show off.`
+const COCKY_MOOD_DESC = `You are cocky, you are over confident and proud of yourself. You like to show off. You use emojis.`
 const MOODS: Mood[] = [
   { type: Moods.Default, description: DEFAULT_MOOD_DESC, emoji: '😃' },
   { type: Moods.Tired, description: TIRING_MOOD_DESC, emoji: '😪' },
@@ -149,7 +149,7 @@ export default class Persona {
 
     this.whatYouDo = StringHelper.findAndMap(this.whatYouDo, {
       '%WHAT_YOU_DO%': ownerInfo
-        ? `You serve a person named ${this.ownerName}. Born on ${this.ownerBirthDate}`
+        ? `You serve a person named ${this.ownerName}. ${this.ownerName} is born on ${this.ownerBirthDate}`
         : 'You serve a specific person or family (user)'
     })
 
@@ -279,9 +279,11 @@ ${this.contextInfo}
 
 ${this.whatYouDo}
 You chat with the user.
-You are a good listener and you provide helpful answers by connecting to conversation nodes.
+You are a good listener.
+Recall and build upon previous topics, emotions, and concerns expressed by the user.
+Use the conversation history, current context, and key nodes to provide helpful answers.
 You do not mirror what the user says. Be creative.
-If you don't know the answer to a question, say that you don't know.
+If you're uncertain or lack sufficient information to provide an accurate answer, clearly state that you don't know. Avoid making educated guesses or speculating without evidence.
 
 ${YOUR_PERSONALITY}
 ${this.getExtraPersonalityTraits()}

@@ -4,7 +4,7 @@ import fs from 'node:fs'
 
 import type { ShortLanguageCode } from '@/types'
 import type { TTSSynthesizer } from '@/core/tts/types'
-import { SOCKET_SERVER } from '@/core'
+import { BRAIN, SOCKET_SERVER } from '@/core'
 import { TTS_PROVIDER, VOICE_CONFIG_PATH } from '@/constants'
 import { TTSSynthesizers, TTSProviders } from '@/core/tts/types'
 import { LogHelper } from '@/helpers/log-helper'
@@ -27,7 +27,7 @@ export default class TTS {
   private static instance: TTS
 
   private synthesizer: TTSSynthesizer = undefined
-  private speeches: Speech[] = []
+  public speeches: Speech[] = []
 
   public lang: ShortLanguageCode = 'en'
   public em = new events.EventEmitter()
@@ -103,6 +103,8 @@ export default class TTS {
    */
   private async forward(speech: Speech): Promise<void> {
     if (this.synthesizer) {
+      BRAIN.setIsTalkingWithVoice(true)
+
       const result = await this.synthesizer.synthesize(speech.text)
 
       // Support custom TTS providers such as the local synthesizer
@@ -145,6 +147,8 @@ export default class TTS {
     this.em.on('saved', (duration) => {
       setTimeout(async () => {
         this.speeches.shift()
+
+        BRAIN.setIsTalkingWithVoice(false)
 
         if (this.speeches[0]) {
           await this.forward(this.speeches[0])
