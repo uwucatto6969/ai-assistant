@@ -44,7 +44,7 @@ class ASR:
         The callback is called at most once every x seconds
         """
         self.throttled_wake_word_or_active_listening_callback = ThrottledCallback(
-            wake_word_or_active_listening_callback, 0.5
+            wake_word_or_active_listening_callback, 0.3
         )
         self.end_of_owner_speech_callback = end_of_owner_speech_callback
 
