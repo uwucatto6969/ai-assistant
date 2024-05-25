@@ -4,6 +4,7 @@ import type { LLMDuty } from '@/core/llm-manager/llm-duty'
 import type { MessageLog } from '@/types'
 
 export enum LLMDuties {
+  ActionRecognition = 'action-recognition',
   CustomNER = 'customer-ner',
   Translation = 'translation',
   Summarization = 'summarization',

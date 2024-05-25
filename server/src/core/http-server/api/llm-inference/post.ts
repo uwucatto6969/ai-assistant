@@ -7,6 +7,7 @@ import { SummarizationLLMDuty } from '@/core/llm-manager/llm-duties/summarizatio
 import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
 import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
 import { ChitChatLLMDuty } from '@/core/llm-manager/llm-duties/chit-chat-llm-duty'
+import { ActionRecognitionLLMDuty } from '@/core/llm-manager/llm-duties/action-recognition-llm-duty'
 import { LLM_MANAGER } from '@/core'
 
 interface PostLLMInferenceSchema {
@@ -19,6 +20,7 @@ interface PostLLMInferenceSchema {
 }
 
 const LLM_DUTIES_MAP = {
+  [LLMDuties.ActionRecognition]: ActionRecognitionLLMDuty,
   [LLMDuties.CustomNER]: CustomNERLLMDuty,
   [LLMDuties.Summarization]: SummarizationLLMDuty,
   [LLMDuties.Translation]: TranslationLLMDuty,
