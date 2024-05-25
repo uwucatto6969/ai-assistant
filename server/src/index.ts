@@ -24,6 +24,7 @@ import { Telemetry } from '@/telemetry'
 // import { SummarizationLLMDuty } from '@/core/llm-manager/llm-duties/summarization-llm-duty'
 // import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
 // import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
+// import { ActionRecognitionLLMDuty } from '@/core/llm-manager/llm-duties/action-recognition-llm-duty'
 import { LangHelper } from '@/helpers/lang-helper'
 import { LogHelper } from '@/helpers/log-helper'
 ;(async (): Promise<void> => {
@@ -89,6 +90,11 @@ import { LogHelper } from '@/helpers/log-helper'
   } catch (e) {
     LogHelper.error(`LLM Manager failed to load: ${e}`)
   }
+
+  /*const actionRecognitionDuty = new ActionRecognitionLLMDuty({
+    input: 'Give me a random number'
+  })
+  await actionRecognitionDuty.execute()*/
 
   /*const customNERDuty = new CustomNERLLMDuty({
     input:

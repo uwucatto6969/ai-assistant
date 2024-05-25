@@ -23,7 +23,7 @@ export enum LLMProviders {
   Groq = 'groq'
 }
 
-export interface CompletionOptions {
+export interface CompletionParams {
   systemPrompt: string
   maxTokens?: number
   grammar?: string

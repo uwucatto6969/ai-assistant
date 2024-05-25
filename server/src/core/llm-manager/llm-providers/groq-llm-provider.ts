@@ -1,7 +1,7 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios'
 
 import { LogHelper } from '@/helpers/log-helper'
-import { CompletionOptions } from '@/core/llm-manager/types'
+import { CompletionParams } from '@/core/llm-manager/types'
 
 /**
  * @see https://console.groq.com/docs/text-chat
@@ -31,7 +31,7 @@ interface GroqChatCompletionParams {
     type: 'json_object'
   }
 }
-type GroqCompletionOptions = Omit<CompletionOptions, ''>
+type GroqCompletionParams = Omit<CompletionParams, ''>
 
 export default class GroqLLMProvider {
   protected readonly name = 'Groq LLM Provider'
@@ -60,26 +60,26 @@ export default class GroqLLMProvider {
 
   public runChatCompletion(
     prompt: string,
-    completionOptions: GroqCompletionOptions
+    completionParams: GroqCompletionParams
   ): Promise<AxiosResponse> {
     return new Promise(async (resolve, reject) => {
       try {
         this.checkAPIKey()
 
-        const isJSONMode = completionOptions.data !== null
+        const isJSONMode = completionParams.data !== null
 
-        let { systemPrompt } = completionOptions
+        let { systemPrompt } = completionParams
         if (isJSONMode) {
           systemPrompt = `${
-            completionOptions.systemPrompt
+            completionParams.systemPrompt
           }. Use a JSON format by following this schema: ${JSON.stringify(
-            completionOptions.data
+            completionParams.data
           )}`
         }
 
         let messagesHistory: GroqMessage[] = []
-        if (completionOptions.history) {
-          messagesHistory = completionOptions.history.map((message) => {
+        if (completionParams.history) {
+          messagesHistory = completionParams.history.map((message) => {
             if (message.who === 'leon') {
               return {
                 role: 'assistant',
@@ -114,7 +114,7 @@ export default class GroqLLMProvider {
         let chatCompletionParams: GroqChatCompletionParams = {
           messages: messagesHistory,
           model: GroqModels.Llama3_8b_8192,
-          temperature: completionOptions.temperature || 0,
+          temperature: completionParams.temperature || 0,
           stream: false
         }
 

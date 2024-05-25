@@ -3,7 +3,7 @@ import path from 'node:path'
 import type { AxiosResponse } from 'axios'
 
 import {
-  type CompletionOptions,
+  type CompletionParams,
   LLMDuties,
   LLMProviders
 } from '@/core/llm-manager/types'
@@ -90,9 +90,9 @@ export default class LLMProvider {
 
   private normalizeCompletionResultForLocalProvider(
     rawResult: string,
-    completionOptions: CompletionOptions
+    completionParams: CompletionParams
   ): NormalizedCompletionResult {
-    if (!completionOptions.session) {
+    if (!completionParams.session) {
       return {
         rawResult,
         usedInputTokens: 0,
@@ -101,7 +101,7 @@ export default class LLMProvider {
     }
 
     const { usedInputTokens, usedOutputTokens } =
-      completionOptions.session.sequence.tokenMeter.getState()
+      completionParams.session.sequence.tokenMeter.getState()
 
     return {
       rawResult,
@@ -140,7 +140,7 @@ export default class LLMProvider {
    */
   public async prompt(
     prompt: string,
-    completionOptions: CompletionOptions
+    completionParams: CompletionParams
   ): Promise<CompletionResult | null> {
     LogHelper.title('LLM Provider')
     LogHelper.info(`Using "${LLM_PROVIDER}" provider for completion...`)
@@ -150,29 +150,29 @@ export default class LLMProvider {
       return null
     }
 
-    completionOptions.timeout =
-      completionOptions.timeout || DEFAULT_MAX_EXECUTION_TIMOUT
-    completionOptions.maxRetries =
-      completionOptions.maxRetries || DEFAULT_MAX_EXECUTION_RETRIES
-    completionOptions.data = completionOptions.data || null
-    completionOptions.temperature =
-      completionOptions.temperature || DEFAULT_TEMPERATURE
-    completionOptions.maxTokens =
-      completionOptions.maxTokens || DEFAULT_MAX_TOKENS
+    completionParams.timeout =
+      completionParams.timeout || DEFAULT_MAX_EXECUTION_TIMOUT
+    completionParams.maxRetries =
+      completionParams.maxRetries || DEFAULT_MAX_EXECUTION_RETRIES
+    completionParams.data = completionParams.data || null
+    completionParams.temperature =
+      completionParams.temperature || DEFAULT_TEMPERATURE
+    completionParams.maxTokens =
+      completionParams.maxTokens || DEFAULT_MAX_TOKENS
     /**
      * TODO: support onToken (stream) for Groq provider too
      */
-    completionOptions.onToken = completionOptions.onToken || ((): void => {})
+    completionParams.onToken = completionParams.onToken || ((): void => {})
 
-    const isJSONMode = completionOptions.data !== null
+    const isJSONMode = completionParams.data !== null
 
     const rawResultPromise = this.llmProvider.runChatCompletion(
       prompt,
-      completionOptions
+      completionParams
     )
 
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Timeout')), completionOptions.timeout)
+      setTimeout(() => reject(new Error('Timeout')), completionParams.timeout)
     )
 
     let rawResult
@@ -183,16 +183,16 @@ export default class LLMProvider {
     } catch (e) {
       LogHelper.title('LLM Provider')
 
-      if (completionOptions.maxRetries > 0) {
+      if (completionParams.maxRetries > 0) {
         LogHelper.info('Prompt took too long or failed. Retrying...')
 
         return this.prompt(prompt, {
-          ...completionOptions,
-          maxRetries: completionOptions.maxRetries - 1
+          ...completionParams,
+          maxRetries: completionParams.maxRetries - 1
         })
       } else {
         LogHelper.error(
-          `Prompt failed after ${completionOptions.maxRetries} retries`
+          `Prompt failed after ${completionParams.maxRetries} retries`
         )
 
         return null
@@ -206,14 +206,14 @@ export default class LLMProvider {
      * Normalize the completion result according to the provider
      */
     if (LLM_PROVIDER === LLMProviders.Local) {
-      if (completionOptions.session) {
+      if (completionParams.session) {
         const {
           rawResult: result,
           usedInputTokens: inputTokens,
           usedOutputTokens: outputTokens
         } = this.normalizeCompletionResultForLocalProvider(
           rawResult as string,
-          completionOptions
+          completionParams
         )
 
         rawResult = result
@@ -250,12 +250,12 @@ export default class LLMProvider {
 
     return {
       dutyType: LLMDuties.Paraphrase,
-      systemPrompt: completionOptions.systemPrompt,
-      temperature: completionOptions.temperature,
+      systemPrompt: completionParams.systemPrompt,
+      temperature: completionParams.temperature,
       input: prompt,
       output: isJSONMode ? JSON.parse(rawResultString) : rawResultString,
-      data: completionOptions.data,
-      maxTokens: completionOptions.maxTokens,
+      data: completionParams.data,
+      maxTokens: completionParams.maxTokens,
       // Current used context size
       usedInputTokens,
       usedOutputTokens

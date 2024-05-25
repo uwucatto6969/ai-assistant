@@ -1,8 +1,8 @@
 import { LogHelper } from '@/helpers/log-helper'
-import { CompletionOptions } from '@/core/llm-manager/types'
+import { CompletionParams } from '@/core/llm-manager/types'
 import { LLM_MANAGER } from '@/core'
 
-type LocalCompletionOptions = Omit<CompletionOptions, ''>
+type LocalCompletionParams = Omit<CompletionParams, ''>
 
 export default class LocalLLMProvider {
   protected readonly name = 'Local LLM Provider'
@@ -14,19 +14,19 @@ export default class LocalLLMProvider {
 
   public runChatCompletion(
     prompt: string,
-    completionOptions: LocalCompletionOptions
+    completionParams: LocalCompletionParams
   ): Promise<string> {
     return new Promise(async (resolve, reject) => {
       try {
-        if (!completionOptions.session) {
+        if (!completionParams.session) {
           return reject(new Error('Session is not defined'))
         }
 
-        const isJSONMode = completionOptions.data !== null
+        const isJSONMode = completionParams.data !== null
         let promptParams = {
-          maxTokens: completionOptions.maxTokens as number,
-          temperature: completionOptions.temperature as number,
-          onToken: completionOptions.onToken as (tokens: unknown) => void
+          maxTokens: completionParams.maxTokens as number,
+          temperature: completionParams.temperature as number,
+          onToken: completionParams.onToken as (tokens: unknown) => void
         }
 
         if (isJSONMode) {
@@ -35,7 +35,7 @@ export default class LocalLLMProvider {
           )()
           const grammar = new LlamaJsonSchemaGrammar(LLM_MANAGER.llama, {
             type: 'object',
-            properties: completionOptions.data
+            properties: completionParams.data
           })
 
           promptParams = {
@@ -46,7 +46,7 @@ export default class LocalLLMProvider {
           }
         }
 
-        const promise = completionOptions.session.prompt(prompt, promptParams)
+        const promise = completionParams.session.prompt(prompt, promptParams)
 
         return resolve(promise)
       } catch (e) {
