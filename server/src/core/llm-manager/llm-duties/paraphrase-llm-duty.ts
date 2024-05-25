@@ -6,7 +6,7 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER, LLM_PROVIDER, PERSONA, SOCKET_SERVER } from '@/core'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
-import { LLMProviders } from '@/core/llm-manager/types'
+import { LLMProviders, LLMDuties } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 import { StringHelper } from '@/helpers/string-helper'
 
@@ -45,6 +45,7 @@ The sun is a star, it is the closest star to Earth.`
     try {
       const prompt = `Modify the following text but do not say you modified it: ${this.input}`
       const completionParams = {
+        dutyType: LLMDuties.Paraphrase,
         systemPrompt: PERSONA.getDutySystemPrompt(this.systemPrompt),
         temperature: 0.8
       }

@@ -1,6 +1,5 @@
 import type { LlamaChatSession, Token } from 'node-llama-cpp'
 
-import type { LLMDuty } from '@/core/llm-manager/llm-duty'
 import type { MessageLog } from '@/types'
 
 export enum LLMDuties {
@@ -24,6 +23,7 @@ export enum LLMProviders {
 }
 
 export interface CompletionParams {
+  dutyType: LLMDuties
   systemPrompt: string
   maxTokens?: number
   grammar?: string
@@ -31,7 +31,6 @@ export interface CompletionParams {
   timeout?: number
   maxRetries?: number
   session?: LlamaChatSession | null
-  duty?: LLMDuty
   data?: Record<string, unknown> | null
   history?: MessageLog[]
   onToken?: (tokens: Token[]) => void

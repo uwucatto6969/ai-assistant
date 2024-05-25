@@ -6,7 +6,7 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER, LLM_PROVIDER } from '@/core'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
-import { LLMProviders } from '@/core/llm-manager/types'
+import { LLMProviders, LLMDuties } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 
 interface TranslationLLMDutyParams extends LLMDutyParams {
@@ -51,6 +51,7 @@ export class TranslationLLMDuty extends LLMDuty {
     try {
       const prompt = `Text to translate: ${this.input}`
       const completionParams = {
+        dutyType: LLMDuties.Translation,
         systemPrompt: this.systemPrompt as string
       }
       let completionResult

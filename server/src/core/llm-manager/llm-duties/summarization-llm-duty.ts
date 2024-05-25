@@ -6,7 +6,7 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER, LLM_PROVIDER } from '@/core'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
-import { LLMProviders } from '@/core/llm-manager/types'
+import { LLMProviders, LLMDuties } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 
 interface SummarizationLLMDutyParams extends LLMDutyParams {}
@@ -33,6 +33,7 @@ export class SummarizationLLMDuty extends LLMDuty {
     try {
       const prompt = `Summarize the following text: ${this.input}`
       const completionParams = {
+        dutyType: LLMDuties.Summarization,
         systemPrompt: this.systemPrompt
       }
       let completionResult

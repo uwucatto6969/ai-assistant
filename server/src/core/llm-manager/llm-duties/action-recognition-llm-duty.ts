@@ -6,7 +6,7 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER, LLM_PROVIDER } from '@/core'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
-import { LLMProviders } from '@/core/llm-manager/types'
+import { LLMProviders, LLMDuties } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 import { StringHelper } from '@/helpers/string-helper'
 
@@ -38,6 +38,7 @@ If the intent is not listed, do not make it up yourself. Instead you must return
     try {
       const prompt = `Utterance: "${this.input}"`
       const completionParams = {
+        dutyType: LLMDuties.ActionRecognition,
         systemPrompt: this.systemPrompt,
         data: {
           [JSON_KEY_RESPONSE]: {

@@ -150,6 +150,7 @@ export default class LLMProvider {
       return null
     }
 
+    completionParams.dutyType = completionParams.dutyType || null
     completionParams.timeout =
       completionParams.timeout || DEFAULT_MAX_EXECUTION_TIMOUT
     completionParams.maxRetries =
@@ -249,7 +250,7 @@ export default class LLMProvider {
     }
 
     return {
-      dutyType: LLMDuties.Paraphrase,
+      dutyType: completionParams.dutyType,
       systemPrompt: completionParams.systemPrompt,
       temperature: completionParams.temperature,
       input: prompt,

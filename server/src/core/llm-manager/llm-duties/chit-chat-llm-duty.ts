@@ -16,7 +16,7 @@ import {
   SOCKET_SERVER
 } from '@/core'
 import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
-import { LLMProviders } from '@/core/llm-manager/types'
+import { LLMProviders, LLMDuties } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 import { StringHelper } from '@/helpers/string-helper'
 
@@ -102,6 +102,7 @@ export class ChitChatLLMDuty extends LLMDuty {
 
       const prompt = NLU.nluResult.newUtterance
       const completionParams = {
+        dutyType: LLMDuties.ChitChat,
         systemPrompt: PERSONA.getChitChatSystemPrompt(),
         temperature: 1.3
       }
