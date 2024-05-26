@@ -3,6 +3,11 @@ import { Nlp } from '@nlpjs/nlp'
 import { LangAll } from '@nlpjs/lang-all'
 import dotenv from 'dotenv'
 
+import {
+  MAIN_NLP_MODEL_PATH,
+  SKILLS_RESOLVERS_NLP_MODEL_PATH,
+  GLOBAL_RESOLVERS_NLP_MODEL_PATH
+} from '@/constants'
 import { LogHelper } from '@/helpers/log-helper'
 import { LangHelper } from '@/helpers/lang-helper'
 
@@ -20,12 +25,6 @@ dotenv.config()
  */
 export default () =>
   new Promise(async (resolve, reject) => {
-    const globalResolversModelFileName =
-      'core/data/models/leon-global-resolvers-model.nlp'
-    const skillsResolversModelFileName =
-      'core/data/models/leon-skills-resolvers-model.nlp'
-    const mainModelFileName = 'core/data/models/leon-main-model.nlp'
-
     try {
       /**
        * Global resolvers NLP model configuration
@@ -41,7 +40,8 @@ export default () =>
 
       globalResolversNluManager.settings.log = false
       globalResolversNluManager.settings.trainByDomain = false
-      globalResolversNlp.settings.modelFileName = globalResolversModelFileName
+      globalResolversNlp.settings.modelFileName =
+        GLOBAL_RESOLVERS_NLP_MODEL_PATH
       globalResolversNlp.settings.threshold = 0.8
 
       /**
@@ -58,7 +58,8 @@ export default () =>
 
       skillsResolversNluManager.settings.log = false
       skillsResolversNluManager.settings.trainByDomain = true
-      skillsResolversNlp.settings.modelFileName = skillsResolversModelFileName
+      skillsResolversNlp.settings.modelFileName =
+        SKILLS_RESOLVERS_NLP_MODEL_PATH
       skillsResolversNlp.settings.threshold = 0.8
 
       /**
@@ -79,7 +80,7 @@ export default () =>
       mainNlp.settings.forceNER = true // https://github.com/axa-group/nlp.js/blob/master/examples/17-ner-nlg/index.js
       // mainNlp.settings.nlu = { useNoneFeature: true }
       mainNlp.settings.calculateSentiment = true
-      mainNlp.settings.modelFileName = mainModelFileName
+      mainNlp.settings.modelFileName = MAIN_NLP_MODEL_PATH
       mainNlp.settings.threshold = 0.8
 
       /**
@@ -104,7 +105,7 @@ export default () =>
         await globalResolversNlp.train()
 
         LogHelper.success(
-          `Global resolvers NLP model saved in ${globalResolversModelFileName}`
+          `Global resolvers NLP model saved in ${GLOBAL_RESOLVERS_NLP_MODEL_PATH}`
         )
         resolve()
       } catch (e) {
@@ -116,7 +117,7 @@ export default () =>
         await skillsResolversNlp.train()
 
         LogHelper.success(
-          `Skills resolvers NLP model saved in ${skillsResolversModelFileName}`
+          `Skills resolvers NLP model saved in ${SKILLS_RESOLVERS_NLP_MODEL_PATH}`
         )
         resolve()
       } catch (e) {
@@ -127,7 +128,7 @@ export default () =>
       try {
         await mainNlp.train()
 
-        LogHelper.success(`Main NLP model saved in ${mainModelFileName}`)
+        LogHelper.success(`Main NLP model saved in ${MAIN_NLP_MODEL_PATH}`)
         resolve()
       } catch (e) {
         LogHelper.error(`Failed to save main NLP model: ${e}`)

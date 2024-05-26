@@ -22,7 +22,10 @@ import {
   PYTHON_TCP_SERVER_VERSION,
   NODEJS_BRIDGE_VERSION,
   PYTHON_BRIDGE_VERSION,
-  INSTANCE_ID
+  INSTANCE_ID,
+  SKILLS_RESOLVERS_NLP_MODEL_PATH,
+  GLOBAL_RESOLVERS_NLP_MODEL_PATH,
+  MAIN_NLP_MODEL_PATH
 } from '@/constants'
 
 dotenv.config()
@@ -41,11 +44,6 @@ dotenv.config()
     const googleCloudPath = 'core/config/voice/google-cloud.json'
     const watsonSttPath = 'core/config/voice/watson-stt.json'
     const watsonTtsPath = 'core/config/voice/watson-tts.json'
-    const globalResolversNlpModelPath =
-      'core/data/models/leon-global-resolvers-model.nlp'
-    const skillsResolversNlpModelPath =
-      'core/data/models/leon-skills-resolvers-model.nlp'
-    const mainNlpModelPath = 'core/data/models/leon-main-model.nlp'
     const report = {
       can_run: { title: 'Run', type: 'error', v: true },
       can_run_skill: { title: 'Run skills', type: 'error', v: true },
@@ -362,9 +360,10 @@ dotenv.config()
       LogHelper.info('Global resolvers NLP model state')
 
       if (
-        !fs.existsSync(globalResolversNlpModelPath) ||
-        !Object.keys(await fs.promises.readFile(globalResolversNlpModelPath))
-          .length
+        !fs.existsSync(GLOBAL_RESOLVERS_NLP_MODEL_PATH) ||
+        !Object.keys(
+          await fs.promises.readFile(GLOBAL_RESOLVERS_NLP_MODEL_PATH)
+        ).length
       ) {
         const state = 'Global resolvers NLP model not found or broken'
 
@@ -391,9 +390,10 @@ dotenv.config()
       LogHelper.info('Skills resolvers NLP model state')
 
       if (
-        !fs.existsSync(skillsResolversNlpModelPath) ||
-        !Object.keys(await fs.promises.readFile(skillsResolversNlpModelPath))
-          .length
+        !fs.existsSync(SKILLS_RESOLVERS_NLP_MODEL_PATH) ||
+        !Object.keys(
+          await fs.promises.readFile(SKILLS_RESOLVERS_NLP_MODEL_PATH)
+        ).length
       ) {
         const state = 'Skills resolvers NLP model not found or broken'
 
@@ -420,8 +420,8 @@ dotenv.config()
       LogHelper.info('Main NLP model state')
 
       if (
-        !fs.existsSync(mainNlpModelPath) ||
-        !Object.keys(await fs.promises.readFile(mainNlpModelPath)).length
+        !fs.existsSync(MAIN_NLP_MODEL_PATH) ||
+        !Object.keys(await fs.promises.readFile(MAIN_NLP_MODEL_PATH)).length
       ) {
         const state = 'Main NLP model not found or broken'
 

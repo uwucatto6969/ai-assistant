@@ -219,6 +219,19 @@ export const TMP_PATH = path.join(SERVER_PATH, 'tmp')
 export const LEON_FILE_PATH = path.join(process.cwd(), 'leon.json')
 
 /**
+ * NLP models paths
+ */
+export const MAIN_NLP_MODEL_PATH = path.join(MODELS_PATH, 'leon-main-model.nlp')
+export const GLOBAL_RESOLVERS_NLP_MODEL_PATH = path.join(
+  MODELS_PATH,
+  'leon-global-resolvers-model.nlp'
+)
+export const SKILLS_RESOLVERS_NLP_MODEL_PATH = path.join(
+  MODELS_PATH,
+  'leon-skills-resolvers-model.nlp'
+)
+
+/**
  * LLMs
  * @see k-quants comparison: https://github.com/ggerganov/llama.cpp/pull/1684
  */

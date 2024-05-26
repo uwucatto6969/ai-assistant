@@ -1,12 +1,15 @@
 import fs from 'node:fs'
-import path from 'node:path'
 
 import { containerBootstrap } from '@nlpjs/core-loader'
 import { Nlp } from '@nlpjs/nlp'
 import { BuiltinMicrosoft } from '@nlpjs/builtin-microsoft'
 import { LangAll } from '@nlpjs/lang-all'
 
-import { MODELS_PATH } from '@/constants'
+import {
+  MAIN_NLP_MODEL_PATH,
+  GLOBAL_RESOLVERS_NLP_MODEL_PATH,
+  SKILLS_RESOLVERS_NLP_MODEL_PATH
+} from '@/constants'
 import { MICROSOFT_BUILT_IN_ENTITIES } from '@/core/nlp/nlu/ner'
 import { LogHelper } from '@/helpers/log-helper'
 
@@ -44,13 +47,9 @@ export default class ModelLoader {
    */
   public loadNLPModels(): Promise<[void, void, void]> {
     return Promise.all([
-      this.loadGlobalResolversModel(
-        path.join(MODELS_PATH, 'leon-global-resolvers-model.nlp')
-      ),
-      this.loadSkillsResolversModel(
-        path.join(MODELS_PATH, 'leon-skills-resolvers-model.nlp')
-      ),
-      this.loadMainModel(path.join(MODELS_PATH, 'leon-main-model.nlp'))
+      this.loadGlobalResolversModel(GLOBAL_RESOLVERS_NLP_MODEL_PATH),
+      this.loadSkillsResolversModel(SKILLS_RESOLVERS_NLP_MODEL_PATH),
+      this.loadMainModel(MAIN_NLP_MODEL_PATH)
     ])
   }
 
