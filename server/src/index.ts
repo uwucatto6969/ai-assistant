@@ -18,6 +18,7 @@ import {
   LLM_PROVIDER,
   LLM_MANAGER
 } from '@/core'
+import { shouldIgnoreTCPServerError } from '@/utilities'
 import { Updater } from '@/updater'
 import { Telemetry } from '@/telemetry'
 // import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-duty'
@@ -57,18 +58,9 @@ import { LogHelper } from '@/helpers/log-helper'
   })
   global.pythonTCPServerProcess.stderr.on('data', (data: Buffer) => {
     const formattedData = data.toString().trim()
-    const skipError = [
-      'RuntimeWarning:',
-      'FutureWarning:',
-      'UserWarning:',
-      '<00:00',
-      '00:00<',
-      'CUDNN_STATUS_NOT_SUPPORTED',
-      'cls.seq_relationship.weight',
-      'ALSA lib'
-    ]
+    const shouldIgnore = shouldIgnoreTCPServerError(formattedData)
 
-    if (skipError.some((error) => formattedData.includes(error))) {
+    if (shouldIgnore) {
       return
     }
 

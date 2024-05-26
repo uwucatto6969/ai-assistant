@@ -20,3 +20,22 @@ export function getGlobalEntitiesPath(lang: ShortLanguageCode): string {
 export function getGlobalResolversPath(lang: ShortLanguageCode): string {
   return path.join(GLOBAL_DATA_PATH, lang, 'global-resolvers')
 }
+
+/**
+ * Misc
+ */
+const TCP_SERVER_WARNINGS_TO_IGNORE = [
+  'RuntimeWarning:',
+  'FutureWarning:',
+  'UserWarning:',
+  '<00:00',
+  '00:00<',
+  'CUDNN_STATUS_NOT_SUPPORTED',
+  'cls.seq_relationship.weight',
+  'ALSA lib'
+]
+export function shouldIgnoreTCPServerError(error: string): boolean {
+  return TCP_SERVER_WARNINGS_TO_IGNORE.some((warning) =>
+    error.includes(warning)
+  )
+}

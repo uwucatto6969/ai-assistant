@@ -13,6 +13,7 @@ import getos from 'getos'
 
 import { LogHelper } from '@/helpers/log-helper'
 import { SystemHelper } from '@/helpers/system-helper'
+import { shouldIgnoreTCPServerError } from '@/utilities'
 import {
   MINIMUM_REQUIRED_RAM,
   LEON_VERSION,
@@ -295,9 +296,6 @@ dotenv.config()
     const pythonTCPServerCommand = `${PYTHON_TCP_SERVER_BIN_PATH} en`
     const pythonTCPServerStart = Date.now()
     const p = spawn(pythonTCPServerCommand, { shell: true })
-    const ignoredWarnings = [
-      'UserWarning: Unable to retrieve source for @torch.jit._overload function'
-    ]
 
     LogHelper.info(pythonTCPServerCommand)
     reportDataInput.pythonTCPServer.command = pythonTCPServerCommand
@@ -322,9 +320,10 @@ dotenv.config()
 
     p.stderr.on('data', (data) => {
       const newData = data.toString()
+      const shouldIgnore = shouldIgnoreTCPServerError(newData)
 
       // Ignore given warnings on stderr output
-      if (!ignoredWarnings.some((w) => newData.includes(w))) {
+      if (!shouldIgnore) {
         pythonTCPServerOutput += newData
         report.can_start_python_tcp_server.v = false
         reportDataInput.pythonTCPServer.error = newData
