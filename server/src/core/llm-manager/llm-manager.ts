@@ -9,6 +9,7 @@ import type {
 
 import {
   HAS_LLM,
+  HAS_LLM_ACTION_RECOGNITION,
   HAS_LLM_NLG,
   LLM_MINIMUM_FREE_RAM,
   LLM_MINIMUM_TOTAL_RAM,
@@ -35,6 +36,7 @@ export default class LLMManager {
   private static instance: LLMManager
   private _isLLMEnabled = false
   private _isLLMNLGEnabled = false
+  private _isLLMActionRecognitionEnabled = false
   private _llama: LLMManagerLlama = null
   private _model: LLMManagerModel = null
 
@@ -52,6 +54,10 @@ export default class LLMManager {
 
   get isLLMNLGEnabled(): boolean {
     return this._isLLMNLGEnabled
+  }
+
+  get isLLMActionRecognitionEnabled(): boolean {
+    return this._isLLMActionRecognitionEnabled
   }
 
   constructor() {
@@ -137,6 +143,9 @@ export default class LLMManager {
         if (HAS_LLM_NLG) {
           this._isLLMNLGEnabled = true
         }
+        if (HAS_LLM_ACTION_RECOGNITION) {
+          this._isLLMActionRecognitionEnabled = true
+        }
 
         LogHelper.title('LLM Manager')
         LogHelper.success(`${LLM_NAME_WITH_VERSION} LLM has been loaded`)
@@ -157,6 +166,9 @@ export default class LLMManager {
 
       if (HAS_LLM_NLG) {
         this._isLLMNLGEnabled = true
+      }
+      if (HAS_LLM_ACTION_RECOGNITION) {
+        this._isLLMActionRecognitionEnabled = true
       }
     }
   }

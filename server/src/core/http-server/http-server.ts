@@ -71,6 +71,10 @@ export default class HTTPServer {
     const isLLMNLGEnabled = LLM_MANAGER.isLLMNLGEnabled ? 'enabled' : 'disabled'
     LogHelper.info(`LLM NLG: ${isLLMNLGEnabled}`)
 
+    const isLLMActionRecognitionEnabled =
+      LLM_MANAGER.isLLMActionRecognitionEnabled ? 'enabled' : 'disabled'
+    LogHelper.info(`LLM action recognition: ${isLLMActionRecognitionEnabled}`)
+
     const isTelemetryEnabled = IS_TELEMETRY_ENABLED ? 'enabled' : 'disabled'
     LogHelper.info(`Telemetry: ${isTelemetryEnabled}`)
 
