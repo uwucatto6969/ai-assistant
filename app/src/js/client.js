@@ -18,6 +18,7 @@ export default class Client {
     this._suggestions = []
     this._answerGenerationId = 'xxx'
     this._ttsAudioContext = null
+    this._isLeonGeneratingAnswer = false
     // this._ttsAudioContextes = {}
   }
 
@@ -78,6 +79,9 @@ export default class Client {
     })
 
     this.socket.on('answer', (data) => {
+      // Leon has finished to answer
+      this._isLeonGeneratingAnswer = false
+
       /**
        * Just save the bubble if the newest bubble is from the streaming.
        * Otherwise, create a new bubble
@@ -124,6 +128,7 @@ export default class Client {
     })
 
     this.socket.on('llm-token', (data) => {
+      this._isLeonGeneratingAnswer = true
       const previousGenerationId = this._answerGenerationId
       const newGenerationId = data.generationId
       this._answerGenerationId = newGenerationId
@@ -244,6 +249,11 @@ export default class Client {
   }
 
   send(keyword) {
+    // Prevent from sending utterance if Leon is still generating text (stream)
+    if (keyword === 'utterance' && this._isLeonGeneratingAnswer) {
+      return false
+    }
+
     if (this._input.value !== '') {
       this.socket.emit(keyword, {
         client: this.client,

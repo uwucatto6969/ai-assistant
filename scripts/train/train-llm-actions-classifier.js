@@ -5,6 +5,7 @@ import { LLM_ACTIONS_CLASSIFIER_PATH } from '@/constants'
 import { LogHelper } from '@/helpers/log-helper'
 import { SkillDomainHelper } from '@/helpers/skill-domain-helper'
 
+// TODO: need to handle multi languages
 const LANG = 'en'
 
 /**
