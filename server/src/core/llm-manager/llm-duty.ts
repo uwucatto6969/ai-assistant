@@ -4,11 +4,11 @@
  * [OK] Custom NER
  * [OK] Summarization
  * [OK] Translation
- * More accurate NLU (per domain list vs per skill list) / Utterance shortener or paraphraser
+ * [OK] Paraphraser
  * Knowledge base / RAG
  * Question answering
  * Sentiment analysis
- * Chit chat
+ * [OK] Conversation
  * Intent fallback
  * Custom prompting (for specific use cases in skills)
  */

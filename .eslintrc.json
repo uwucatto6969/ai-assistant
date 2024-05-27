@@ -26,7 +26,7 @@
     "@typescript-eslint/no-non-null-assertion": ["off"],
     "no-async-promise-executor": ["off"],
     "no-underscore-dangle": ["error", { "allowAfterThis": true }],
-    "prefer-destructuring": ["error"],
+    "prefer-destructuring": ["off"],
     "comma-dangle": ["error", "never"],
     "semi": ["error", "never"],
     "object-curly-spacing": ["error", "always"],

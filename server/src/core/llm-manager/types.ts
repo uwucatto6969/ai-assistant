@@ -8,7 +8,7 @@ export enum LLMDuties {
   Translation = 'translation',
   Summarization = 'summarization',
   Paraphrase = 'paraphrase',
-  ChitChat = 'chit-chat'
+  Conversation = 'conversation'
   // TODO
   /*SentimentAnalysis = 'sentiment-analysis',
   QuestionAnswering = 'question-answering',

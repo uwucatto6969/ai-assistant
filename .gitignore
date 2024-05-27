@@ -34,6 +34,7 @@ tcp_server/src/lib/asr/models/**/*.bin
 skills/**/src/settings.json
 skills/**/memory/*.json
 core/data/models/*.nlp
+core/data/models/*.json
 core/data/models/llm/*
 package.json.backup
 .python-version

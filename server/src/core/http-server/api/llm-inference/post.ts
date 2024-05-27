@@ -6,7 +6,7 @@ import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-d
 import { SummarizationLLMDuty } from '@/core/llm-manager/llm-duties/summarization-llm-duty'
 import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
 import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
-import { ChitChatLLMDuty } from '@/core/llm-manager/llm-duties/chit-chat-llm-duty'
+import { ConversationLLMDuty } from '@/core/llm-manager/llm-duties/conversation-llm-duty'
 import { ActionRecognitionLLMDuty } from '@/core/llm-manager/llm-duties/action-recognition-llm-duty'
 import { LLM_MANAGER } from '@/core'
 
@@ -25,7 +25,7 @@ const LLM_DUTIES_MAP = {
   [LLMDuties.Summarization]: SummarizationLLMDuty,
   [LLMDuties.Translation]: TranslationLLMDuty,
   [LLMDuties.Paraphrase]: ParaphraseLLMDuty,
-  [LLMDuties.ChitChat]: ChitChatLLMDuty
+  [LLMDuties.Conversation]: ConversationLLMDuty
 }
 
 export const postLLMInference: FastifyPluginAsync<APIOptions> = async (
@@ -67,11 +67,16 @@ export const postLLMInference: FastifyPluginAsync<APIOptions> = async (
 
         let llmResult
 
-        // TODO: use long-live duty for chit-chat duty
+        if (params.dutyType === LLMDuties.Conversation) {
+          const chitChatLLMDuty = new ConversationLLMDuty()
 
-        if (params.dutyType === LLMDuties.ChitChat) {
-          const chitChatLLMDuty = new ChitChatLLMDuty()
-          await chitChatLLMDuty.init()
+          if (params.data && params.data['useLoopHistory'] !== undefined) {
+            await chitChatLLMDuty.init({
+              useLoopHistory: params.data['useLoopHistory'] as boolean
+            })
+          } else {
+            await chitChatLLMDuty.init()
+          }
 
           llmResult = await chitChatLLMDuty.execute()
         } else {

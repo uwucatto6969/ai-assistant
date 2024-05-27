@@ -12,6 +12,10 @@ interface ConversationLoggerSettings {
   nbOfLogsToLoad: number
 }
 
+interface LoadParams {
+  nbOfLogsToLoad?: number
+}
+
 /**
  * The goal of this class is to log the conversation data between the
  * owner and Leon.
@@ -91,11 +95,13 @@ export class ConversationLogger {
     }
   }
 
-  public async load(): Promise<MessageLog[]> {
+  public async load(params?: LoadParams): Promise<MessageLog[]> {
     try {
       const conversationLog = await this.getAllLogs()
+      const nbOfLogsToLoad =
+        params?.nbOfLogsToLoad || this.settings.nbOfLogsToLoad
 
-      return conversationLog.slice(-this.settings.nbOfLogsToLoad)
+      return conversationLog.slice(-nbOfLogsToLoad)
     } catch (e) {
       LogHelper.title(this.settings.loggerName)
       LogHelper.error(`Failed to load conversation log: ${e})`)

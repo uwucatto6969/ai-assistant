@@ -272,7 +272,7 @@ ${YOUR_DUTY}
 ${dutySystemPrompt}`
   }
 
-  public getChitChatSystemPrompt(): string {
+  public getConversationSystemPrompt(): string {
     return `${this.whoYouAre}
 
 ${this.contextInfo}

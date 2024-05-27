@@ -14,7 +14,10 @@ import type {
   NLUResult
 } from '@/core/nlp/types'
 import { langs } from '@@/core/langs.json'
-import { PYTHON_TCP_SERVER_BIN_PATH } from '@/constants'
+import {
+  PYTHON_TCP_SERVER_BIN_PATH,
+  HAS_LLM_ACTION_RECOGNITION
+} from '@/constants'
 import {
   PYTHON_TCP_CLIENT,
   BRAIN,
@@ -29,6 +32,15 @@ import { SlotFilling } from '@/core/nlp/nlu/slot-filling'
 import Conversation, { DEFAULT_ACTIVE_CONTEXT } from '@/core/nlp/conversation'
 import { Telemetry } from '@/telemetry'
 import { SkillDomainHelper } from '@/helpers/skill-domain-helper'
+import {
+  ActionRecognitionLLMDuty,
+  type ActionRecognitionLLMDutyParams
+} from '@/core/llm-manager/llm-duties/action-recognition-llm-duty'
+
+type MatchActionResult = Pick<
+  NLPJSProcessResult,
+  'locale' | 'sentiment' | 'answers' | 'intent' | 'domain' | 'score'
+>
 
 export const DEFAULT_NLU_RESULT = {
   utterance: '',
@@ -158,6 +170,138 @@ export default class NLU {
   }
 
   /**
+   * Match the action based on the utterance.
+   * Fallback to chat action if no action is found
+   */
+  private async matchAction(
+    utterance: NLPUtterance
+  ): Promise<MatchActionResult> {
+    const socialConversationDomain = 'social_communication'
+    const chitChatSetupIntent = 'conversation.setup'
+    let locale = null as unknown as NLPJSProcessResult['locale']
+    let sentiment
+    let answers = null as unknown as NLPJSProcessResult['answers']
+    let intent = null as unknown as NLPJSProcessResult['intent']
+    let domain = null as unknown as NLPJSProcessResult['domain']
+    let score = 1
+    let classifications =
+      null as unknown as NLPJSProcessResult['classifications']
+    let ownerHasExplicitlyRequestedChitChat = false
+
+    /**
+     * Check if the owner has explicitly requested the chit-chat loop
+     */
+    const mainClassifierResult =
+      await MODEL_LOADER.mainNLPContainer.process(utterance)
+    if (
+      mainClassifierResult.domain === socialConversationDomain &&
+      mainClassifierResult.intent === chitChatSetupIntent
+    ) {
+      ownerHasExplicitlyRequestedChitChat = true
+    }
+
+    if (HAS_LLM_ACTION_RECOGNITION && !ownerHasExplicitlyRequestedChitChat) {
+      /**
+       * Use LLM for action recognition
+       */
+
+      const dutyParams: ActionRecognitionLLMDutyParams = {
+        input: utterance,
+        data: {
+          existingContextName: null
+        }
+      }
+
+      if (this.conversation.hasActiveContext()) {
+        dutyParams.data.existingContextName =
+          this.conversation.activeContext.name
+      }
+
+      const actionRecognitionDuty = new ActionRecognitionLLMDuty(dutyParams)
+      const actionRecognitionResult = await actionRecognitionDuty.execute()
+      const foundAction = actionRecognitionResult?.output[
+        'intent_name'
+      ] as string
+
+      locale = await MODEL_LOADER.mainNLPContainer.guessLanguage(utterance)
+      ;({ sentiment } =
+        await MODEL_LOADER.mainNLPContainer.getSentiment(utterance))
+
+      const chitChatSetupAction = `${socialConversationDomain}.${chitChatSetupIntent}`
+      /**
+       * Check if the LLM did not find any action.
+       * Ignore the chit-chat setup action as it is a special case
+       */
+      const llmActionRecognitionDidNotFindAction =
+        !foundAction ||
+        foundAction === 'not_found' ||
+        foundAction === chitChatSetupAction
+      if (llmActionRecognitionDidNotFindAction) {
+        Telemetry.utterance({ utterance, lang: BRAIN.lang })
+
+        domain = socialConversationDomain
+        intent = 'conversation.converse'
+      } else {
+        // Check in case the LLM hallucinated an action
+        const actionExists = await SkillDomainHelper.actionExists(
+          locale,
+          foundAction
+        )
+
+        if (!actionExists) {
+          Telemetry.utterance({ utterance, lang: BRAIN.lang })
+
+          domain = socialConversationDomain
+          intent = 'conversation.converse'
+        } else {
+          const parsedAction = foundAction.split('.')
+          const [, skillName, actionName] = parsedAction
+
+          domain = parsedAction[0] as string
+          intent = `${skillName}.${actionName}`
+          answers = await MODEL_LOADER.mainNLPContainer.findAllAnswers(
+            locale,
+            intent
+          )
+        }
+      }
+    } else {
+      /**
+       * Use classic NLP processing
+       */
+
+      ;({ locale, answers, score, intent, domain, sentiment, classifications } =
+        await MODEL_LOADER.mainNLPContainer.process(utterance))
+
+      /**
+       * If a context is active, then use the appropriate classification based on score probability.
+       * E.g. 1. Create my shopping list; 2. Actually delete it.
+       * If there are several "delete it" across skills, Leon needs to make use of
+       * the current context ({domain}.{skill}) to define the most accurate classification
+       */
+      if (this.conversation.hasActiveContext()) {
+        classifications.forEach(({ intent: newIntent, score: newScore }) => {
+          if (newScore > 0.6) {
+            const [skillName] = newIntent.split('.')
+            const newDomain = MODEL_LOADER.mainNLPContainer.getIntentDomain(
+              locale,
+              newIntent
+            )
+            const contextName = `${newDomain}.${skillName}`
+            if (this.conversation.activeContext.name === contextName) {
+              score = newScore
+              intent = newIntent
+              domain = newDomain
+            }
+          }
+        })
+      }
+    }
+
+    return { locale, sentiment, answers, intent, domain, score }
+  }
+
+  /**
    * Classify the utterance,
    * pick-up the right classification
    * and extract entities
@@ -209,40 +353,11 @@ export default class NLU {
           }
         }
 
-        const result: NLPJSProcessResult =
-          await MODEL_LOADER.mainNLPContainer.process(utterance)
-        const { locale, answers, classifications } = result
-        const sentiment = {
-          vote: result.sentiment.vote,
-          score: result.sentiment.score
-        }
-        let { score, intent, domain } = result
-
-        /**
-         * If a context is active, then use the appropriate classification based on score probability.
-         * E.g. 1. Create my shopping list; 2. Actually delete it.
-         * If there are several "delete it" across skills, Leon needs to make use of
-         * the current context ({domain}.{skill}) to define the most accurate classification
-         */
-        if (this.conversation.hasActiveContext()) {
-          classifications.forEach(({ intent: newIntent, score: newScore }) => {
-            if (newScore > 0.6) {
-              const [skillName] = newIntent.split('.')
-              const newDomain = MODEL_LOADER.mainNLPContainer.getIntentDomain(
-                locale,
-                newIntent
-              )
-              const contextName = `${newDomain}.${skillName}`
-              if (this.conversation.activeContext.name === contextName) {
-                score = newScore
-                intent = newIntent
-                domain = newDomain
-              }
-            }
-          })
-        }
+        const { locale, sentiment, answers, intent, domain, score } =
+          await this.matchAction(utterance)
 
         const [skillName, actionName] = intent.split('.')
+
         await this.setNLUResult({
           ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.
           utterance,
@@ -280,7 +395,7 @@ export default class NLU {
           if (!fallback) {
             if (!BRAIN.isMuted) {
               await BRAIN.talk(
-                `${BRAIN.wernicke('random_unknown_intents')}.`,
+                `${BRAIN.wernicke('random_unknown_intents_legacy')}.`,
                 true
               )
             }

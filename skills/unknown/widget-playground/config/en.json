@@ -3,7 +3,7 @@
   "actions": {
     "run": {
       "type": "logic",
-      "utterance_samples": ["Show the widget playground"]
+      "utterance_samples": []
     }
   },
   "answers": {

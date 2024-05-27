@@ -15,11 +15,14 @@ export const run: ActionFunction = async function (params) {
     url: '/llm-inference',
     method: 'POST',
     data: {
-      dutyType: 'chit-chat',
-      input: ownerMessage
+      dutyType: 'conversation',
+      input: ownerMessage,
+      data: {
+        // Load/follow the main conversation history
+        useLoopHistory: false
+      }
     }
   })
-  // const { leon_answer: leonAnswer } = response.data.output
 
   await leon.answer({
     key: 'answer_message',

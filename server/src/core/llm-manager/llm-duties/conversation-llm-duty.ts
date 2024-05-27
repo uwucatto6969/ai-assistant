@@ -12,6 +12,7 @@ import {
   PERSONA,
   NLU,
   LOOP_CONVERSATION_LOGGER,
+  CONVERSATION_LOGGER,
   LLM_PROVIDER,
   SOCKET_SERVER
 } from '@/core'
@@ -20,37 +21,47 @@ import { LLMProviders, LLMDuties } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 import { StringHelper } from '@/helpers/string-helper'
 
-export class ChitChatLLMDuty extends LLMDuty {
-  private static instance: ChitChatLLMDuty
+interface InitParams {
+  /**
+   * Whether to use the loop history which is erased when Leon's instance is restarted.
+   * If set to false, the main conversation history will be used
+   */
+  useLoopHistory?: boolean
+}
+
+export class ConversationLLMDuty extends LLMDuty {
+  private static instance: ConversationLLMDuty
   private static context: LlamaContext = null as unknown as LlamaContext
   private static session: LlamaChatSession = null as unknown as LlamaChatSession
   private static messagesHistoryForNonLocalProvider: MessageLog[] =
     null as unknown as MessageLog[]
   protected readonly systemPrompt = ``
-  protected readonly name = 'Chit-Chat LLM Duty'
+  protected readonly name = 'Conversation LLM Duty'
   protected input: LLMDutyParams['input'] = null
 
   constructor() {
     super()
 
-    if (!ChitChatLLMDuty.instance) {
+    if (!ConversationLLMDuty.instance) {
       LogHelper.title(this.name)
       LogHelper.success('New instance')
 
-      ChitChatLLMDuty.instance = this
+      ConversationLLMDuty.instance = this
     }
   }
 
-  public async init(): Promise<void> {
+  public async init(params: InitParams = {}): Promise<void> {
+    params.useLoopHistory = params.useLoopHistory ?? true
+
     if (LLM_PROVIDER_NAME === LLMProviders.Local) {
       /**
        * A new context and session will be created only
        * when Leon's instance is restarted
        */
-      if (!ChitChatLLMDuty.context || !ChitChatLLMDuty.session) {
+      if (!ConversationLLMDuty.context || !ConversationLLMDuty.session) {
         await LOOP_CONVERSATION_LOGGER.clear()
 
-        ChitChatLLMDuty.context = await LLM_MANAGER.model.createContext({
+        ConversationLLMDuty.context = await LLM_MANAGER.model.createContext({
           threads: LLM_THREADS
         })
 
@@ -58,21 +69,27 @@ export class ChitChatLLMDuty extends LLMDuty {
           'return import("node-llama-cpp")'
         )()
 
-        ChitChatLLMDuty.session = new LlamaChatSession({
-          contextSequence: ChitChatLLMDuty.context.getSequence(),
-          systemPrompt: PERSONA.getChitChatSystemPrompt()
+        ConversationLLMDuty.session = new LlamaChatSession({
+          contextSequence: ConversationLLMDuty.context.getSequence(),
+          systemPrompt: PERSONA.getConversationSystemPrompt()
         }) as LlamaChatSession
       } else {
+        let conversationLogger = LOOP_CONVERSATION_LOGGER
+
+        if (!params.useLoopHistory) {
+          conversationLogger = CONVERSATION_LOGGER
+        }
+
         /**
          * As long as Leon's instance has not been restarted,
          * the context, session with history will be loaded
          */
         const history = await LLM_MANAGER.loadHistory(
-          LOOP_CONVERSATION_LOGGER,
-          ChitChatLLMDuty.session
+          conversationLogger,
+          ConversationLLMDuty.session
         )
 
-        ChitChatLLMDuty.session.setChatHistory(history)
+        ConversationLLMDuty.session.setChatHistory(history)
       }
     } else {
       /**
@@ -81,12 +98,18 @@ export class ChitChatLLMDuty extends LLMDuty {
        * then load the messages history
        */
 
-      if (!ChitChatLLMDuty.messagesHistoryForNonLocalProvider) {
+      if (!ConversationLLMDuty.messagesHistoryForNonLocalProvider) {
         await LOOP_CONVERSATION_LOGGER.clear()
       }
 
-      ChitChatLLMDuty.messagesHistoryForNonLocalProvider =
-        await LOOP_CONVERSATION_LOGGER.load()
+      let conversationLogger = LOOP_CONVERSATION_LOGGER
+
+      if (!params.useLoopHistory) {
+        conversationLogger = CONVERSATION_LOGGER
+      }
+
+      ConversationLLMDuty.messagesHistoryForNonLocalProvider =
+        await conversationLogger.load()
     }
   }
 
@@ -102,8 +125,8 @@ export class ChitChatLLMDuty extends LLMDuty {
 
       const prompt = NLU.nluResult.newUtterance
       const completionParams = {
-        dutyType: LLMDuties.ChitChat,
-        systemPrompt: PERSONA.getChitChatSystemPrompt(),
+        dutyType: LLMDuties.Conversation,
+        systemPrompt: PERSONA.getConversationSystemPrompt(),
         temperature: 1.3
       }
       let completionResult
@@ -112,8 +135,8 @@ export class ChitChatLLMDuty extends LLMDuty {
         const generationId = StringHelper.random(6, { onlyLetters: true })
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
-          session: ChitChatLLMDuty.session,
-          maxTokens: ChitChatLLMDuty.context.contextSize,
+          session: ConversationLLMDuty.session,
+          maxTokens: ConversationLLMDuty.context.contextSize,
           onToken: (chunk) => {
             const detokenizedChunk = LLM_PROVIDER.cleanUpResult(
               LLM_MANAGER.model.detokenize(chunk)
@@ -128,7 +151,7 @@ export class ChitChatLLMDuty extends LLMDuty {
       } else {
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
-          history: ChitChatLLMDuty.messagesHistoryForNonLocalProvider
+          history: ConversationLLMDuty.messagesHistoryForNonLocalProvider
         })
       }
 
@@ -138,7 +161,9 @@ export class ChitChatLLMDuty extends LLMDuty {
       })
 
       LogHelper.title(this.name)
-      LogHelper.success(`Duty executed: ${JSON.stringify(completionResult)}`)
+      LogHelper.success('Duty executed')
+      LogHelper.success(`Prompt — ${prompt}`)
+      LogHelper.success(`Output — ${completionResult?.output}`)
 
       return completionResult as unknown as LLMDutyResult
     } catch (e) {

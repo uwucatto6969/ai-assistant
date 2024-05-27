@@ -230,6 +230,10 @@ export const SKILLS_RESOLVERS_NLP_MODEL_PATH = path.join(
   MODELS_PATH,
   'leon-skills-resolvers-model.nlp'
 )
+export const LLM_ACTIONS_CLASSIFIER_PATH = path.join(
+  MODELS_PATH,
+  'leon-llm-actions-classifier.json'
+)
 
 /**
  * LLMs

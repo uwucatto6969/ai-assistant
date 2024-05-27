@@ -70,7 +70,9 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
       }
 
       LogHelper.title(this.name)
-      LogHelper.success(`Duty executed: ${JSON.stringify(completionResult)}`)
+      LogHelper.success('Duty executed')
+      LogHelper.success(`Prompt — ${prompt}`)
+      LogHelper.success(`Output — ${completionResult?.output}`)
 
       return completionResult as unknown as LLMDutyResult
     } catch (e) {

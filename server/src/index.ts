@@ -84,7 +84,7 @@ import { LogHelper } from '@/helpers/log-helper'
   }
 
   /*const actionRecognitionDuty = new ActionRecognitionLLMDuty({
-    input: 'Give me a random number'
+    input: 'Provide a number'
   })
   await actionRecognitionDuty.execute()*/
 

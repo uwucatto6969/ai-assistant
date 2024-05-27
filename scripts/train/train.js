@@ -15,6 +15,7 @@ import trainGlobalResolvers from './train-resolvers-model/train-global-resolvers
 import trainSkillsResolvers from './train-resolvers-model/train-skills-resolvers'
 import trainGlobalEntities from './train-main-model/train-global-entities'
 import trainSkillsActions from './train-main-model/train-skills-actions'
+import trainLLMActionsClassifier from './train-llm-actions-classifier'
 
 dotenv.config()
 
@@ -132,6 +133,16 @@ export default () =>
         resolve()
       } catch (e) {
         LogHelper.error(`Failed to save main NLP model: ${e}`)
+        reject()
+      }
+
+      try {
+        await trainLLMActionsClassifier()
+
+        LogHelper.success('LLM actions classifier trained')
+        resolve()
+      } catch (e) {
+        LogHelper.error(`Failed to train LLM actions classifier: ${e}`)
         reject()
       }
     } catch (e) {

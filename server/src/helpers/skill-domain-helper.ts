@@ -12,10 +12,12 @@ import type {
 import { SKILLS_PATH } from '@/constants'
 
 interface SkillDomain {
+  domainId: string
   name: string
   path: string
   skills: {
     [key: string]: {
+      domainId: string
       name: string
       path: string
       bridge: SkillBridgeSchema
@@ -26,6 +28,12 @@ interface SkillDomain {
 interface SkillConfigWithGlobalEntities
   extends Omit<SkillConfigSchema, 'entities'> {
   entities: Record<string, GlobalEntitySchema>
+}
+
+interface SkillActionObject {
+  domain: string
+  skill: string
+  action: string
 }
 
 export class SkillDomainHelper {
@@ -45,6 +53,8 @@ export class SkillDomainHelper {
             path.join(domainPath, 'domain.json')
           )) as DomainSchema
           const skillFolders = await fs.promises.readdir(domainPath)
+          const domainPathParts = domainPath.split('/')
+          const domainId = domainPathParts[domainPathParts.length - 1] as string
 
           for (let i = 0; i < skillFolders.length; i += 1) {
             const skillAliasName = skillFolders[i] as string
@@ -62,6 +72,7 @@ export class SkillDomainHelper {
               ) as SkillSchema
 
               skills[skillName] = {
+                domainId,
                 name: skillAliasName,
                 path: skillPath,
                 bridge: skillBridge
@@ -69,6 +80,7 @@ export class SkillDomainHelper {
             }
 
             const skillDomain: SkillDomain = {
+              domainId,
               name: entity,
               path: domainPath,
               skills
@@ -199,5 +211,46 @@ export class SkillDomainHelper {
     }
 
     return JSON.parse(await fs.promises.readFile(skillMemoryPath, 'utf-8'))
+  }
+
+  /**
+   * Verify if an action exists
+   * @param lang Language short code
+   * @param params Action to verify
+   * @example actionExists('food_drink.advisor.suggest') // true
+   * @example actionExists({ domain: 'food_drink', skill: 'advisor', action: 'suggest' }) // true
+   */
+  public static async actionExists(
+    lang: ShortLanguageCode,
+    params: string | SkillActionObject
+  ): Promise<boolean> {
+    const { domain, skill, action } =
+      typeof params === 'string'
+        ? {
+            domain: params.split('.')[0],
+            skill: params.split('.')[1],
+            action: params.split('.')[2]
+          }
+        : params
+
+    if (!domain || !skill || !action) {
+      return false
+    }
+
+    const skillPath = path.join(SKILLS_PATH, domain, skill)
+    if (!fs.existsSync(skillPath)) {
+      return false
+    }
+
+    const skillConfigPath = path.join(skillPath, 'config', `${lang}.json`)
+    if (!fs.existsSync(skillConfigPath)) {
+      return false
+    }
+
+    const { actions } = JSON.parse(
+      await fs.promises.readFile(skillConfigPath, 'utf8')
+    ) as SkillConfigSchema
+
+    return !!actions[action]
   }
 }

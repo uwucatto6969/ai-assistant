@@ -15,7 +15,8 @@ import {
   LLM_MINIMUM_TOTAL_RAM,
   LLM_NAME_WITH_VERSION,
   LLM_PATH,
-  LLM_PROVIDER
+  LLM_PROVIDER,
+  LLM_ACTIONS_CLASSIFIER_PATH
 } from '@/constants'
 import { LogHelper } from '@/helpers/log-helper'
 import { SystemHelper } from '@/helpers/system-helper'
@@ -24,6 +25,7 @@ import { LLMProviders } from '@/core/llm-manager/types'
 
 type LLMManagerLlama = Llama | null
 type LLMManagerModel = LlamaModel | null
+type ActionsClassifierContent = string | null
 
 // Set to 0 to use the maximum threads supported by the current machine hardware
 export const LLM_THREADS = 4
@@ -39,6 +41,7 @@ export default class LLMManager {
   private _isLLMActionRecognitionEnabled = false
   private _llama: LLMManagerLlama = null
   private _model: LLMManagerModel = null
+  private _llmActionsClassifierContent: ActionsClassifierContent = null
 
   get llama(): Llama {
     return this._llama as Llama
@@ -46,6 +49,10 @@ export default class LLMManager {
 
   get model(): LlamaModel {
     return this._model as LlamaModel
+  }
+
+  get llmActionsClassifierContent(): ActionsClassifierContent {
+    return this._llmActionsClassifierContent
   }
 
   get isLLMEnabled(): boolean {
@@ -66,6 +73,43 @@ export default class LLMManager {
       LogHelper.success('New instance')
 
       LLMManager.instance = this
+    }
+  }
+
+  /**
+   * Post checking after loading the LLM to
+   */
+  private async postCheck(): Promise<void> {
+    if (this._isLLMActionRecognitionEnabled) {
+      const isActionsClassifierPathFound = fs.existsSync(
+        LLM_ACTIONS_CLASSIFIER_PATH
+      )
+
+      if (!isActionsClassifierPathFound) {
+        throw new Error(
+          `The LLM action classifier is not found at "${LLM_ACTIONS_CLASSIFIER_PATH}". Please run "npm run train" and retry.`
+        )
+      }
+    }
+  }
+
+  /**
+   * Load the LLM action classifier and other future
+   * files that only need to be loaded once
+   */
+  private async singleLoad(): Promise<void> {
+    if (this._isLLMActionRecognitionEnabled) {
+      try {
+        this._llmActionsClassifierContent = await fs.promises.readFile(
+          LLM_ACTIONS_CLASSIFIER_PATH,
+          'utf-8'
+        )
+
+        LogHelper.title('LLM Manager')
+        LogHelper.success('LLM action classifier has been loaded')
+      } catch (e) {
+        throw new Error(`Failed to load the LLM action classifier: ${e}`)
+      }
     }
   }
 
@@ -171,14 +215,41 @@ export default class LLMManager {
         this._isLLMActionRecognitionEnabled = true
       }
     }
+
+    try {
+      // Post checking after loading the LLM
+      await this.postCheck()
+    } catch (e) {
+      LogHelper.title('LLM Manager')
+      LogHelper.error(`LLM Manager failed to post check: ${e}`)
+
+      process.exit(1)
+    }
+
+    try {
+      // Load files that only need to be loaded once
+      await this.singleLoad()
+    } catch (e) {
+      LogHelper.title('LLM Manager')
+      LogHelper.error(`LLM Manager failed to single load: ${e}`)
+
+      process.exit(1)
+    }
   }
 
   public async loadHistory(
     conversationLogger: ConversationLogger,
-    session: LlamaChatSession
+    session: LlamaChatSession,
+    options?: { nbOfLogsToLoad?: number }
   ): Promise<ChatHistoryItem[]> {
     const [systemMessage] = session.getChatHistory()
-    const conversationLogs = await conversationLogger.load()
+    let conversationLogs
+
+    if (options) {
+      conversationLogs = await conversationLogger.load(options)
+    } else {
+      conversationLogs = await conversationLogger.load()
+    }
 
     if (!conversationLogs) {
       return [systemMessage] as ChatHistoryItem[]
