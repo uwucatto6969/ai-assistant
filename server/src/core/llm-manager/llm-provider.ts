@@ -183,6 +183,12 @@ export default class LLMProvider {
       rawResult = await Promise.race([rawResultPromise, timeoutPromise])
     } catch (e) {
       LogHelper.title('LLM Provider')
+      LogHelper.error(`Error to complete prompt: ${e}`)
+
+      // Avoid infinite loop
+      if (!completionParams.maxRetries || completionParams.maxRetries <= 0) {
+        throw new Error('Prompt failed after all retries')
+      }
 
       if (completionParams.maxRetries > 0) {
         LogHelper.info('Prompt took too long or failed. Retrying...')

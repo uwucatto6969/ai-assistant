@@ -114,7 +114,7 @@ export default class Brain {
         SOCKET_SERVER.socket?.emit('tts-interruption')
         // Cancel all the future speeches
         TTS.speeches = []
-        LogHelper.info('Leon got interrupted by voice')
+        LogHelper.info('Leon got interrupted')
       }
 
       if (isTalkingWithVoice) {

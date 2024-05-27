@@ -121,6 +121,9 @@ export default class SocketServer {
                 message: utterance
               })
 
+              // Always interrupt Leon's voice on answer
+              BRAIN.setIsTalkingWithVoice(false, { shouldInterrupt: true })
+
               BRAIN.isMuted = false
               const processedData = await NLU.process(utterance)
 
