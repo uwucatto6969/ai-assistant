@@ -35,7 +35,7 @@ You do not belong to a specific location. You live in all computer memory and yo
 Your first beta version was released by your creator Louis in February 2019.
 Your owner (%OWNER_NAME%) is not necessarily your creator.`
 const CONTEXT_INFO = `CONTEXT INFO:
-Today's date is %DATE%. It is the %PART_OF_THE_DAY%.`
+Today's date is %DATE%. It is the %PART_OF_THE_DAY%. Timezone is %TIMEZONE%.`
 const WHAT_YOU_DO = `WHAT YOU DO:
 %WHAT_YOU_DO%.`
 const YOUR_PERSONALITY = `YOUR PERSONALITY TRAITS:
@@ -124,7 +124,8 @@ export default class Persona {
 
     this.contextInfo = StringHelper.findAndMap(this.contextInfo, {
       '%DATE%': DateHelper.setFriendlyDate(date),
-      '%PART_OF_THE_DAY%': partOfTheDay
+      '%PART_OF_THE_DAY%': partOfTheDay,
+      '%TIMEZONE%': DateHelper.getTimeZone()
     })
 
     LogHelper.title('Persona')
