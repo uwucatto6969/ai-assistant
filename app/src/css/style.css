@@ -302,11 +302,11 @@ input {
 
 .llm-token {
   opacity: 0;
-  transition: opacity 1s;
+  transition: opacity 2.5s;
 }
 
 .llm-token.fade-in {
-  animation: fadeIn 1s forwards;
+  animation: fadeIn 2.5s forwards;
 }
 
 .bubble-container {

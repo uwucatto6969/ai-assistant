@@ -101,7 +101,7 @@ export default class Client {
           // Update the text of the bubble (quick emoji fix)
           newestBubbleContainerElement.querySelector('p.bubble').innerHTML =
             data
-        }, 300)
+        }, 2_500)
       } else {
         this.chatbot.receivedFrom('leon', data)
       }

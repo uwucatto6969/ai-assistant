@@ -185,7 +185,10 @@ export default class LLMProvider {
       LogHelper.title('LLM Provider')
       LogHelper.error(`Error to complete prompt: ${e}`)
 
-      // Avoid infinite loop
+      // throw new Error('Prompt failed after all retries')
+      return null
+
+      /*// Avoid infinite loop
       if (!completionParams.maxRetries || completionParams.maxRetries <= 0) {
         throw new Error('Prompt failed after all retries')
       }
@@ -203,7 +206,7 @@ export default class LLMProvider {
         )
 
         return null
-      }
+      }*/
     }
 
     let usedInputTokens = 0
