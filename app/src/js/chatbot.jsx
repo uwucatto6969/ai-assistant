@@ -104,7 +104,7 @@ export default class Chatbot {
 
     container.className = `bubble-container ${who}`
     bubble.className = 'bubble'
-    bubble.innerHTML = string
+    bubble.textContent = string
 
     if (bubbleId) {
       container.classList.add(bubbleId)

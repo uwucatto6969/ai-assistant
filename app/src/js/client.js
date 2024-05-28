@@ -40,7 +40,7 @@ export default class Client {
     if (this.info.llm.enabled) {
       const moodContainer = document.querySelector('#mood')
 
-      moodContainer.innerHTML = `Leon's mood: ${mood.emoji}`
+      moodContainer.textContent = `Leon's mood: ${mood.emoji}`
       moodContainer.setAttribute('title', mood.type)
     }
   }
@@ -99,7 +99,7 @@ export default class Client {
         // Slightly delay the update to avoid the stream animation to be interrupted
         setTimeout(() => {
           // Update the text of the bubble (quick emoji fix)
-          newestBubbleContainerElement.querySelector('p.bubble').innerHTML =
+          newestBubbleContainerElement.querySelector('p.bubble').textContent =
             data
         }, 2_500)
       } else {
@@ -157,16 +157,13 @@ export default class Client {
 
       // Token is already appened when it's a new generation
       if (isSameGeneration) {
-        // bubbleElement.innerHTML += data.token
+        // bubbleElement.textContent += data.token
 
         const tokenSpan = document.createElement('span')
-        tokenSpan.className = 'llm-token'
+        tokenSpan.className = 'llm-token fade-in'
         tokenSpan.textContent = data.token
 
         bubbleElement.appendChild(tokenSpan)
-
-        // Add the fade-in class to trigger the animation
-        tokenSpan.classList.add('fade-in')
       }
 
       this.chatbot.scrollDown()

@@ -28,14 +28,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const input = document.querySelector('#utterance')
     const mic = document.querySelector('#mic-button')
     const v = document.querySelector('#version small')
-    const voiceEnergyContainerElement = document.querySelector(
-      '#voice-energy-container'
-    )
     const client = new Client(config.app, serverUrl, input, response.data)
     let rec = {}
     let chunks = []
 
-    v.innerHTML += client.info.version
+    v.textContent += client.info.version
 
     client.updateMood(client.info.mood)
     client.init(loader)
@@ -140,16 +137,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         rec.enabled = false
       }
     })
-
-    if (voiceEnergyContainerElement) {
-      for (let i = 0; i < 32; i += 1) {
-        const particle = document.createElement('div')
-        particle.classList.add('voice-particle')
-        particle.style.left = `${Math.random() * 100}%`
-        particle.style.top = `${Math.random() * 100}%`
-        voiceEnergyContainerElement.appendChild(particle)
-      }
-    }
   } catch (e) {
     alert(`Error: ${e.message}; ${JSON.stringify(e.response?.data)}`)
     console.error(e)
