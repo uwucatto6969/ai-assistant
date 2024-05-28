@@ -95,8 +95,13 @@ export default class Client {
 
       if (isNewestBubbleFromStreaming) {
         this.chatbot.saveBubble('leon', data)
-        // Update the text of the bubble (quick emoji fix)
-        newestBubbleContainerElement.querySelector('p.bubble').innerHTML = data
+
+        // Slightly delay the update to avoid the stream animation to be interrupted
+        setTimeout(() => {
+          // Update the text of the bubble (quick emoji fix)
+          newestBubbleContainerElement.querySelector('p.bubble').innerHTML =
+            data
+        }, 300)
       } else {
         this.chatbot.receivedFrom('leon', data)
       }
@@ -152,7 +157,16 @@ export default class Client {
 
       // Token is already appened when it's a new generation
       if (isSameGeneration) {
-        bubbleElement.innerHTML += data.token
+        // bubbleElement.innerHTML += data.token
+
+        const tokenSpan = document.createElement('span')
+        tokenSpan.className = 'llm-token'
+        tokenSpan.textContent = data.token
+
+        bubbleElement.appendChild(tokenSpan)
+
+        // Add the fade-in class to trigger the animation
+        tokenSpan.classList.add('fade-in')
       }
 
       this.chatbot.scrollDown()

@@ -300,6 +300,15 @@ input {
   }
 }
 
+.llm-token {
+  opacity: 0;
+  transition: opacity 1s;
+}
+
+.llm-token.fade-in {
+  animation: fadeIn 1s forwards;
+}
+
 .bubble-container {
   padding: 6px;
 }
