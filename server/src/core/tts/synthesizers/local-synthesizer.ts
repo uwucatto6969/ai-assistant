@@ -69,6 +69,9 @@ export default class LocalSynthesizer extends TTSSynthesizerBase {
                 'leon-speech-audio-ended',
                 duration / 1_000 || 500
               )
+              setTimeout(() => {
+                SOCKET_SERVER.socket?.emit('tts-end-of-speech')
+              }, duration)
             }
           } catch (e) {
             LogHelper.title(this.name)

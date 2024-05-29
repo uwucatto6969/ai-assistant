@@ -14,7 +14,8 @@ class ASR:
                  device='auto',
                  transcription_callback=None,
                  wake_word_or_active_listening_callback=None,
-                 end_of_owner_speech_callback=None):
+                 end_of_owner_speech_callback=None,
+                 active_listening_disabled_callback=None):
         tic = time.perf_counter()
         self.log('Loading model...')
 
@@ -47,6 +48,7 @@ class ASR:
             wake_word_or_active_listening_callback, 0.3
         )
         self.end_of_owner_speech_callback = end_of_owner_speech_callback
+        self.active_listening_disabled_callback = active_listening_disabled_callback
 
         self.wake_words = ["ok leon", "okay leon", "hi leon", "hey leon", "hello leon", "heilion", "alion", "hyleon"]
 
@@ -207,6 +209,7 @@ class ASR:
                 if should_stop_active_listening:
                     self.is_wake_word_detected = False
                     self.is_active_listening_enabled = False
+                    self.active_listening_disabled_callback()
                     self.log('Active listening disabled')
 
                 # self.log('Silence detected')

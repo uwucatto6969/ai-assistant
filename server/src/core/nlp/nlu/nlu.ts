@@ -178,6 +178,13 @@ export default class NLU {
   ): Promise<MatchActionResult> {
     const socialConversationDomain = 'social_communication'
     const chitChatSetupIntent = 'conversation.setup'
+    const nbWords = utterance.split(' ').length
+    /**
+     * If considered as long utterance then force conversation.converse intent.
+     * Should go straight to the point when asking for a specific action without saying
+     * too much
+     */
+    const isConsideredLongUtterance = nbWords >= 12
     let locale = null as unknown as NLPJSProcessResult['locale']
     let sentiment
     let answers = null as unknown as NLPJSProcessResult['answers']
@@ -233,6 +240,7 @@ export default class NLU {
        * Ignore the chit-chat setup action as it is a special case
        */
       const llmActionRecognitionDidNotFindAction =
+        isConsideredLongUtterance ||
         !foundAction ||
         foundAction === 'not_found' ||
         foundAction === chitChatSetupAction

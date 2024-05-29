@@ -49,13 +49,15 @@ ${LLM_MANAGER.llmActionsClassifierContent}
 
 RESPONSE GUIDELINES:
 * If the utterance matches one of the intents, respond with the corresponding intent in the format "{domain}.{skill}.{action}".
-* If the utterance does not match any of the intents, respond with { "${JSON_KEY_RESPONSE}": "not_found" }.
-* Never match a loop intent if the user's utterance does not explicitly mention the intent.`
+* If the utterance does not match any of the intents, respond with { "${JSON_KEY_RESPONSE}": "not_found" }.`
 
     if (this.data.existingContextName) {
       this.systemPrompt = `${basePrompt}
 * If the utterance is ambiguous and could match multiple intents, consider the context and history of the conversation to disambiguate the intent.
 * Remember, it is always better to not match any intent than to match the wrong intent.
+* If the active context is "social_communication.conversation", then you must firtly verify the conversation history to follow up the conversation.
+
+CONTEXT: ${this.data.existingContextName}
 
 CONTEXTUAL DISAMBIGUATION:
 When the utterance is ambiguous, consider the following context to disambiguate the intent:

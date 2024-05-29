@@ -105,11 +105,19 @@ class TCPServer:
                 }
             })
 
+        def active_listening_disabled_callback():
+            self.log('Active listening disabled')
+            self.send_tcp_message({
+                'topic': 'asr-active-listening-disabled',
+                'data': {}
+            })
+
         self.asr = ASR(device='auto',
                        transcription_callback=transcription_callback,
                        wake_word_or_active_listening_callback=wake_word_or_active_listening_callback,
-                       end_of_owner_speech_callback=end_of_owner_speech_callback
-                       )
+                       end_of_owner_speech_callback=end_of_owner_speech_callback,
+                       active_listening_disabled_callback=active_listening_disabled_callback
+        )
         self.asr.start_recording()
 
     def init(self):

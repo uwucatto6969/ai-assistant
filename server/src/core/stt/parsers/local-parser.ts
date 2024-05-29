@@ -11,6 +11,7 @@ const NEW_SPEECH_EVENT = 'asr-new-speech'
 const END_OF_OWNER_SPEECH_DETECTED_EVENT = 'asr-end-of-owner-speech-detected'
 const ACTIVE_LISTENING_DURATION_INCREASED_EVENT =
   'asr-active-listening-duration-increased'
+const ACTIVE_LISTENING_DISABLED_EVENT = 'asr-active-listening-disabled'
 
 const EVENT_HANDLERS: EventHandler = {
   [NEW_SPEECH_EVENT]: (firstEvent): void => {
@@ -33,6 +34,10 @@ const EVENT_HANDLERS: EventHandler = {
 
   [ACTIVE_LISTENING_DURATION_INCREASED_EVENT]: (): void => {
     //
+  },
+
+  [ACTIVE_LISTENING_DISABLED_EVENT]: (): void => {
+    SOCKET_SERVER.socket?.emit('asr-active-listening-disabled')
   }
 }
 

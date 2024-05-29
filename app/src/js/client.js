@@ -15,12 +15,14 @@ export default class Client {
     this.parsedHistory = []
     this.info = res
     this.chatbot = new Chatbot()
-    this.voiceEnergy = new VoiceEnergy()
+    this.voiceEnergy = new VoiceEnergy(this)
     this._recorder = {}
     this._suggestions = []
     this._answerGenerationId = 'xxx'
     this._ttsAudioContext = null
     this._isLeonGeneratingAnswer = false
+    this._voiceSpeechElement = document.querySelector('#voice-speech')
+    this._isVoiceModeEnabled = false
     // this._ttsAudioContextes = {}
   }
 
@@ -82,6 +84,10 @@ export default class Client {
     })
 
     this.socket.on('answer', (data) => {
+      if (this._isVoiceModeEnabled) {
+        this.voiceEnergy.status = 'listening'
+      }
+
       // Leon has finished to answer
       this._isLeonGeneratingAnswer = false
 
@@ -136,6 +142,10 @@ export default class Client {
     })
 
     this.socket.on('llm-token', (data) => {
+      if (this._isVoiceModeEnabled) {
+        this.voiceEnergy.status = 'processing'
+      }
+
       this._isLeonGeneratingAnswer = true
       const previousGenerationId = this._answerGenerationId
       const newGenerationId = data.generationId
@@ -173,13 +183,31 @@ export default class Client {
     })
 
     this.socket.on('asr-speech', (text) => {
+      if (!this._isVoiceModeEnabled) {
+        this.enableVoiceMode()
+      }
+
+      this.voiceEnergy.status = 'listening'
       this._input.value = text
+
+      if (this._voiceSpeechElement) {
+        this._voiceSpeechElement.textContent = text
+      }
     })
 
     this.socket.on('asr-end-of-owner-speech', () => {
+      this.voiceEnergy.status = 'processing'
+
       setTimeout(() => {
+        if (this._voiceSpeechElement) {
+          this._voiceSpeechElement.textContent = ''
+        }
         this.send('utterance')
       }, 200)
+    })
+
+    this.socket.on('asr-active-listening-disabled', () => {
+      this.voiceEnergy.status = 'idle'
     })
 
     /**
@@ -188,6 +216,8 @@ export default class Client {
      * with streaming support
      */
     this.socket.on('tts-stream', (data) => {
+      this.voiceEnergy.status = 'talking'
+
       // const { audioId, chunk } = data
       const { chunk } = data
       this._ttsAudioContext = new AudioContext()
@@ -210,6 +240,10 @@ export default class Client {
       if (this._ttsAudioContext) {
         await this._ttsAudioContext.close()
       }
+    })
+
+    this.socket.on('tts-end-of-speech', async () => {
+      this.voiceEnergy.status = 'listening'
     })
 
     this.socket.on('audio-forwarded', (data, cb) => {
@@ -325,5 +359,42 @@ export default class Client {
     })
 
     this._suggestions.push(newSuggestion)
+  }
+
+  enableVoiceMode() {
+    if (!this._isVoiceModeEnabled) {
+      this._isVoiceModeEnabled = true
+
+      const body = document.querySelector('body')
+      if (!body.classList.contains('voice-mode-enabled')) {
+        body.classList.add('voice-mode-enabled')
+
+        const voiceOverlayTransitor = document.createElement('div')
+        voiceOverlayTransitor.id = 'voice-overlay-transitor'
+        body.appendChild(voiceOverlayTransitor)
+        voiceOverlayTransitor.addEventListener('animationend', () => {
+          voiceOverlayTransitor.removeEventListener('animationend', () => {})
+          voiceOverlayTransitor.remove()
+        })
+      }
+    }
+  }
+  disableVoiceMode() {
+    if (this._isVoiceModeEnabled) {
+      this._isVoiceModeEnabled = false
+
+      const body = document.querySelector('body')
+
+      const voiceContainer = document.querySelector('#voice-container')
+      if (voiceContainer) {
+        voiceContainer.style.animation = 'none'
+        voiceContainer.offsetHeight
+        voiceContainer.style.animation = null
+      }
+
+      if (body.classList.contains('voice-mode-enabled')) {
+        body.classList.remove('voice-mode-enabled')
+      }
+    }
   }
 }
