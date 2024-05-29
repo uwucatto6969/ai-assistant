@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client'
 
 import Chatbot from './chatbot'
+import VoiceEnergy from './voice-energy'
 import { INIT_MESSAGES } from './constants'
 
 export default class Client {
@@ -14,6 +15,7 @@ export default class Client {
     this.parsedHistory = []
     this.info = res
     this.chatbot = new Chatbot()
+    this.voiceEnergy = new VoiceEnergy()
     this._recorder = {}
     this._suggestions = []
     this._answerGenerationId = 'xxx'
@@ -65,6 +67,7 @@ export default class Client {
 
   init(loader) {
     this.chatbot.init()
+    this.voiceEnergy.init()
 
     this.socket.on('connect', () => {
       this.socket.emit('init', this.client)
