@@ -30,37 +30,35 @@ _<p align="center">Your open-source personal assistant.</p>_
 
 ---
 
-## Current State
+## Important Notice (as of 2024-05-30)
+
+**Outdated Documentation**
+
+Please note that the documentation and this README are not up to date. We've made significant changes to Leon over the past few months, including the introduction of new TTS and ASR engines, and a hybrid approach that balances LLM, simple classification, and multiple NLP techniques to achieve optimal speed, customization, and accuracy. We'll update the documentation for the official release.
+
+**Project History and Future Plans**
+
+Since its inception in 2017, Leon has undergone significant transformations. Although we've been inconsistent in shipping updates over the years, we're now focused on maturing the project. With the recent integration of transformers-based models, we're prepared to unlock Leon's full potential.
+
+Our next step is to finalize the latest features for the official release.
+Then we'll be establishing a group of active contributors to work together, develop new skills, and share them with the community. A skill registry platform will be built (see it as the npm or pip registry but for skills).
+
+- Check out [the roadmap](http://roadmap.getleon.ai/) for more information on our upcoming plans.
+- Watch a [preview of our last progress](https://www.youtube.com/watch?v=6CInSt6pTVA) to see what we've been working on.
+
+**Get Involved**
+
+[Join us on Discord](https://discord.gg/MNQqqKg) to ask questions, or express interest in becoming an active contributor.
+
+---
 
 ### Why is there a small amount of contributors?
 
-I'm taking a lot of time to work on the new core of Leon due to personal reasons. I can only work on it after work and on weekends. Hence, **I'm blocking any potential contribution as the whole core of Leon is coming with many breaking changes**. Many of you are willing to contribute in Leon (create new skills, help to improve the core, translations and so on...), a big thanks to every one of you!
+I'm taking a lot of time to work on the new core of Leon due to personal reasons. I can only work on it during my spare time. Hence, I'm blocking any contribution as the whole core of Leon is coming with many breaking changes. Many of you are willing to contribute in Leon (create new skills, help to improve the core, translations and so on...), a big thanks to every one of you!
 
 While I would love to devote more time to Leon, I'm currently unable to do so because I have bills to pay. I have some ideas about how to monetize Leon in the future (Leon's core will always remain open source), but before to get there there is still a long way to go.
 
 Until then, any financial support by [sponsoring Leon](http://sponsor.getleon.ai) is much appreciated 🙂
-
-### How about large language models and Leon?
-
-Since AI gained in popularity and large language models are getting more and more traction, many of you joined our community. A huge welcome to all of you! 🤗
-
-At the moment, Leon's NLU will remain intents first with his own model without relying on an LLM. It is important that Leon can run 100% offline and I'm confident that with the downsizing techniques such as quantization Leon will sooner or later work with LLMs at his core and still be able to run on edge.
-
-Here is how LLMs may help Leon in the future:
-
-- Intent fallback: when an utterance cannot match an intent, then rely on an LLM to provide results.
-- New named entity recognition engine: provide a better solution to extract entities from utterances such as fruits, numbers, cities, durations, persons, etc.
-- Skill features: let skills leverage LLMs to provide out-of-the-box NLP features such as summarization, knowledge base, translation, sentiment analysis and so on...
-- Skill building: LLMs can help to develop skills such as paraphrasing utterance samples, translate answers, convert code from our Python bridge to the upcoming JavaScript bridge and vice versa, etc.
-- More...
-
-### What's Next?
-
-Once the new core released, we'll work on the community aspect of Leon. For example, better organize [our Discord](https://discord.gg/MNQqqKg), planify regular calls, work on skills together, etc. It is very important for Leon to have a real community. At that moment, the skills platform will already be online, so it'll be easier to sync our progress and publish new skills.
-
-- Feel free to check out the Git development branches and our [next major milestones](https://blog.getleon.ai/a-much-better-nlp-and-future-1-0-0-beta-7/#whats-next).
-- And the [detailed roadmap](http://roadmap.getleon.ai).
-- Many exciting things are coming up, hence no new documentation and test are going to be written until the official release of Leon.
 
 ---
 
