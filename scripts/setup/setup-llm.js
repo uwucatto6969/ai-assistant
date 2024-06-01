@@ -93,6 +93,8 @@ async function downloadLLM() {
 }
 
 async function downloadAndCompileLlamaCPP() {
+  const { type: osType, cpuArchitecture } = SystemHelper.getInformation()
+
   try {
     LogHelper.info(
       `Downloading and compiling "${LLM_LLAMA_CPP_RELEASE_TAG}" llama.cpp release...`
@@ -108,7 +110,6 @@ async function downloadAndCompileLlamaCPP() {
         LogHelper.info(`Updating llama.cpp to ${LLM_LLAMA_CPP_RELEASE_TAG}...`)
       }
 
-      const { type: osType, cpuArchitecture } = SystemHelper.getInformation()
       let llamaCPPDownloadCommand = `npx --no node-llama-cpp download --release "${LLM_LLAMA_CPP_RELEASE_TAG}"`
 
       if (
@@ -144,6 +145,18 @@ async function downloadAndCompileLlamaCPP() {
     }
   } catch (e) {
     LogHelper.error(`Failed to set up llama.cpp: ${e}`)
+
+    if (
+      osType === OSTypes.MacOS &&
+      cpuArchitecture === CPUArchitectures.ARM64
+    ) {
+      LogHelper.error(
+        `Please verify that the Metal developer tools for macOS are installed.\n
+        You can verify by running the following command in your terminal: xcode-select --install\n
+        Otherwise download them here and retry: https://developer.apple.com/xcode/`
+      )
+    }
+
     process.exit(1)
   }
 }
