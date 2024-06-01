@@ -72,9 +72,9 @@ async function downloadLLM() {
         LLM_NAME,
         LLM_VERSION,
         {
-          llamaCPPVersion: manifest.llamaCPPVersion
+          llamaCPPVersion: manifest?.llamaCPPVersion
             ? manifest.llamaCPPVersion
-            : LLM_LLAMA_CPP_RELEASE_TAG
+            : null
         }
       )
       LogHelper.success('Manifest file updated')
@@ -88,6 +88,7 @@ async function downloadLLM() {
     }
   } catch (e) {
     LogHelper.error(`Failed to download LLM: ${e}`)
+    process.exit(1)
   }
 }
 
@@ -97,13 +98,13 @@ async function downloadAndCompileLlamaCPP() {
       `Downloading and compiling "${LLM_LLAMA_CPP_RELEASE_TAG}" llama.cpp release...`
     )
 
-    if (manifest.llamaCPPVersion) {
+    if (manifest?.llamaCPPVersion) {
       LogHelper.info(`Found llama.cpp ${manifest.llamaCPPVersion}`)
       LogHelper.info(`Latest version is ${LLM_LLAMA_CPP_RELEASE_TAG}`)
     }
 
-    if (!manifest || manifest.llamaCPPVersion !== LLM_LLAMA_CPP_RELEASE_TAG) {
-      if (manifest.llamaCPPVersion !== LLM_LLAMA_CPP_RELEASE_TAG) {
+    if (!manifest || manifest?.llamaCPPVersion !== LLM_LLAMA_CPP_RELEASE_TAG) {
+      if (manifest?.llamaCPPVersion !== LLM_LLAMA_CPP_RELEASE_TAG) {
         LogHelper.info(`Updating llama.cpp to ${LLM_LLAMA_CPP_RELEASE_TAG}...`)
       }
 
@@ -143,6 +144,7 @@ async function downloadAndCompileLlamaCPP() {
     }
   } catch (e) {
     LogHelper.error(`Failed to set up llama.cpp: ${e}`)
+    process.exit(1)
   }
 }
 
