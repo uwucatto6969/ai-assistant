@@ -71,20 +71,25 @@ export default class STT {
       )
     }
 
-    // Dynamically attribute the parser
-    const { default: parser } = await import(
-      path.join(
-        __dirname,
-        'parsers',
-        PROVIDERS_MAP[STT_PROVIDER as STTProviders]
+    try {
+      // Dynamically attribute the parser
+      const { default: parser } = await import(
+        path.join(
+          __dirname,
+          'parsers',
+          PROVIDERS_MAP[STT_PROVIDER as STTProviders]
+        )
       )
-    )
-    this._parser = new parser() as STTParser
+      this._parser = new parser() as STTParser
 
-    LogHelper.title('STT')
-    LogHelper.success('STT initialized')
+      LogHelper.title('STT')
+      LogHelper.success('STT initialized')
 
-    return true
+      return true
+    } catch (e) {
+      LogHelper.error(`The STT provider failed to initialize: ${e}`)
+      process.exit(1)
+    }
   }
 
   /**

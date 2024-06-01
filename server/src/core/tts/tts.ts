@@ -77,24 +77,29 @@ export default class TTS {
       )
     }
 
-    // Dynamically attribute the synthesizer
-    const { default: synthesizer } = await import(
-      path.join(
-        __dirname,
-        'synthesizers',
-        PROVIDERS_MAP[TTS_PROVIDER as TTSProviders]
+    try {
+      // Dynamically attribute the synthesizer
+      const { default: synthesizer } = await import(
+        path.join(
+          __dirname,
+          'synthesizers',
+          PROVIDERS_MAP[TTS_PROVIDER as TTSProviders]
+        )
       )
-    )
-    this.synthesizer = new synthesizer(
-      LangHelper.getLongCode(this.lang)
-    ) as TTSSynthesizer
+      this.synthesizer = new synthesizer(
+        LangHelper.getLongCode(this.lang)
+      ) as TTSSynthesizer
 
-    this.onSaved()
+      this.onSaved()
 
-    LogHelper.title('TTS')
-    LogHelper.success('TTS initialized')
+      LogHelper.title('TTS')
+      LogHelper.success('TTS initialized')
 
-    return true
+      return true
+    } catch (e) {
+      LogHelper.error(`The TTS provider failed to initialize: ${e}`)
+      process.exit(1)
+    }
   }
 
   /**
