@@ -74,7 +74,7 @@ async function downloadLLM() {
         {
           llamaCPPVersion: manifest.llamaCPPVersion
             ? manifest.llamaCPPVersion
-            : null
+            : LLM_LLAMA_CPP_RELEASE_TAG
         }
       )
       LogHelper.success('Manifest file updated')
