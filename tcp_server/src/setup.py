@@ -1,6 +1,7 @@
 from cx_Freeze import setup, Executable
 import sys
 import os
+import sysconfig
 
 from version import __version__
 from lib.constants import TMP_PATH
@@ -40,10 +41,16 @@ options = {
             'cymem'
         ],
         'include_files': [
-            ('tcp_server/src/.venv/lib/python3.9/site-packages/nvidia/cudnn/lib', 'lib/nvidia/cudnn/lib')
         ]
     }
 }
+
+# Include NVIDIA libraries for non-macOS platforms
+if 'macos' not in sysconfig.get_platform():
+    options['build_exe']['include_files'] = [
+        *options['build_exe']['include_files'],
+        ('tcp_server/src/.venv/lib/python3.9/site-packages/nvidia/cudnn/lib', 'lib/nvidia/cudnn/lib')
+    ]
 
 # Include private libraries from the tokenizers package for Linux
 # if 'linux' in sysconfig.get_platform():
