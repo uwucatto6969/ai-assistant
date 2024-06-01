@@ -236,6 +236,11 @@ SPACY_MODELS.set('fr', {
 
       await installPytorch()
     } catch (e) {
+      if (hasDotVenv) {
+        await fs.promises.rm(dotVenvPath, { recursive: true, force: true })
+        LogHelper.info(`Error occurred, so "${dotVenvPath}" was deleted`)
+      }
+
       LogHelper.error(`Failed to install Python packages: ${e}`)
 
       if (osType === OSTypes.Linux || osType === OSTypes.MacOS) {
