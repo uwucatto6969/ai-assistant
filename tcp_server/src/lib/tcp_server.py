@@ -207,7 +207,7 @@ class TCPServer:
         # TODO: should not wait to finish for streaming support
         self.tts.tts_to_file(
             formatted_speech,
-            speaker_ids['EN-Leon-V1'],
+            speaker_ids['EN-Leon-V1_1'],
             output_path=output_path,
             speed=speed,
             quiet=True,

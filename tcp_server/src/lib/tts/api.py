@@ -74,7 +74,7 @@ class TTS(nn.Module):
 
         self.log('Warming up model...')
         speaker_ids = self.hps.data.spk2id
-        self.tts_to_file('This is a test.', speaker_ids['EN-Leon-V1'], quiet=True, format='wav')
+        self.tts_to_file('This is a test.', speaker_ids['EN-Leon-V1_1'], quiet=True, format='wav')
         self.log('Model warmed up')
 
     @staticmethod

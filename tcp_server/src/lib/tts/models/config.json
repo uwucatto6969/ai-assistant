@@ -32,7 +32,7 @@
     "n_speakers": 1,
     "cleaned_text": true,
     "spk2id": {
-      "EN-Leon-V1": 0
+      "EN-Leon-V1_1": 0
     }
   },
   "model": {
