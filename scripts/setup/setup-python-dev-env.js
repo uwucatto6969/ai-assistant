@@ -451,7 +451,7 @@ SPACY_MODELS.set('fr', {
     ))
     if (!areTTSBERTBaseFilesDownloaded) {
       LogHelper.info('TTS BERT base language model files not downloaded')
-      // TODO
+      // TODO: download files
     } else {
       LogHelper.success('TTS BERT base language model files are already downloaded')
     }
@@ -463,7 +463,7 @@ SPACY_MODELS.set('fr', {
     ))
     if (!areTTSBERTFrenchFilesDownloaded) {
       LogHelper.info('TTS BERT French language model files not downloaded')
-      // TODO
+      // TODO: download files
     } else {
       LogHelper.success('TTS BERT French language model files are already downloaded')
     }
