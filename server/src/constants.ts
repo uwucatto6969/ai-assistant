@@ -92,6 +92,14 @@ export const PYTHON_TCP_SERVER_ASR_MODEL_CPU_HF_PREFIX_DOWNLOAD_URL =
   NetworkHelper.setHuggingFaceURL(
     'https://huggingface.co/Systran/faster-whisper-medium/resolve/main'
   )
+export const PYTHON_TCP_SERVER_TTS_BERT_FRENCH_MODEL_HF_PREFIX_DOWNLOAD_URL =
+  NetworkHelper.setHuggingFaceURL(
+    'https://huggingface.co/dbmdz/bert-base-french-europeana-cased/resolve/main'
+  )
+export const PYTHON_TCP_SERVER_TTS_BERT_BASE_MODEL_HF_PREFIX_DOWNLOAD_URL =
+  NetworkHelper.setHuggingFaceURL(
+    'https://huggingface.co/google-bert/bert-base-uncased/resolve/main'
+  )
 
 const NODEJS_BRIDGE_VERSION_FILE_PATH = path.join(
   NODEJS_BRIDGE_SRC_PATH,

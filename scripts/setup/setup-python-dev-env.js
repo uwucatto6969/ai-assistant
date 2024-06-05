@@ -18,7 +18,9 @@ import {
   PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_GPU,
   PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_CPU,
   PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH,
-  PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH
+  PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH,
+  PYTHON_TCP_SERVER_TTS_BERT_FRENCH_MODEL_HF_PREFIX_DOWNLOAD_URL,
+  PYTHON_TCP_SERVER_TTS_BERT_BASE_MODEL_HF_PREFIX_DOWNLOAD_URL
 } from '@/constants'
 import { CPUArchitectures, OSTypes } from '@/types'
 import { LogHelper } from '@/helpers/log-helper'
@@ -419,6 +421,62 @@ SPACY_MODELS.set('fr', {
         process.exit(1)
       }
     }
+    const installTTSBERTFrenchModel = async () => {
+      try {
+        LogHelper.info('Installing TTS BERT French model...')
+
+        for (const modelFile of TTS_BERT_FRENCH_MODEL_FILES) {
+          const modelInstallationFileURL = `${PYTHON_TCP_SERVER_TTS_BERT_FRENCH_MODEL_HF_PREFIX_DOWNLOAD_URL}/${modelFile}?download=true`
+          const destPath = fs.createWriteStream(
+            path.join(PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH, modelFile)
+          )
+
+          LogHelper.info(`Downloading ${modelFile}...`)
+          const response = await FileHelper.downloadFile(
+            modelInstallationFileURL,
+            'stream'
+          )
+
+          response.data.pipe(destPath)
+          await stream.promises.finished(destPath)
+
+          LogHelper.success(`${modelFile} downloaded at ${destPath.path}`)
+        }
+
+        LogHelper.success('TTS BERT French model installed')
+      } catch (e) {
+        LogHelper.error(`Failed to install TTS BERT French model: ${e}`)
+        process.exit(1)
+      }
+    }
+    const installTTSBERTBaseModel = async () => {
+      try {
+        LogHelper.info('Installing TTS BERT base model...')
+
+        for (const modelFile of TTS_BERT_BASE_MODEL_FILES) {
+          const modelInstallationFileURL = `${PYTHON_TCP_SERVER_TTS_BERT_BASE_MODEL_HF_PREFIX_DOWNLOAD_URL}/${modelFile}?download=true`
+          const destPath = fs.createWriteStream(
+            path.join(PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH, modelFile)
+          )
+
+          LogHelper.info(`Downloading ${modelFile}...`)
+          const response = await FileHelper.downloadFile(
+            modelInstallationFileURL,
+            'stream'
+          )
+
+          response.data.pipe(destPath)
+          await stream.promises.finished(destPath)
+
+          LogHelper.success(`${modelFile} downloaded at ${destPath.path}`)
+        }
+
+        LogHelper.success('TTS BERT base model installed')
+      } catch (e) {
+        LogHelper.error(`Failed to install TTS BERT base model: ${e}`)
+        process.exit(1)
+      }
+    }
 
     LogHelper.info('Checking whether all spaCy models are installed...')
 
@@ -444,28 +502,40 @@ SPACY_MODELS.set('fr', {
       await installSpacyModels()
     }
 
-    LogHelper.info('Checking whether TTS BERT base language model files are downloaded...')
-    const areTTSBERTBaseFilesDownloaded = fs.existsSync(path.join(
-      PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH,
-      TTS_BERT_BASE_MODEL_FILES[TTS_BERT_BASE_MODEL_FILES.length - 1]
-    ))
+    LogHelper.info(
+      'Checking whether TTS BERT base language model files are downloaded...'
+    )
+    const areTTSBERTBaseFilesDownloaded = fs.existsSync(
+      path.join(
+        PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH,
+        TTS_BERT_BASE_MODEL_FILES[TTS_BERT_BASE_MODEL_FILES.length - 1]
+      )
+    )
     if (!areTTSBERTBaseFilesDownloaded) {
       LogHelper.info('TTS BERT base language model files not downloaded')
-      // TODO: download files
+      await installTTSBERTBaseModel()
     } else {
-      LogHelper.success('TTS BERT base language model files are already downloaded')
+      LogHelper.success(
+        'TTS BERT base language model files are already downloaded'
+      )
     }
 
-    LogHelper.info('Checking whether TTS BERT French language model files are downloaded...')
-    const areTTSBERTFrenchFilesDownloaded = fs.existsSync(path.join(
-      PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH,
-      TTS_BERT_FRENCH_MODEL_FILES[TTS_BERT_FRENCH_MODEL_FILES.length - 1]
-    ))
+    LogHelper.info(
+      'Checking whether TTS BERT French language model files are downloaded...'
+    )
+    const areTTSBERTFrenchFilesDownloaded = fs.existsSync(
+      path.join(
+        PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH,
+        TTS_BERT_FRENCH_MODEL_FILES[TTS_BERT_FRENCH_MODEL_FILES.length - 1]
+      )
+    )
     if (!areTTSBERTFrenchFilesDownloaded) {
       LogHelper.info('TTS BERT French language model files not downloaded')
-      // TODO: download files
+      await installTTSBERTFrenchModel()
     } else {
-      LogHelper.success('TTS BERT French language model files are already downloaded')
+      LogHelper.success(
+        'TTS BERT French language model files are already downloaded'
+      )
     }
 
     LogHelper.info('Checking whether the TTS model is installed...')
