@@ -48,12 +48,23 @@ export const PYTHON_TCP_SERVER_SRC_PATH = path.join(
 )
 export const PYTHON_TCP_SERVER_SRC_TTS_MODEL_FILE_NAME =
   'EN-Leon-V1_1-G_245000.pth'
-export const PYTHON_TCP_SERVER_SRC_TTS_MODEL_PATH = path.join(
+export const PYTHON_TCP_SERVER_SRC_TTS_MODEL_DIR_PATH = path.join(
   PYTHON_TCP_SERVER_SRC_PATH,
   'lib',
   'tts',
-  'models',
+  'models'
+)
+export const PYTHON_TCP_SERVER_SRC_TTS_MODEL_PATH = path.join(
+  PYTHON_TCP_SERVER_SRC_TTS_MODEL_DIR_PATH,
   PYTHON_TCP_SERVER_SRC_TTS_MODEL_FILE_NAME
+)
+export const PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH = path.join(
+  PYTHON_TCP_SERVER_SRC_TTS_MODEL_DIR_PATH,
+  'bert-base-french-europeana-cased'
+)
+export const PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH = path.join(
+  PYTHON_TCP_SERVER_SRC_TTS_MODEL_DIR_PATH,
+  'bert-base-uncased'
 )
 export const PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH = path.join(
   PYTHON_TCP_SERVER_SRC_PATH,

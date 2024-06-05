@@ -16,7 +16,9 @@ import {
   PYTHON_TCP_SERVER_ASR_MODEL_CPU_HF_PREFIX_DOWNLOAD_URL,
   PYTHON_TCP_SERVER_ASR_MODEL_GPU_HF_PREFIX_DOWNLOAD_URL,
   PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_GPU,
-  PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_CPU
+  PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_CPU,
+  PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH,
+  PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH
 } from '@/constants'
 import { CPUArchitectures, OSTypes } from '@/types'
 import { LogHelper } from '@/helpers/log-helper'
@@ -51,17 +53,30 @@ function getModelInstallationFileUrl(model, mirror = undefined) {
 }
 
 const ASR_GPU_MODEL_FILES = [
+  'model.bin',
   'config.json',
   'preprocessor_config.json',
   'tokenizer.json',
-  'vocabulary.json',
-  'model.bin'
+  'vocabulary.json'
 ]
 const ASR_CPU_MODEL_FILES = [
+  'model.bin',
   'config.json',
   'tokenizer.json',
-  'vocabulary.txt',
-  'model.bin'
+  'vocabulary.txt'
+]
+const TTS_BERT_FRENCH_MODEL_FILES = [
+  'pytorch_model.bin',
+  'config.json',
+  'vocab.txt',
+  'tokenizer_config.json'
+]
+const TTS_BERT_BASE_MODEL_FILES = [
+  'pytorch_model.bin',
+  'config.json',
+  'vocab.txt',
+  'tokenizer_config.json',
+  'tokenizer.json'
 ]
 const SETUP_TARGETS = new Map()
 const SPACY_MODELS = new Map()
@@ -427,6 +442,30 @@ SPACY_MODELS.set('fr', {
     } catch (e) {
       LogHelper.info('Not all spaCy models are installed')
       await installSpacyModels()
+    }
+
+    LogHelper.info('Checking whether TTS BERT base language model files are downloaded...')
+    const areTTSBERTBaseFilesDownloaded = fs.existsSync(path.join(
+      PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH,
+      TTS_BERT_BASE_MODEL_FILES[TTS_BERT_BASE_MODEL_FILES.length - 1]
+    ))
+    if (!areTTSBERTBaseFilesDownloaded) {
+      LogHelper.info('TTS BERT base language model files not downloaded')
+      // TODO
+    } else {
+      LogHelper.success('TTS BERT base language model files are already downloaded')
+    }
+
+    LogHelper.info('Checking whether TTS BERT French language model files are downloaded...')
+    const areTTSBERTFrenchFilesDownloaded = fs.existsSync(path.join(
+      PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH,
+      TTS_BERT_FRENCH_MODEL_FILES[TTS_BERT_FRENCH_MODEL_FILES.length - 1]
+    ))
+    if (!areTTSBERTFrenchFilesDownloaded) {
+      LogHelper.info('TTS BERT French language model files not downloaded')
+      // TODO
+    } else {
+      LogHelper.success('TTS BERT French language model files are already downloaded')
     }
 
     LogHelper.info('Checking whether the TTS model is installed...')
