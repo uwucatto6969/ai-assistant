@@ -2,9 +2,13 @@ import torch
 from transformers import AutoTokenizer, AutoModelForMaskedLM
 import sys
 
+from lib.constants import TTS_BERT_BASE_MODEL_DIR_PATH
 
-model_id = 'bert-base-uncased'
-tokenizer = AutoTokenizer.from_pretrained(model_id)
+load_model_params = {
+    "pretrained_model_name_or_path": TTS_BERT_BASE_MODEL_DIR_PATH,
+    "local_files_only": True
+}
+tokenizer = AutoTokenizer.from_pretrained(**load_model_params)
 model = None
 
 def get_bert_feature(text, word2ph, device=None):
@@ -18,7 +22,7 @@ def get_bert_feature(text, word2ph, device=None):
     if not device:
         device = "cuda"
     if model is None:
-        model = AutoModelForMaskedLM.from_pretrained(model_id).to(
+        model = AutoModelForMaskedLM.from_pretrained(**load_model_params).to(
             device
         )
     with torch.no_grad():

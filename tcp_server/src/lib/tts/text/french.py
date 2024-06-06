@@ -1,5 +1,7 @@
 from transformers import AutoTokenizer
 
+from lib.constants import TTS_BERT_FRENCH_MODEL_DIR_PATH
+
 from .fr_phonemizer import cleaner as fr_cleaner
 from .fr_phonemizer import fr_to_ipa
 
@@ -16,8 +18,11 @@ def text_normalize(text):
     text = fr_cleaner.french_cleaners(text)
     return text
 
-model_id = 'dbmdz/bert-base-french-europeana-cased'
-tokenizer = AutoTokenizer.from_pretrained(model_id)
+load_model_params = {
+    "pretrained_model_name_or_path": 'dbmdz/bert-base-french-europeana-cased',
+    "local_files_only": True
+}
+tokenizer = AutoTokenizer.from_pretrained(**load_model_params)
 
 def g2p(text, pad_start_end=True, tokenized=None):
     if tokenized is None:

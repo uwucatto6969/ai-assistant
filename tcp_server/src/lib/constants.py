@@ -18,6 +18,8 @@ TTS_MODEL_NAME = f'EN-Leon-{TTS_MODEL_VERSION}-G_{TTS_MODEL_ITERATION}'
 TTS_MODEL_FILE_NAME = f'{TTS_MODEL_NAME}.pth'
 TTS_LIB_PATH = os.path.join(LIB_PATH, 'tts')
 TTS_MODEL_FOLDER_PATH = os.path.join(TTS_LIB_PATH, 'models')
+TTS_BERT_FRENCH_MODEL_DIR_PATH = os.path.join(TTS_MODEL_FOLDER_PATH, 'bert-case-french-europeana-cased')
+TTS_BERT_BASE_MODEL_DIR_PATH = os.path.join(TTS_MODEL_FOLDER_PATH, 'bert-base-uncased')
 TTS_MODEL_CONFIG_PATH = os.path.join(TTS_MODEL_FOLDER_PATH, 'config.json')
 TTS_MODEL_PATH = os.path.join(TTS_MODEL_FOLDER_PATH, TTS_MODEL_FILE_NAME)
 IS_TTS_ENABLED = os.environ.get('LEON_TTS', 'true') == 'true'

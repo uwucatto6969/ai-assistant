@@ -17,9 +17,9 @@ import {
   PYTHON_TCP_SERVER_ASR_MODEL_GPU_HF_PREFIX_DOWNLOAD_URL,
   PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_GPU,
   PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_CPU,
-  PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH,
+  // PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH,
   PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH,
-  PYTHON_TCP_SERVER_TTS_BERT_FRENCH_MODEL_HF_PREFIX_DOWNLOAD_URL,
+  // PYTHON_TCP_SERVER_TTS_BERT_FRENCH_MODEL_HF_PREFIX_DOWNLOAD_URL,
   PYTHON_TCP_SERVER_TTS_BERT_BASE_MODEL_HF_PREFIX_DOWNLOAD_URL
 } from '@/constants'
 import { CPUArchitectures, OSTypes } from '@/types'
@@ -67,12 +67,12 @@ const ASR_CPU_MODEL_FILES = [
   'tokenizer.json',
   'vocabulary.txt'
 ]
-const TTS_BERT_FRENCH_MODEL_FILES = [
-  'pytorch_model.bin',
+/*const TTS_BERT_FRENCH_MODEL_FILES = [
+  'pytorch_model.bin', // Not needed? Compare with HF auto download in ~/.cache/huggingface/hub...
   'config.json',
   'vocab.txt',
   'tokenizer_config.json'
-]
+]*/
 const TTS_BERT_BASE_MODEL_FILES = [
   'pytorch_model.bin',
   'config.json',
@@ -421,7 +421,7 @@ SPACY_MODELS.set('fr', {
         process.exit(1)
       }
     }
-    const installTTSBERTFrenchModel = async () => {
+    /*const installTTSBERTFrenchModel = async () => {
       try {
         LogHelper.info('Installing TTS BERT French model...')
 
@@ -448,7 +448,7 @@ SPACY_MODELS.set('fr', {
         LogHelper.error(`Failed to install TTS BERT French model: ${e}`)
         process.exit(1)
       }
-    }
+    }*/
     const installTTSBERTBaseModel = async () => {
       try {
         LogHelper.info('Installing TTS BERT base model...')
@@ -520,7 +520,8 @@ SPACY_MODELS.set('fr', {
       )
     }
 
-    LogHelper.info(
+    // TODO: later when multiple languages are supported
+    /*LogHelper.info(
       'Checking whether TTS BERT French language model files are downloaded...'
     )
     const areTTSBERTFrenchFilesDownloaded = fs.existsSync(
@@ -536,7 +537,7 @@ SPACY_MODELS.set('fr', {
       LogHelper.success(
         'TTS BERT French language model files are already downloaded'
       )
-    }
+    }*/
 
     LogHelper.info('Checking whether the TTS model is installed...')
     const isTTSModelInstalled = fs.existsSync(

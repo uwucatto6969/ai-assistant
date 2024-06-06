@@ -4,6 +4,9 @@ import re
 from g2p_en import G2p
 from transformers import AutoTokenizer
 
+
+from lib.constants import TTS_BERT_BASE_MODEL_DIR_PATH
+
 from . import symbols
 
 from .english_utils.abbreviations import expand_abbreviations
@@ -192,8 +195,12 @@ def text_normalize(text):
     text = expand_abbreviations(text)
     return text
 
-model_id = 'bert-base-uncased'
-tokenizer = AutoTokenizer.from_pretrained(model_id)
+load_model_params = {
+    "pretrained_model_name_or_path": TTS_BERT_BASE_MODEL_DIR_PATH,
+    "local_files_only": True
+}
+tokenizer = AutoTokenizer.from_pretrained(**load_model_params)
+
 def g2p_old(text):
     tokenized = tokenizer.tokenize(text)
     # import pdb; pdb.set_trace()
