@@ -125,6 +125,11 @@ git commit -m "chore: split training script into awesome blocks"
 git commit -m "style(web app): remove chatbot useless parentheses"
 ```
 
+### GUI Clients
+
+If you are using a GUI client such as GitKraken, you may need to disable the default Git executable to make sure to use your default shell.
+Otherwise you may encounter an error such as "npx not found".
+
 ## Sponsor
 
 You can also contribute by [sponsoring Leon](http://sponsor.getleon.ai).
