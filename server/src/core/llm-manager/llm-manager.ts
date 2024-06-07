@@ -127,7 +127,7 @@ export default class LLMManager {
       const freeRAMInGB = SystemHelper.getFreeRAM()
       const totalRAMInGB = SystemHelper.getTotalRAM()
       const isLLMPathFound = fs.existsSync(LLM_PATH)
-      const isCurrentFreeRAMEnough = LLM_MINIMUM_FREE_RAM <= freeRAMInGB
+      const isCurrentFreeRAMEnough = LLM_MINIMUM_FREE_RAM <= freeRAMInGB * 2 // Multiply by 2 to boost probability of success
       const isTotalRAMEnough = LLM_MINIMUM_TOTAL_RAM <= totalRAMInGB
 
       /**
