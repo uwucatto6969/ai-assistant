@@ -47,7 +47,7 @@ export const PYTHON_TCP_SERVER_SRC_PATH = path.join(
   'src'
 )
 export const PYTHON_TCP_SERVER_SRC_TTS_MODEL_FILE_NAME =
-  'EN-Leon-V1_1-G_245000.pth'
+  'EN-Leon-V1_1-G_600000.pth'
 export const PYTHON_TCP_SERVER_SRC_TTS_MODEL_DIR_PATH = path.join(
   PYTHON_TCP_SERVER_SRC_PATH,
   'lib',
