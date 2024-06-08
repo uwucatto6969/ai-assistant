@@ -252,6 +252,10 @@ export default class Brain {
         SOCKET_SERVER.socket?.emit('is-typing', false)
 
         await CONVERSATION_LOGGER.push({
+          who: 'owner',
+          message: NLU.nluResult.newUtterance
+        })
+        await CONVERSATION_LOGGER.push({
           who: 'leon',
           message: textAnswer
         })

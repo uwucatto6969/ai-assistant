@@ -10,8 +10,7 @@ import {
   TTS,
   NLU,
   BRAIN,
-  MODEL_LOADER,
-  CONVERSATION_LOGGER
+  MODEL_LOADER
 } from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
 import { LangHelper } from '@/helpers/lang-helper'
@@ -115,11 +114,6 @@ export default class SocketServer {
             const { value: utterance } = data
             try {
               LogHelper.time('Utterance processed in')
-
-              await CONVERSATION_LOGGER.push({
-                who: 'owner',
-                message: utterance
-              })
 
               // Always interrupt Leon's voice on answer
               BRAIN.setIsTalkingWithVoice(false, { shouldInterrupt: true })
