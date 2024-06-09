@@ -104,7 +104,10 @@ export default class Chatbot {
 
     container.className = `bubble-container ${who}`
     bubble.className = 'bubble'
-    bubble.textContent = string
+
+    string = this.formatMessage(string)
+
+    bubble.innerHTML = string
 
     if (bubbleId) {
       container.classList.add(bubbleId)
@@ -154,5 +157,13 @@ export default class Chatbot {
     this.parsedBubbles.push({ who, string })
     localStorage.setItem('bubbles', JSON.stringify(this.parsedBubbles))
     this.scrollDown()
+  }
+
+  formatMessage(message) {
+    if (typeof message === 'string') {
+      message = message.replace(/\n/g, '<br />')
+    }
+
+    return message
   }
 }

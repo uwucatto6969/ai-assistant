@@ -8,21 +8,23 @@ const onkeydowninput = (e, client) => {
     parsedHistory = JSON.parse(localStorage.getItem('history')).reverse()
   }
 
-  if (key === 13) {
+  if (key === 13 && !e.shiftKey) {
     if (client.send('utterance')) {
       parsedHistory = JSON.parse(localStorage.getItem('history')).reverse()
       index = -1
     }
   } else if (localStorage.getItem('history') !== null) {
-    if (key === 38 && index < parsedHistory.length - 1) {
-      index += 1
-      client.input = parsedHistory[index]
-    } else if (key === 40 && index - 1 >= 0) {
-      index -= 1
-      client.input = parsedHistory[index]
-    } else if (key === 40 && index - 1 < 0) {
-      client.input = ''
-      index = -1
+    if (e.shiftKey) {
+      if (key === 38 && index < parsedHistory.length - 1) {
+        index += 1
+        client.input = parsedHistory[index]
+      } else if (key === 40 && index - 1 >= 0) {
+        index -= 1
+        client.input = parsedHistory[index]
+      } else if (key === 40 && index - 1 < 0) {
+        client.input = ''
+        index = -1
+      }
     }
   }
 }

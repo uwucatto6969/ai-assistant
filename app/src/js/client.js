@@ -108,8 +108,8 @@ export default class Client {
         // Slightly delay the update to avoid the stream animation to be interrupted
         setTimeout(() => {
           // Update the text of the bubble (quick emoji fix)
-          newestBubbleContainerElement.querySelector('p.bubble').textContent =
-            data
+          newestBubbleContainerElement.querySelector('p.bubble').innerHTML =
+            this.chatbot.formatMessage(data)
         }, 2_500)
       } else {
         this.chatbot.receivedFrom('leon', data)
@@ -343,6 +343,10 @@ export default class Client {
     }
 
     this._input.value = ''
+    setTimeout(() => {
+      // Remove the last character to avoid the space
+      this._input.value = this._input.value.slice(0, -1)
+    }, 0)
   }
 
   addSuggestion(text) {
