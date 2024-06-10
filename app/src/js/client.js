@@ -68,6 +68,19 @@ export default class Client {
   }
 
   init(loader) {
+    /**
+     * Client <-> core server connection established
+     * TCP server booted,
+     * ASR initialized,
+     * ASR model warmed up,
+     * Speech synthesis initialized,
+     * Speech synthesis model warmed up,
+     * HTTP server ready,
+     * LLM loaded,
+     * Leon ready
+     */
+    // this.socket.on('init-
+
     this.chatbot.init()
     this.voiceEnergy.init()
 

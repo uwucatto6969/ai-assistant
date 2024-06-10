@@ -13,7 +13,6 @@ export default class VoiceEnergy {
     )
     this.voiceOverlayElement = document.querySelector('#voice-overlay-bg')
     this.statusElement = document.querySelector('#voice-status')
-    // listening, processing, talking, idle
     this._status = 'idle'
   }
 
@@ -48,7 +47,6 @@ export default class VoiceEnergy {
       const particles = new Set()
       const particleColors = ['blue', 'pink']
 
-      // this.status = this._status
       for (let i = 0; i < 32; i += 1) {
         const particle = document.createElement('div')
         const randomColor = Math.floor(Math.random() * 2)
