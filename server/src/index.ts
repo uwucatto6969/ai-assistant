@@ -30,6 +30,7 @@ import { LangHelper } from '@/helpers/lang-helper'
 import { LogHelper } from '@/helpers/log-helper'
 ;(async (): Promise<void> => {
   process.title = 'leon'
+
   // Kill any existing Leon process before starting a new one
   const processList = await psList()
   processList
