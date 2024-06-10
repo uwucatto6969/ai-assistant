@@ -1,4 +1,5 @@
 import axios from 'axios'
+import '@leon-ai/aurora/style.css'
 
 // import { init } from './init'
 import Loader from './loader'

@@ -10,6 +10,7 @@
     </style>
   </head>
   <body class="settingup">
+    <div id="init"></div>
     <div id="voice-overlay-bg">
       <div id="voice-container">
         <div>
@@ -307,12 +308,14 @@
         </div>
         <label for="utterance"></label>
         <textarea id="utterance" autocomplete="off" autofocus></textarea>
-        <span id="tip">
-          Use <kbd>enter</kbd> to submit; <kbd>shift</kbd> +
-          <kbd>enter</kbd> for new line; <kbd>shift</kbd> +
-          <kbd>arrow up</kbd>/<kbd>arrow down</kbd> to browse history;
-          <kbd>alt+c to listen.</kbd>
-        </span>
+        <ul id="tip">
+          <li><kbd>enter</kbd> to submit.</li>
+          <li><kbd>shift</kbd> + <kbd>enter</kbd> for new line.</li>
+          <li>
+            <kbd>shift</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd> to browse history.
+          </li>
+          <li><kbd>alt</kbd> + <kbd>c</kbd> to listen.</li>
+        </ul>
       </div>
     </main>
     <footer>

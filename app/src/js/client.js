@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client'
 
+import './init'
 import Chatbot from './chatbot'
 import VoiceEnergy from './voice-energy'
 import { INIT_MESSAGES } from './constants'

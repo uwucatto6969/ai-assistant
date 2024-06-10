@@ -1,5 +1,3 @@
-import '@leon-ai/aurora/style.css'
-
 import { createRoot } from 'react-dom/client'
 import { createElement } from 'react'
 import * as auroraComponents from '@leon-ai/aurora'

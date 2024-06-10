@@ -195,6 +195,20 @@ body.settingup::after {
   }
 }
 
+kbd {
+  font-family: 'Source Sans Pro', monospace;
+  display: inline-block;
+  background-color: var(--light-black-color);
+  color: rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  text-align: center;
+  min-width: 16px;
+  min-height: 16px;
+  line-height: 16px !important;
+  padding: 2px 6px !important;
+  margin: 0 !important;
+}
+
 main {
   position: absolute;
   width: 63%;
@@ -221,7 +235,7 @@ textarea {
   border: none;
   border-bottom: 2px solid var(--grey-color);
   background: none;
-  font-weight: 400;
+  font-weight: 600;
   font-size: 4em;
   padding-right: 39px;
   height: 140px;
@@ -237,9 +251,15 @@ textarea::-webkit-scrollbar-thumb {
 }
 
 #tip {
+  display: inline-flex;
+  margin-top: 2px;
   color: var(--white-color);
   line-height: 22px;
-  font-size: 1.02em;
+  font-size: 0.9em;
+  gap: 32px;
+  li {
+    margin-left: 0;
+  }
 }
 
 .hide {
