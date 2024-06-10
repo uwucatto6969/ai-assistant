@@ -1,12 +1,11 @@
 import { io } from 'socket.io-client'
 
-import './init'
 import Chatbot from './chatbot'
 import VoiceEnergy from './voice-energy'
 import { INIT_MESSAGES } from './constants'
 
 export default class Client {
-  constructor(client, serverUrl, input, res) {
+  constructor(client, serverUrl, input) {
     this.client = client
     this._input = input
     this._suggestionContainer = document.querySelector('#suggestions-container')
@@ -14,7 +13,6 @@ export default class Client {
     this.socket = io(this.serverUrl)
     this.history = localStorage.getItem('history')
     this.parsedHistory = []
-    this.info = res
     this.chatbot = new Chatbot()
     this.voiceEnergy = new VoiceEnergy(this)
     this._recorder = {}
@@ -42,7 +40,7 @@ export default class Client {
   }
 
   updateMood(mood) {
-    if (this.info.llm.enabled) {
+    if (window.leonConfigInfo.llm.enabled) {
       const moodContainer = document.querySelector('#mood')
 
       moodContainer.textContent = `Leon's mood: ${mood.emoji}`
@@ -68,20 +66,18 @@ export default class Client {
     }
   }
 
-  init(loader) {
-    /**
-     * Client <-> core server connection established
-     * TCP server booted,
-     * ASR initialized,
-     * ASR model warmed up,
-     * Speech synthesis initialized,
-     * Speech synthesis model warmed up,
-     * HTTP server ready,
-     * LLM loaded,
-     * Leon ready
-     */
-    // this.socket.on('init-
+  setInitStatus(statusName, statusType) {
+    window.leonInitStatusEvent.dispatchEvent(
+      new CustomEvent('initStatusChange', {
+        detail: {
+          statusName,
+          statusType
+        }
+      })
+    )
+  }
 
+  init() {
     this.chatbot.init()
     this.voiceEnergy.init()
 
@@ -89,8 +85,24 @@ export default class Client {
       this.socket.emit('init', this.client)
     })
 
+    /**
+     * Init status listeners
+     */
+    this.socket.on('init-client-core-server-handshake', (status) => {
+      this.setInitStatus('clientCoreServerHandshake', status)
+    })
+    this.socket.on('init-tcp-server-boot', (status) => {
+      this.setInitStatus('tcpServerBoot', status)
+    })
+    this.socket.on('init-llm', (status) => {
+      this.setInitStatus('llm', status)
+    })
+
     this.socket.on('ready', () => {
-      loader.stop()
+      setTimeout(() => {
+        const body = document.querySelector('body')
+        body.classList.remove('settingup')
+      }, 250)
 
       if (this.chatbot.parsedBubbles?.length === 0) {
         this.sendInitMessages()
@@ -274,7 +286,7 @@ export default class Client {
          * When the after speech option is enabled and
          * the answer is a final one
          */
-        if (this.info.after_speech && data.is_final_answer) {
+        if (window.leonConfigInfo.after_speech && data.is_final_answer) {
           // Enable recording after the speech + 500ms
           setTimeout(() => {
             this._recorder.start()

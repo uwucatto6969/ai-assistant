@@ -1,8 +1,9 @@
 import axios from 'axios'
 import '@leon-ai/aurora/style.css'
 
-// import { init } from './init'
-import Loader from './loader'
+window.leonInitStatusEvent = new EventTarget()
+
+import './init'
 import Client from './client'
 import Recorder from './recorder'
 import listener from './listener'
@@ -21,30 +22,28 @@ const serverUrl =
     : `${config.server_host}:${config.server_port}`
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const loader = new Loader()
-
-  loader.start()
-
   try {
     const response = await axios.get(`${serverUrl}/api/v1/info`)
     const input = document.querySelector('#utterance')
     const mic = document.querySelector('#mic-button')
     const v = document.querySelector('#version small')
-    const client = new Client(config.app, serverUrl, input, response.data)
+    const client = new Client(config.app, serverUrl, input)
     let rec = {}
     let chunks = []
 
-    v.textContent += client.info.version
+    window.leonConfigInfo = response.data
 
-    client.updateMood(client.info.mood)
-    client.init(loader)
+    v.textContent += window.leonConfigInfo.version
+
+    client.updateMood(window.leonConfigInfo.mood)
+    client.init()
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then((stream) => {
           if (MediaRecorder) {
-            rec = new Recorder(stream, mic, client.info)
+            rec = new Recorder(stream, mic, window.leonConfigInfo)
             client.recorder = rec
 
             rec.ondataavailable((e) => {

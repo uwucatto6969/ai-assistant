@@ -10,7 +10,8 @@ import {
   TTS,
   NLU,
   BRAIN,
-  MODEL_LOADER
+  MODEL_LOADER,
+  LLM_MANAGER
 } from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
 import { LangHelper } from '@/helpers/lang-helper'
@@ -83,16 +84,24 @@ export default class SocketServer {
         LogHelper.info(`Type: ${data}`)
         LogHelper.info(`Socket ID: ${this.socket?.id}`)
 
+        this.socket?.emit('init-client-core-server-handshake', 'success')
+
         // TODO
         // const provider = await addProvider(socket.id)
 
         // Check whether the Python TCP client is connected to the Python TCP server
         if (PYTHON_TCP_CLIENT.isConnected) {
           this.socket?.emit('ready')
+          this.socket?.emit('init-tcp-server-boot', 'success')
         } else {
           PYTHON_TCP_CLIENT.ee.on('connected', () => {
             this.socket?.emit('ready')
+            this.socket?.emit('init-tcp-server-boot', 'success')
           })
+        }
+
+        if (LLM_MANAGER.isLLMEnabled) {
+          this.socket?.emit('init-llm', 'success')
         }
 
         if (data === 'hotword-node') {
