@@ -204,7 +204,7 @@ SPACY_MODELS.set('fr', {
     }
   }
   const installPythonPackages = async () => {
-    LogHelper.info(`Installing Python packages from ${pipfilePath}.lock...`)
+    LogHelper.info(`Installing Python packages from ${pipfilePath}...`)
 
     // Delete .venv directory to reset the development environment
     if (hasDotVenv) {
@@ -214,7 +214,7 @@ SPACY_MODELS.set('fr', {
     }
 
     try {
-      await command('pipenv install --verbose --site-packages', {
+      await command('pipenv install --verbose --skip-lock', {
         shell: true,
         stdio: 'inherit'
       })

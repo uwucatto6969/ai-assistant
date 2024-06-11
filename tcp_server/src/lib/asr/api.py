@@ -6,7 +6,7 @@ import numpy as np
 from faster_whisper import WhisperModel
 
 from ..constants import ASR_MODEL_PATH_FOR_GPU, ASR_MODEL_PATH_FOR_CPU
-from ..utils import ThrottledCallback
+from ..utils import ThrottledCallback, is_macos
 
 
 class ASR:
@@ -20,21 +20,21 @@ class ASR:
         self.log('Loading model...')
 
         if device == 'auto':
-            device = 'cpu'
 
             if torch.cuda.is_available(): device = 'cuda'
             else: self.log('GPU not available. CUDA is not installed?')
 
-            if torch.backends.mps.is_available(): device = 'mps'
         if 'cuda' in device:
             assert torch.cuda.is_available()
 
         self.log(f'Device: {device}')
 
-        compute_type = "float16"
+        compute_type = 'float16'
+        if is_macos():
+            compute_type = 'int8_float32'
 
         if device == 'cpu':
-            compute_type = "int8_float32"
+            compute_type = 'int8_float32'
 
         self.compute_type = compute_type
 
@@ -169,7 +169,7 @@ class ASR:
         self.log("Recording...")
         frames = []
         while True:
-            data = self.stream.read(self.chunk)
+            data = self.stream.read(self.chunk, exception_on_overflow=False)
             data_np = np.frombuffer(data, dtype=np.int16)
 
             # Check if the audio data contains any non-finite values

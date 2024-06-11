@@ -22,8 +22,6 @@ debug.log
 .env
 .last-skill-npm-install
 leon.json
-bridges/python/src/Pipfile.lock
-tcp_server/src/Pipfile.lock
 tcp_server/src/lib/tts/models/*.pth
 tcp_server/src/lib/tts/models/**/*.bin
 tcp_server/src/lib/tts/models/**/*.json
