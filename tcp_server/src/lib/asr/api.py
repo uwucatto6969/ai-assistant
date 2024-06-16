@@ -12,8 +12,8 @@ from ..utils import ThrottledCallback, is_macos
 class ASR:
     def __init__(self,
                  device='auto',
-                 transcription_callback=None,
-                 wake_word_or_active_listening_callback=None,
+                 interrupt_leon_speech_callback=None,
+                 transcribed_callback=None,
                  end_of_owner_speech_callback=None,
                  active_listening_disabled_callback=None):
         tic = time.perf_counter()
@@ -21,8 +21,10 @@ class ASR:
 
         if device == 'auto':
 
-            if torch.cuda.is_available(): device = 'cuda'
-            else: self.log('GPU not available. CUDA is not installed?')
+            if torch.cuda.is_available():
+                device = 'cuda'
+            else:
+                self.log('GPU not available. CUDA is not installed?')
 
         if 'cuda' in device:
             assert torch.cuda.is_available()
@@ -37,51 +39,42 @@ class ASR:
             compute_type = 'int8_float32'
 
         self.compute_type = compute_type
+        self.is_recording = False
 
-        self.transcription_callback = transcription_callback
-        self.wake_word_or_active_listening_callback = wake_word_or_active_listening_callback
         """
-        Throttle the wake word or active listening callback to avoid sending too many messages to the client.
-        The callback is called at most once every x seconds
+        Thottle the interrupt Leon's speech callback to avoid sending too many messages to the client
         """
-        self.throttled_wake_word_or_active_listening_callback = ThrottledCallback(
-            wake_word_or_active_listening_callback, 0.3
+        self.interrupt_leon_speech_callback = ThrottledCallback(
+            interrupt_leon_speech_callback, 0.5
         )
+        self.transcribed_callback = transcribed_callback
         self.end_of_owner_speech_callback = end_of_owner_speech_callback
         self.active_listening_disabled_callback = active_listening_disabled_callback
 
-        self.wake_words = ["ok leon", "okay leon", "hi leon", "hey leon", "hello leon", "heilion", "alion", "hyleon"]
+        self.wake_words = ['ok leon', 'okay leon', 'hi leon', 'hey leon', 'hello leon', 'heilion', 'alion', 'hyleon']
 
         self.device = device
-        self.tcp_conn = None
-        self.utterance = []
-        self.circular_buffer = []
         self.is_voice_activity_detected = False
         self.silence_start_time = 0
         self.is_wake_word_detected = False
         self.is_active_listening_enabled = False
-        self.saved_utterances = []
-        self.segment_text = ''
         self.complete_text = ''
 
         self.audio_format = pyaudio.paInt16
+        self.buffer = bytearray()
+        self.silence_frames_count = 0
         self.channels = 1
         self.rate = 16000
-        self.chunk = 4096
-        self.threshold = 128
+        self.frames_per_buffer = 1024
+        self.rms_threshold = 128
         # Duration of silence after which the audio data is considered as a new utterance (in seconds)
-        self.silence_duration = 1.5
+        self.silence_duration = 1
         """
         Duration of silence after which the active listening is stopped (in seconds).
-        Once stopped, the active listening can be resumed by saying the wake word again
+        Once stopped, the active listening can be resumed by starting a new recording event
         """
         self.base_active_listening_duration = 12
         self.active_listening_duration = self.base_active_listening_duration
-        """
-        Size of the circular buffer.
-        Meaning how many audio frames can be stored in the buffer
-        """
-        self.buffer_size = 256
 
         self.audio = pyaudio.PyAudio()
         self.stream = None
@@ -110,114 +103,83 @@ class ASR:
 
         self.log(f"Time taken to load model: {toc - tic:0.4f} seconds")
 
-    def detect_wake_word(self, speech: str) -> bool:
-        lowercased_speech = speech.lower().strip()
-
-        for wake_word in self.wake_words:
-            if wake_word in lowercased_speech:
-                return True
-        return False
-
-    def process_circular_buffer(self):
-        self.complete_text = ''
-
-        if len(self.circular_buffer) > self.buffer_size:
-            self.circular_buffer.pop(0)
-
-        audio_data = np.concatenate(self.circular_buffer)
-        transcribe_params = {
-            "beam_size": 5,
-            "language": "en",
-            "task": "transcribe",
-            "condition_on_previous_text": False,
-            "hotwords": "talking to Leon"
-        }
-        if self.device == 'cpu':
-            transcribe_params["temperature"] = 0
-
-        segments, info = self.model.transcribe(audio_data, **transcribe_params)
-        for segment in segments:
-            words = segment.text.split()
-            self.segment_text += ' '.join(words) + ' '
-
-            if self.is_wake_word_detected:
-                self.utterance.append(self.segment_text)
-                self.transcription_callback(" ".join(self.utterance))
-
-            has_dected_wake_word = self.detect_wake_word(segment.text)
-            if has_dected_wake_word or self.is_active_listening_enabled:
-                if has_dected_wake_word:
-                    self.log('Wake word detected')
-                self.complete_text += segment.text
-                self.is_wake_word_detected = True
-                self.is_active_listening_enabled = True
-                self.log('Active listening enabled')
-            else:
-                self.log("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
-
-            self.segment_text = ''
-        if self.complete_text:
-            self.throttled_wake_word_or_active_listening_callback(self.complete_text)
-
     def start_recording(self):
-        self.stream = self.audio.open(format=self.audio_format,
-                                      channels=self.channels,
-                                      rate=self.rate,
-                                      frames_per_buffer=self.chunk,
-                                      input=True,
-                                      input_device_index=self.audio.get_default_input_device_info()["index"])  # Use the default input device
-        self.log("Recording...")
-        frames = []
-        while True:
-            data = self.stream.read(self.chunk, exception_on_overflow=False)
-            data_np = np.frombuffer(data, dtype=np.int16)
+        self.is_recording = True
+        # Convert the silence duration to the number of audio frames required to detect the silence
+        silence_threshold = int(self.silence_duration * self.rate / self.frames_per_buffer)
 
-            # Check if the audio data contains any non-finite values
-            if not np.isfinite(data_np).all():
-                self.log("Non-finite values detected in audio data. Replacing with zeros.")
-                data_np = np.nan_to_num(data_np)  # Replace non-finite values with zeros
+        try:
+            self.stream = self.audio.open(format=self.audio_format,
+                                          channels=self.channels,
+                                          rate=self.rate,
+                                          frames_per_buffer=self.frames_per_buffer,
+                                          input=True,
+                                          input_device_index=self.audio.get_default_input_device_info()["index"])  # Use the default input device
+            self.log("Recording...")
 
-            rms = audioop.rms(data, 2)  # width=2 for format=paInt16
-            if rms >= self.threshold:  # audio threshold
-                if not self.is_voice_activity_detected:
-                    self.is_voice_activity_detected = True
+            while self.is_recording:
+                data = self.stream.read(self.frames_per_buffer)
+                rms = audioop.rms(data, 2)  # width=2 for format=paInt16
 
-                self.circular_buffer.append(data_np)
-                self.process_circular_buffer()
-            else:
-                if self.is_voice_activity_detected:
-                    self.silence_start_time = time.time()
-                    self.is_voice_activity_detected = False
-                is_end_of_speech = time.time() - self.silence_start_time > self.silence_duration
-                if is_end_of_speech:
-                    if len(self.utterance) > 0:
-                        self.log('Reset')
-                        # Send the latest up-to-date text
-                        self.wake_word_or_active_listening_callback(self.complete_text)
-                        time.sleep(0.1)
-                        # Notify the end of the owner's speech
-                        self.end_of_owner_speech_callback(self.complete_text)
+                if rms >= self.rms_threshold:
+                    if not self.is_voice_activity_detected:
+                        self.is_active_listening_enabled = True
+                        self.is_voice_activity_detected = True
 
-                    if self.is_wake_word_detected:
-                        self.saved_utterances.append(" ".join(self.utterance))
-                        self.utterance = []
-                        # self.is_wake_word_detected = False
+                    self.interrupt_leon_speech_callback()
 
-                    self.circular_buffer = []
+                    self.buffer.extend(data)
+                    self.silence_frames_count = 0
+                else:
+                    if self.is_voice_activity_detected:
+                        self.silence_start_time = time.time()
+                        self.is_voice_activity_detected = False
 
-                should_stop_active_listening = self.is_active_listening_enabled and time.time() - self.silence_start_time > self.active_listening_duration
-                if should_stop_active_listening:
-                    self.is_wake_word_detected = False
-                    self.is_active_listening_enabled = False
-                    self.active_listening_disabled_callback()
-                    self.log('Active listening disabled')
+                    if self.silence_frames_count < silence_threshold:
+                        self.silence_frames_count += 1
+                    else:
+                        if len(self.buffer) > 0:
+                            self.log('Silence detected')
 
-                # self.log('Silence detected')
+                            audio_data = np.frombuffer(self.buffer, dtype=np.int16)
+                            if self.compute_type == 'int8_float32':
+                                audio_data = audio_data.astype(np.float32) / 32768.0
+                            transcribe_params = {
+                                'beam_size': 5,
+                                'language': 'en',
+                                'task': 'transcribe',
+                                'condition_on_previous_text': False,
+                                'hotwords': 'talking to Leon'
+                            }
+                            if self.device == 'cpu':
+                                transcribe_params['temperature'] = 0
+                            segments, info = self.model.transcribe(audio_data, **transcribe_params)
+
+                            for segment in segments:
+                                self.log("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+                                self.complete_text += segment.text
+
+                            self.transcribed_callback(self.complete_text)
+                            time.sleep(0.1)
+                            # Notify the end of the owner's speech
+                            self.end_of_owner_speech_callback(self.complete_text)
+
+                            self.complete_text = ''
+                            self.buffer = bytearray()
+
+                        should_stop_active_listening = self.is_active_listening_enabled and time.time() - self.silence_start_time > self.active_listening_duration
+                        if should_stop_active_listening:
+                            self.is_active_listening_enabled = False
+                            self.log('Active listening disabled')
+                            self.active_listening_disabled_callback()
+        except Exception as e:
+            self.log('Error:', e)
 
     def stop_recording(self):
+        self.is_recording = False
         self.stream.stop_stream()
         self.stream.close()
-        self.audio.terminate()
+        self.log('Stream closed, recording stopped')
 
     @staticmethod
     def log(*args, **kwargs):

@@ -9,6 +9,7 @@ export default class Client {
     this.client = client
     this._input = input
     this._suggestionContainer = document.querySelector('#suggestions-container')
+    this.voiceSpeechElement = document.querySelector('#voice-speech')
     this.serverUrl = serverUrl
     this.socket = io(this.serverUrl)
     this.history = localStorage.getItem('history')
@@ -20,7 +21,6 @@ export default class Client {
     this._answerGenerationId = 'xxx'
     this._ttsAudioContext = null
     this._isLeonGeneratingAnswer = false
-    this._voiceSpeechElement = document.querySelector('#voice-speech')
     this._isVoiceModeEnabled = false
     // this._ttsAudioContextes = {}
   }
@@ -77,6 +77,16 @@ export default class Client {
     )
   }
 
+  asrStartRecording() {
+    if (!this._isVoiceModeEnabled) {
+      this.enableVoiceMode()
+
+      this.voiceEnergy.status = 'listening'
+
+      this.socket.emit('asr-start-record')
+    }
+  }
+
   init() {
     this.chatbot.init()
     this.voiceEnergy.init()
@@ -110,9 +120,9 @@ export default class Client {
     })
 
     this.socket.on('answer', (data) => {
-      if (this._isVoiceModeEnabled) {
+      /*if (this._isVoiceModeEnabled) {
         this.voiceEnergy.status = 'listening'
-      }
+      }*/
 
       // Leon has finished to answer
       this._isLeonGeneratingAnswer = false
@@ -216,8 +226,8 @@ export default class Client {
       this.voiceEnergy.status = 'listening'
       this._input.value = text
 
-      if (this._voiceSpeechElement) {
-        this._voiceSpeechElement.textContent = text
+      if (this.voiceSpeechElement) {
+        this.voiceSpeechElement.textContent = text
       }
     })
 
@@ -225,9 +235,6 @@ export default class Client {
       this.voiceEnergy.status = 'processing'
 
       setTimeout(() => {
-        if (this._voiceSpeechElement) {
-          this._voiceSpeechElement.textContent = ''
-        }
         this.send('utterance')
       }, 200)
     })

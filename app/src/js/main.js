@@ -5,9 +5,9 @@ window.leonInitStatusEvent = new EventTarget()
 
 import './init'
 import Client from './client'
-import Recorder from './recorder'
-import listener from './listener'
-import { onkeydowndocument, onkeydowninput } from './onkeydown'
+// import Recorder from './recorder'
+// import listener from './listener'
+import { onkeydownstartrecording, onkeydowninput } from './onkeydown'
 
 const config = {
   app: 'webapp',
@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mic = document.querySelector('#mic-button')
     const v = document.querySelector('#version small')
     const client = new Client(config.app, serverUrl, input)
-    let rec = {}
-    let chunks = []
+    // let rec = {}
+    // let chunks = []
 
     window.leonConfigInfo = response.data
 
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     client.updateMood(window.leonConfigInfo.mood)
     client.init()
 
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    /*if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then((stream) => {
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             })
 
             rec.onstart(() => {
-              /* */
+              /!* *!/
             })
 
             rec.onstop(() => {
@@ -108,18 +108,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error(
         'MediaDevices.getUserMedia() is not supported on your browser.'
       )
-    }
+    }*/
 
     document.addEventListener('keydown', (e) => {
-      onkeydowndocument(e, () => {
-        if (rec.enabled === false) {
+      onkeydownstartrecording(e, () => {
+        client.asrStartRecording()
+        /*if (rec.enabled === false) {
           input.value = ''
           rec.start()
           rec.enabled = true
         } else {
           rec.stop()
           rec.enabled = false
-        }
+        }*/
       })
     })
 
@@ -130,13 +131,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     mic.addEventListener('click', (e) => {
       e.preventDefault()
 
-      if (rec.enabled === false) {
+      client.asrStartRecording()
+
+      /*if (rec.enabled === false) {
         rec.start()
         rec.enabled = true
       } else {
         rec.stop()
         rec.enabled = false
-      }
+      }*/
     })
   } catch (e) {
     alert(`Error: ${e.message}; ${JSON.stringify(e.response?.data)}`)

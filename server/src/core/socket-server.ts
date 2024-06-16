@@ -141,6 +141,11 @@ export default class SocketServer {
             }
           })
 
+          // Handle new local ASR engine recording
+          this.socket?.on('asr-start-record', () => {
+            PYTHON_TCP_CLIENT.emit('asr_start_recording', null)
+          })
+
           // Handle automatic speech recognition
           this.socket?.on('recognize', async (data: Buffer) => {
             try {

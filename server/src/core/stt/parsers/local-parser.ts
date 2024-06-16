@@ -7,6 +7,8 @@ interface EventHandler {
   [key: string]: (firstEvent: ChunkData) => void
 }
 
+const STARTED_RECORDING_EVENT = 'asr-started-recording'
+const INTERRUPT_LEON_SPEECH_EVENT = 'asr-interrupt-leon-speech'
 const NEW_SPEECH_EVENT = 'asr-new-speech'
 const END_OF_OWNER_SPEECH_DETECTED_EVENT = 'asr-end-of-owner-speech-detected'
 const ACTIVE_LISTENING_DURATION_INCREASED_EVENT =
@@ -14,6 +16,19 @@ const ACTIVE_LISTENING_DURATION_INCREASED_EVENT =
 const ACTIVE_LISTENING_DISABLED_EVENT = 'asr-active-listening-disabled'
 
 const EVENT_HANDLERS: EventHandler = {
+  [STARTED_RECORDING_EVENT]: (): void => {
+    //
+  },
+
+  [INTERRUPT_LEON_SPEECH_EVENT]: (): void => {
+    /**
+     * If Leon is talking with voice, then interrupt him
+     */
+    if (BRAIN.isTalkingWithVoice) {
+      BRAIN.setIsTalkingWithVoice(false, { shouldInterrupt: true })
+    }
+  },
+
   [NEW_SPEECH_EVENT]: (firstEvent): void => {
     /**
      * If Leon is talking with voice, then interrupt him

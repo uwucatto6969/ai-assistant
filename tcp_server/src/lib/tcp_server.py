@@ -5,6 +5,7 @@ from typing import Union
 import time
 import re
 import string
+import threading
 
 import lib.nlp as nlp
 from .asr.api import ASR
@@ -27,6 +28,7 @@ class TCPServer:
         self.addr = None
         self.tts = None
         self.asr = None
+        self.asr_recording_thread = None
 
     @staticmethod
     def log(*args, **kwargs):
@@ -63,10 +65,6 @@ class TCPServer:
             self.log('ASR is disabled')
             return
 
-        def transcription_callback(utterance):
-            # self.log('Transcription:', utterance)
-            pass
-
         def clean_up_speech(text: str) -> str:
             """Remove everything before the wake word if there is (included), remove punctuation right after it, trim and
             capitalize the first letter"""
@@ -86,7 +84,7 @@ class TCPServer:
                         return ""  # Return an empty string if cleaned_text is empty
             return text
 
-        def wake_word_or_active_listening_callback(text):
+        def transcribed_callback(text):
             cleaned_text = clean_up_speech(text)
             self.log('Cleaned speech:', cleaned_text)
             self.send_tcp_message({
@@ -94,6 +92,13 @@ class TCPServer:
                 'data': {
                     'text': cleaned_text
                 }
+            })
+
+        def interrupt_leon_speech_callback():
+            self.log('Interrupting Leon speech because owner started speaking')
+            self.send_tcp_message({
+                'topic': 'asr-interrupt-leon-speech',
+                'data': {}
             })
 
         def end_of_owner_speech_callback(utterance):
@@ -107,18 +112,19 @@ class TCPServer:
 
         def active_listening_disabled_callback():
             self.log('Active listening disabled')
+
+            self.asr.stop_recording()
+
             self.send_tcp_message({
                 'topic': 'asr-active-listening-disabled',
                 'data': {}
             })
 
         self.asr = ASR(device='auto',
-                       transcription_callback=transcription_callback,
-                       wake_word_or_active_listening_callback=wake_word_or_active_listening_callback,
+                       interrupt_leon_speech_callback=interrupt_leon_speech_callback,
+                       transcribed_callback=transcribed_callback,
                        end_of_owner_speech_callback=end_of_owner_speech_callback,
-                       active_listening_disabled_callback=active_listening_disabled_callback
-        )
-        self.asr.start_recording()
+                       active_listening_disabled_callback=active_listening_disabled_callback)
 
     def init(self):
         try:
@@ -177,6 +183,20 @@ class TCPServer:
             'data': {
                 'spacyEntities': entities
             }
+        }
+
+    def asr_start_recording(self, extra=None) -> dict:
+        # If ASR is not initialized yet, then wait for 2 seconds before starting recording
+        if not self.asr:
+            self.log('ASR is not initialized yet. Waiting for 2 seconds before starting recording...')
+            time.sleep(2)
+
+        self.asr_recording_thread = threading.Thread(target=self.asr.start_recording)
+        self.asr_recording_thread.start()
+
+        return {
+            'topic': 'asr-started-recording',
+            'data': {}
         }
 
     def tts_synthesize(self, speech: str) -> dict:

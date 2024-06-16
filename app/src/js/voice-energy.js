@@ -28,6 +28,11 @@ export default class VoiceEnergy {
         this.statusElement.textContent = STATUS[newStatus]
       }
 
+      // Clean up speech text when listening
+      if (newStatus === 'listening' && this.client.voiceSpeechElement) {
+        this.client.voiceSpeechElement.textContent = ''
+      }
+
       if (this.voiceEnergyContainerElement) {
         this.voiceEnergyContainerElement.className = ''
         this.voiceEnergyContainerElement.classList.add(newStatus)
