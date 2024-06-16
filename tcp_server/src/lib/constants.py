@@ -10,6 +10,7 @@ if IS_RAN_FROM_BINARY:
     LIB_PATH = os.path.join(os.path.dirname(sys.executable), 'lib', 'lib')
 
 TMP_PATH = os.path.join(LIB_PATH, 'tmp')
+SETTINGS_PATH = os.path.join(os.getcwd(), 'tcp_server', 'settings.json')
 
 # TTS
 TTS_MODEL_VERSION = 'V1_1'

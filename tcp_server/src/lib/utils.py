@@ -1,5 +1,7 @@
 import time
 import sys
+import json
+from .constants import SETTINGS_PATH
 
 
 class ThrottledCallback:
@@ -25,3 +27,10 @@ def is_windows():
 
 def is_linux():
     return sys.platform == 'linux'
+
+
+def get_settings(key):
+    with open(SETTINGS_PATH) as f:
+        settings = json.load(f)
+
+    return settings[key]

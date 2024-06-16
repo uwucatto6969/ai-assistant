@@ -6,7 +6,7 @@ import numpy as np
 from faster_whisper import WhisperModel
 
 from ..constants import ASR_MODEL_PATH_FOR_GPU, ASR_MODEL_PATH_FOR_CPU
-from ..utils import ThrottledCallback, is_macos
+from ..utils import ThrottledCallback, is_macos, get_settings
 
 
 class ASR:
@@ -45,7 +45,7 @@ class ASR:
         Thottle the interrupt Leon's speech callback to avoid sending too many messages to the client
         """
         self.interrupt_leon_speech_callback = ThrottledCallback(
-            interrupt_leon_speech_callback, 0.5
+            interrupt_leon_speech_callback, 0.8
         )
         self.transcribed_callback = transcribed_callback
         self.end_of_owner_speech_callback = end_of_owner_speech_callback
@@ -66,7 +66,7 @@ class ASR:
         self.channels = 1
         self.rate = 16000
         self.frames_per_buffer = 1024
-        self.rms_threshold = 128
+        self.rms_threshold = get_settings('asr_rms_threshold')
         # Duration of silence after which the audio data is considered as a new utterance (in seconds)
         self.silence_duration = 1
         """

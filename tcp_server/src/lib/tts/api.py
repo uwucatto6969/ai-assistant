@@ -29,10 +29,13 @@ class TTS(nn.Module):
         if device == 'auto':
             device = 'cpu'
 
-            if torch.cuda.is_available(): device = 'cuda'
-            else: self.log('GPU not available. CUDA is not installed?')
+            if torch.cuda.is_available():
+                device = 'cuda'
+            else:
+                self.log('GPU not available. CUDA is not installed?')
 
-            if torch.backends.mps.is_available(): device = 'mps'
+            if torch.backends.mps.is_available():
+                device = 'mps'
         if 'cuda' in device:
             assert torch.cuda.is_available()
 
