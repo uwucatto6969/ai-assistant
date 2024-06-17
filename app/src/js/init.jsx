@@ -1,4 +1,4 @@
-import { useLayoutEffect, useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
   WidgetWrapper,
@@ -95,46 +95,51 @@ function SuccessListItem({ children }) {
 
 function Init() {
   const parentRef = useRef(null)
-  const [config, setConfig] = useState(window.leonConfigInfo)
-  const [clientCoreServerHandshakeStatus, setClientCoreServerHandshakeStatus] =
-    useState('loading')
-  const [tcpServerBootStatus, setTcpServerBootStatus] = useState('loading')
-  const [llmStatus, setLLMStatus] = useState('loading')
-  const [areAllStatusesSuccess, setAreAllStatusesSuccess] = useState(false)
-  const statusSetterMap = {
-    clientCoreServerHandshake: setClientCoreServerHandshakeStatus,
-    tcpServerBoot: setTcpServerBootStatus,
-    llm: setLLMStatus
-  }
-  const statuses = [
-    clientCoreServerHandshakeStatus,
-    tcpServerBootStatus,
-    llmStatus
-  ]
-
-  useLayoutEffect(() => {
-    setTimeout(() => {
-      parentRef.current.classList.remove('not-initialized')
-    }, 250)
-
-    window.leonInitStatusEvent.addEventListener('initStatusChange', (event) => {
-      const { statusName, statusType } = event.detail
-
-      statusSetterMap[statusName](statusType)
-    })
-  }, [])
+  const [config, setConfig] = useState(() => ({ ...window.leonConfigInfo }))
+  const [statusMap, setStatusMap] = useState({
+    clientCoreServerHandshake: 'loading',
+    tcpServerBoot: 'loading',
+    llm: 'loading'
+  })
 
   useEffect(() => {
-    const areAllStatusesSuccess = statuses.every(
-      (status) => status === 'success'
-    )
+    setTimeout(() => {
+      if (parentRef.current) {
+        parentRef.current.classList.remove('not-initialized')
+      }
+    }, 250)
 
-    setAreAllStatusesSuccess(areAllStatusesSuccess)
-  }, statuses)
+    function handleStatusChange(event) {
+      const { statusName, statusType } = event.detail
+
+      setStatusMap((prev) => ({ ...prev, [statusName]: statusType }))
+    }
+
+    window.leonInitStatusEvent.addEventListener(
+      'initStatusChange',
+      handleStatusChange
+    )
+    return () =>
+      window.leonInitStatusEvent.removeEventListener(
+        'initStatusChange',
+        handleStatusChange
+      )
+  }, [])
+
+  const statuses = Object.keys(statusMap).reduce((acc, key) => {
+    // If config[key] is either not present or enabled, include it in status check
+    if (!config[key] || config[key].enabled) {
+      acc.push(statusMap[key])
+    }
+
+    return acc
+  }, [])
+
+  const areAllStatusesSuccess = statuses.every((status) => status === 'success')
 
   useEffect(() => {
     if (window.leonConfigInfo) {
-      setConfig(window.leonConfigInfo)
+      setConfig({ ...window.leonConfigInfo })
     }
   }, [window.leonConfigInfo])
 
@@ -161,16 +166,12 @@ function Init() {
         <WidgetWrapper noPadding>
           <List>
             <ListHeader>Leon is getting ready...</ListHeader>
-            <Item status={clientCoreServerHandshakeStatus}>
+            <Item status={statusMap.clientCoreServerHandshake}>
               Client and core server handshaked
             </Item>
-            <Item status={tcpServerBootStatus}>TCP server booted</Item>
-            {config && (
-              <>
-                {config.llm.enabled && (
-                  <Item status={llmStatus}>LLM loaded</Item>
-                )}
-              </>
+            <Item status={statusMap.tcpServerBoot}>TCP server booted</Item>
+            {config.llm && config.llm.enabled && (
+              <Item status={statusMap.llm}>LLM loaded</Item>
             )}
           </List>
         </WidgetWrapper>
