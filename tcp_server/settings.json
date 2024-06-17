@@ -1,3 +1,7 @@
 {
-  "asr_rms_threshold": 196
+  "asr": {
+    "rms_threshold": 196
+  },
+  "tts": {},
+  "wake_word": {}
 }

@@ -66,7 +66,7 @@ class ASR:
         self.channels = 1
         self.rate = 16000
         self.frames_per_buffer = 1024
-        self.rms_threshold = get_settings('asr_rms_threshold')
+        self.rms_threshold = get_settings('asr')['rms_threshold']
         # Duration of silence after which the audio data is considered as a new utterance (in seconds)
         self.silence_duration = 1
         """
