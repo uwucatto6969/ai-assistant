@@ -8,6 +8,7 @@ import string
 import threading
 
 import lib.nlp as nlp
+from .utils import get_settings
 from .asr.api import ASR
 from .tts.api import TTS
 from .constants import (
@@ -120,7 +121,7 @@ class TCPServer:
                 'data': {}
             })
 
-        self.asr = ASR(device='auto',
+        self.asr = ASR(device=get_settings('asr')['device'],
                        interrupt_leon_speech_callback=interrupt_leon_speech_callback,
                        transcribed_callback=transcribed_callback,
                        end_of_owner_speech_callback=end_of_owner_speech_callback,

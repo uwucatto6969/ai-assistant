@@ -1,6 +1,7 @@
 {
   "asr": {
-    "rms_threshold": 196
+    "rms_threshold": 196,
+    "device": "auto"
   },
   "tts": {},
   "wake_word": {}
