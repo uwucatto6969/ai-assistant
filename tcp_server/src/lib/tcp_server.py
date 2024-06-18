@@ -13,11 +13,13 @@ from .asr.api import ASR
 from .tts.api import TTS
 from .constants import (
     TTS_MODEL_CONFIG_PATH,
-    TTS_MODEL_PATH,
+    TTS_MODEL_FOLDER_PATH,
     IS_TTS_ENABLED,
     TMP_PATH,
     IS_ASR_ENABLED
 )
+
+TTS_MODEL_PATH = os.path.join(TTS_MODEL_FOLDER_PATH, get_settings('tts')['model_file_name'])
 
 
 class TCPServer:

@@ -5,12 +5,14 @@ import torch
 import numpy as np
 from faster_whisper import WhisperModel
 
-from ..constants import ASR_MODEL_PATH_FOR_GPU, ASR_MODEL_PATH_FOR_CPU
+from ..constants import ASR_MODEL_PATH
 from ..utils import ThrottledCallback, is_macos, get_settings
 
 
 class ASR:
     def __init__(self,
+                 # @see https://github.com/SYSTRAN/faster-whisper/blob/master/faster_whisper/transcribe.py
+                 # auto, cpu, cuda
                  device='auto',
                  interrupt_leon_speech_callback=None,
                  transcribed_callback=None,
@@ -66,7 +68,7 @@ class ASR:
         self.channels = 1
         self.rate = 16000
         self.frames_per_buffer = 1024
-        self.rms_threshold = get_settings('asr')['']
+        self.rms_threshold = get_settings('asr')['rms_threshold']
         # Duration of silence after which the audio data is considered as a new utterance (in seconds)
         self.silence_duration = 1
         """
@@ -80,23 +82,16 @@ class ASR:
         self.stream = None
         self.model = None
 
+        model_params = {
+            'model_size_or_path': ASR_MODEL_PATH,
+            'device': self.device,
+            'compute_type': self.compute_type,
+            'local_files_only': True
+        }
         if self.device == 'cpu':
-            model_path = ASR_MODEL_PATH_FOR_CPU
-            self.model = WhisperModel(
-                model_path,
-                device=self.device,
-                compute_type=self.compute_type,
-                local_files_only=True,
-                cpu_threads=4
-            )
-        else:
-            model_path = ASR_MODEL_PATH_FOR_GPU
-            self.model = WhisperModel(
-                model_path,
-                device=self.device,
-                compute_type=self.compute_type,
-                local_files_only=True
-            )
+            model_params['cpu_threads'] = 4
+
+        self.model = WhisperModel(**model_params)
 
         self.log('Model loaded')
         toc = time.perf_counter()

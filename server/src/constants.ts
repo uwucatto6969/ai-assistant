@@ -16,6 +16,37 @@ const TESTING_ENV = 'testing'
 export const GITHUB_URL = 'https://github.com/leon-ai/leon'
 
 /**
+ * Environments
+ */
+export const LEON_NODE_ENV = process.env['LEON_NODE_ENV'] || PRODUCTION_ENV
+export const IS_PRODUCTION_ENV = LEON_NODE_ENV === PRODUCTION_ENV
+export const IS_DEVELOPMENT_ENV = LEON_NODE_ENV === DEVELOPMENT_ENV
+export const IS_TESTING_ENV = LEON_NODE_ENV === TESTING_ENV
+
+/**
+ * Paths
+ */
+export const BIN_PATH = path.join(process.cwd(), 'bin')
+export const LOGS_PATH = path.join(process.cwd(), 'logs')
+export const SKILLS_PATH = path.join(process.cwd(), 'skills')
+export const GLOBAL_DATA_PATH = path.join(process.cwd(), 'core', 'data')
+export const MODELS_PATH = path.join(GLOBAL_DATA_PATH, 'models')
+export const AUDIO_MODELS_PATH = path.join(MODELS_PATH, 'audio')
+export const VOICE_CONFIG_PATH = path.join(
+  process.cwd(),
+  'core',
+  'config',
+  'voice'
+)
+export const SERVER_PATH = path.join(
+  process.cwd(),
+  'server',
+  IS_PRODUCTION_ENV ? 'dist' : 'src'
+)
+export const TMP_PATH = path.join(SERVER_PATH, 'tmp')
+export const LEON_FILE_PATH = path.join(process.cwd(), 'leon.json')
+
+/**
  * Binaries / distribution
  */
 export const BINARIES_FOLDER_NAME = SystemHelper.getBinariesFolderName()
@@ -46,51 +77,42 @@ export const PYTHON_TCP_SERVER_SRC_PATH = path.join(
   PYTHON_TCP_SERVER_ROOT_PATH,
   'src'
 )
-export const PYTHON_TCP_SERVER_SRC_TTS_MODEL_FILE_NAME =
-  'EN-Leon-V1_1-G_600000.pth'
-export const PYTHON_TCP_SERVER_SRC_TTS_MODEL_DIR_PATH = path.join(
-  PYTHON_TCP_SERVER_SRC_PATH,
-  'lib',
-  'tts',
-  'models'
+export const PYTHON_TCP_SERVER_SETTINGS_PATH = path.join(
+  PYTHON_TCP_SERVER_ROOT_PATH,
+  'settings.json'
 )
-export const PYTHON_TCP_SERVER_SRC_TTS_MODEL_PATH = path.join(
-  PYTHON_TCP_SERVER_SRC_TTS_MODEL_DIR_PATH,
-  PYTHON_TCP_SERVER_SRC_TTS_MODEL_FILE_NAME
+export const PYTHON_TCP_SERVER_SETTINGS = JSON.parse(
+  fs.readFileSync(PYTHON_TCP_SERVER_SETTINGS_PATH, 'utf8')
 )
-export const PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH = path.join(
-  PYTHON_TCP_SERVER_SRC_TTS_MODEL_DIR_PATH,
+export const PYTHON_TCP_SERVER_TTS_MODEL_FILE_NAME =
+  PYTHON_TCP_SERVER_SETTINGS.tts.model_file_name
+export const PYTHON_TCP_SERVER_TTS_MODEL_DIR_PATH = path.join(
+  AUDIO_MODELS_PATH,
+  'tts'
+)
+export const PYTHON_TCP_SERVER_TTS_MODEL_PATH = path.join(
+  PYTHON_TCP_SERVER_TTS_MODEL_DIR_PATH,
+  PYTHON_TCP_SERVER_TTS_MODEL_FILE_NAME
+)
+export const PYTHON_TCP_SERVER_TTS_BERT_FRENCH_DIR_PATH = path.join(
+  PYTHON_TCP_SERVER_TTS_MODEL_DIR_PATH,
   'bert-base-french-europeana-cased'
 )
-export const PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH = path.join(
-  PYTHON_TCP_SERVER_SRC_TTS_MODEL_DIR_PATH,
+export const PYTHON_TCP_SERVER_TTS_BERT_BASE_DIR_PATH = path.join(
+  PYTHON_TCP_SERVER_TTS_MODEL_DIR_PATH,
   'bert-base-uncased'
 )
-export const PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH = path.join(
-  PYTHON_TCP_SERVER_SRC_PATH,
-  'lib',
-  'asr',
-  'models'
-)
-export const PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_GPU = path.join(
-  PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH,
-  'gpu'
-)
-export const PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_CPU = path.join(
-  PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH,
-  'cpu'
+export const PYTHON_TCP_SERVER_ASR_MODEL_DIR_PATH = path.join(
+  AUDIO_MODELS_PATH,
+  'asr'
 )
 export const PYTHON_TCP_SERVER_TTS_MODEL_HF_DOWNLOAD_URL =
   NetworkHelper.setHuggingFaceURL(
-    `https://huggingface.co/Louistiti/Voice-EN-Leon-V1/resolve/main/${PYTHON_TCP_SERVER_SRC_TTS_MODEL_FILE_NAME}?download=true`
+    `https://huggingface.co/Louistiti/Voice-EN-Leon-V1/resolve/main/${PYTHON_TCP_SERVER_TTS_MODEL_FILE_NAME}?download=true`
   )
-export const PYTHON_TCP_SERVER_ASR_MODEL_GPU_HF_PREFIX_DOWNLOAD_URL =
+export const PYTHON_TCP_SERVER_ASR_MODEL_HF_PREFIX_DOWNLOAD_URL =
   NetworkHelper.setHuggingFaceURL(
     'https://huggingface.co/Systran/faster-distil-whisper-large-v3/resolve/main'
-  )
-export const PYTHON_TCP_SERVER_ASR_MODEL_CPU_HF_PREFIX_DOWNLOAD_URL =
-  NetworkHelper.setHuggingFaceURL(
-    'https://huggingface.co/Systran/faster-whisper-medium/resolve/main'
   )
 export const PYTHON_TCP_SERVER_TTS_BERT_FRENCH_MODEL_HF_PREFIX_DOWNLOAD_URL =
   NetworkHelper.setHuggingFaceURL(
@@ -180,14 +202,6 @@ export const FR_SPACY_MODEL_NAME = 'fr_core_news_md'
 export const FR_SPACY_MODEL_VERSION = '3.4.0'
 
 /**
- * Environments
- */
-export const LEON_NODE_ENV = process.env['LEON_NODE_ENV'] || PRODUCTION_ENV
-export const IS_PRODUCTION_ENV = LEON_NODE_ENV === PRODUCTION_ENV
-export const IS_DEVELOPMENT_ENV = LEON_NODE_ENV === DEVELOPMENT_ENV
-export const IS_TESTING_ENV = LEON_NODE_ENV === TESTING_ENV
-
-/**
  * Leon environment preferences
  */
 export const LANG = process.env['LEON_LANG'] as LongLanguageCode
@@ -214,28 +228,6 @@ export const PYTHON_TCP_SERVER_PORT = Number(
 )
 
 export const IS_TELEMETRY_ENABLED = process.env['LEON_TELEMETRY'] === 'true'
-
-/**
- * Paths
- */
-export const BIN_PATH = path.join(process.cwd(), 'bin')
-export const LOGS_PATH = path.join(process.cwd(), 'logs')
-export const SKILLS_PATH = path.join(process.cwd(), 'skills')
-export const GLOBAL_DATA_PATH = path.join(process.cwd(), 'core', 'data')
-export const MODELS_PATH = path.join(GLOBAL_DATA_PATH, 'models')
-export const VOICE_CONFIG_PATH = path.join(
-  process.cwd(),
-  'core',
-  'config',
-  'voice'
-)
-export const SERVER_PATH = path.join(
-  process.cwd(),
-  'server',
-  IS_PRODUCTION_ENV ? 'dist' : 'src'
-)
-export const TMP_PATH = path.join(SERVER_PATH, 'tmp')
-export const LEON_FILE_PATH = path.join(process.cwd(), 'leon.json')
 
 /**
  * NLP models paths

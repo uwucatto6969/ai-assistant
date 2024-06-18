@@ -11,6 +11,7 @@ import setupCore from './setup-core'
 import setupSkills from './setup-skills/setup-skills'
 import setupLLM from './setup-llm'
 import setupBinaries from './setup-binaries'
+import setupTCPServerModels from './setup-tcp-server-models'
 import createInstanceID from './create-instance-id'
 
 // Do not load ".env" file because it is not created yet
@@ -32,6 +33,7 @@ import createInstanceID from './create-instance-id'
     }
 
     await setupBinaries()
+    await setupTCPServerModels()
     await generateHTTPAPIKey()
     await generateJSONSchemas()
     LoaderHelper.start()

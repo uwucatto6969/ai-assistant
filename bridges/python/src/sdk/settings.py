@@ -9,7 +9,7 @@ from ..constants import SKILL_PATH
 class Settings:
     def __init__(self):
         self.settings_path = path.join(SKILL_PATH, 'src', 'settings.json')
-        self.settings_sample_path = path.join(SKILL_PATH, 'src', 'settings.sample.json')
+        self.settings_sample_path = path.join(SKILL_PATH, 'src', 'settings.json')
 
     def is_setting_set(self, key: str) -> bool:
         """
@@ -23,7 +23,7 @@ class Settings:
 
     def clear(self) -> None:
         """
-        Clear the settings and set it to the default settings.sample.json file
+        Clear the settings and set it to the default settings.json file
         """
         settings_sample = self.get_settings_sample()
         self.set(settings_sample)

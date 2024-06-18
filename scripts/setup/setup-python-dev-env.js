@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import stream from 'node:stream'
 
 import { command } from 'execa'
 
@@ -10,23 +9,12 @@ import {
   FR_SPACY_MODEL_NAME,
   FR_SPACY_MODEL_VERSION,
   PYTHON_BRIDGE_SRC_PATH,
-  PYTHON_TCP_SERVER_SRC_PATH,
-  PYTHON_TCP_SERVER_SRC_TTS_MODEL_PATH,
-  PYTHON_TCP_SERVER_TTS_MODEL_HF_DOWNLOAD_URL,
-  PYTHON_TCP_SERVER_ASR_MODEL_CPU_HF_PREFIX_DOWNLOAD_URL,
-  PYTHON_TCP_SERVER_ASR_MODEL_GPU_HF_PREFIX_DOWNLOAD_URL,
-  PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_GPU,
-  PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_CPU,
-  // PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH,
-  PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH,
-  // PYTHON_TCP_SERVER_TTS_BERT_FRENCH_MODEL_HF_PREFIX_DOWNLOAD_URL,
-  PYTHON_TCP_SERVER_TTS_BERT_BASE_MODEL_HF_PREFIX_DOWNLOAD_URL
+  PYTHON_TCP_SERVER_SRC_PATH
 } from '@/constants'
 import { CPUArchitectures, OSTypes } from '@/types'
 import { LogHelper } from '@/helpers/log-helper'
 import { LoaderHelper } from '@/helpers/loader-helper'
 import { SystemHelper } from '@/helpers/system-helper'
-import { FileHelper } from '@/helpers/file-helper'
 
 /**
  * Set up development environment according to the given setup target
@@ -54,32 +42,6 @@ function getModelInstallationFileUrl(model, mirror = undefined) {
   return `${urlPrefix}/${name}-${version}/${name}-${version}-${suffix}`
 }
 
-const ASR_GPU_MODEL_FILES = [
-  'model.bin',
-  'config.json',
-  'preprocessor_config.json',
-  'tokenizer.json',
-  'vocabulary.json'
-]
-const ASR_CPU_MODEL_FILES = [
-  'model.bin',
-  'config.json',
-  'tokenizer.json',
-  'vocabulary.txt'
-]
-/*const TTS_BERT_FRENCH_MODEL_FILES = [
-  'pytorch_model.bin', // Not needed? Compare with HF auto download in ~/.cache/huggingface/hub...
-  'config.json',
-  'vocab.txt',
-  'tokenizer_config.json'
-]*/
-const TTS_BERT_BASE_MODEL_FILES = [
-  'pytorch_model.bin',
-  'config.json',
-  'vocab.txt',
-  'tokenizer_config.json',
-  'tokenizer.json'
-]
 const SETUP_TARGETS = new Map()
 const SPACY_MODELS = new Map()
 
@@ -342,141 +304,6 @@ SPACY_MODELS.set('fr', {
         process.exit(1)
       }
     }
-    const installTTSModel = async () => {
-      try {
-        LogHelper.info('Installing TTS model...')
-
-        const destPath = fs.createWriteStream(
-          PYTHON_TCP_SERVER_SRC_TTS_MODEL_PATH
-        )
-
-        LogHelper.info(`Downloading TTS model...`)
-        const response = await FileHelper.downloadFile(
-          PYTHON_TCP_SERVER_TTS_MODEL_HF_DOWNLOAD_URL,
-          'stream'
-        )
-
-        response.data.pipe(destPath)
-        await stream.promises.finished(destPath)
-
-        LogHelper.success(`TTS model downloaded at ${destPath.path}`)
-      } catch (e) {
-        LogHelper.error(`Failed to install TTS model: ${e}`)
-        process.exit(1)
-      }
-    }
-    const installASRModelForGPU = async () => {
-      try {
-        LogHelper.info('Installing ASR model for GPU...')
-
-        for (const modelFile of ASR_GPU_MODEL_FILES) {
-          const modelInstallationFileURL = `${PYTHON_TCP_SERVER_ASR_MODEL_GPU_HF_PREFIX_DOWNLOAD_URL}/${modelFile}?download=true`
-          const destPath = fs.createWriteStream(
-            path.join(PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_GPU, modelFile)
-          )
-
-          LogHelper.info(`Downloading ${modelFile}...`)
-          const response = await FileHelper.downloadFile(
-            modelInstallationFileURL,
-            'stream'
-          )
-
-          response.data.pipe(destPath)
-          await stream.promises.finished(destPath)
-
-          LogHelper.success(`${modelFile} downloaded at ${destPath.path}`)
-        }
-
-        LogHelper.success('ASR model for GPU installed')
-      } catch (e) {
-        LogHelper.error(`Failed to install ASR model for GPU: ${e}`)
-        process.exit(1)
-      }
-    }
-    const installASRModelForCPU = async () => {
-      try {
-        LogHelper.info('Installing ASR model for CPU...')
-
-        for (const modelFile of ASR_CPU_MODEL_FILES) {
-          const modelInstallationFileURL = `${PYTHON_TCP_SERVER_ASR_MODEL_CPU_HF_PREFIX_DOWNLOAD_URL}/${modelFile}?download=true`
-          const destPath = fs.createWriteStream(
-            path.join(PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_CPU, modelFile)
-          )
-
-          LogHelper.info(`Downloading ${modelFile}...`)
-          const response = await FileHelper.downloadFile(
-            modelInstallationFileURL,
-            'stream'
-          )
-
-          response.data.pipe(destPath)
-          await stream.promises.finished(destPath)
-
-          LogHelper.success(`${modelFile} downloaded at ${destPath.path}`)
-        }
-
-        LogHelper.success('ASR model for CPU installed')
-      } catch (e) {
-        LogHelper.error(`Failed to install ASR model for CPU: ${e}`)
-        process.exit(1)
-      }
-    }
-    /*const installTTSBERTFrenchModel = async () => {
-      try {
-        LogHelper.info('Installing TTS BERT French model...')
-
-        for (const modelFile of TTS_BERT_FRENCH_MODEL_FILES) {
-          const modelInstallationFileURL = `${PYTHON_TCP_SERVER_TTS_BERT_FRENCH_MODEL_HF_PREFIX_DOWNLOAD_URL}/${modelFile}?download=true`
-          const destPath = fs.createWriteStream(
-            path.join(PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH, modelFile)
-          )
-
-          LogHelper.info(`Downloading ${modelFile}...`)
-          const response = await FileHelper.downloadFile(
-            modelInstallationFileURL,
-            'stream'
-          )
-
-          response.data.pipe(destPath)
-          await stream.promises.finished(destPath)
-
-          LogHelper.success(`${modelFile} downloaded at ${destPath.path}`)
-        }
-
-        LogHelper.success('TTS BERT French model installed')
-      } catch (e) {
-        LogHelper.error(`Failed to install TTS BERT French model: ${e}`)
-        process.exit(1)
-      }
-    }*/
-    const installTTSBERTBaseModel = async () => {
-      try {
-        LogHelper.info('Installing TTS BERT base model...')
-
-        for (const modelFile of TTS_BERT_BASE_MODEL_FILES) {
-          const modelInstallationFileURL = `${PYTHON_TCP_SERVER_TTS_BERT_BASE_MODEL_HF_PREFIX_DOWNLOAD_URL}/${modelFile}?download=true`
-          const destPath = fs.createWriteStream(
-            path.join(PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH, modelFile)
-          )
-
-          LogHelper.info(`Downloading ${modelFile}...`)
-          const response = await FileHelper.downloadFile(
-            modelInstallationFileURL,
-            'stream'
-          )
-
-          response.data.pipe(destPath)
-          await stream.promises.finished(destPath)
-
-          LogHelper.success(`${modelFile} downloaded at ${destPath.path}`)
-        }
-
-        LogHelper.success('TTS BERT base model installed')
-      } catch (e) {
-        LogHelper.error(`Failed to install TTS BERT base model: ${e}`)
-        process.exit(1)
-      }
-    }
 
     LogHelper.info('Checking whether all spaCy models are installed...')
 
@@ -500,84 +327,6 @@ SPACY_MODELS.set('fr', {
     } catch (e) {
       LogHelper.info('Not all spaCy models are installed')
       await installSpacyModels()
-    }
-
-    LogHelper.info(
-      'Checking whether TTS BERT base language model files are downloaded...'
-    )
-    const areTTSBERTBaseFilesDownloaded = fs.existsSync(
-      path.join(
-        PYTHON_TCP_SERVER_SRC_TTS_BERT_BASE_DIR_PATH,
-        TTS_BERT_BASE_MODEL_FILES[TTS_BERT_BASE_MODEL_FILES.length - 1]
-      )
-    )
-    if (!areTTSBERTBaseFilesDownloaded) {
-      LogHelper.info('TTS BERT base language model files not downloaded')
-      await installTTSBERTBaseModel()
-    } else {
-      LogHelper.success(
-        'TTS BERT base language model files are already downloaded'
-      )
-    }
-
-    // TODO: later when multiple languages are supported
-    /*LogHelper.info(
-      'Checking whether TTS BERT French language model files are downloaded...'
-    )
-    const areTTSBERTFrenchFilesDownloaded = fs.existsSync(
-      path.join(
-        PYTHON_TCP_SERVER_SRC_TTS_BERT_FRENCH_DIR_PATH,
-        TTS_BERT_FRENCH_MODEL_FILES[TTS_BERT_FRENCH_MODEL_FILES.length - 1]
-      )
-    )
-    if (!areTTSBERTFrenchFilesDownloaded) {
-      LogHelper.info('TTS BERT French language model files not downloaded')
-      await installTTSBERTFrenchModel()
-    } else {
-      LogHelper.success(
-        'TTS BERT French language model files are already downloaded'
-      )
-    }*/
-
-    LogHelper.info('Checking whether the TTS model is installed...')
-    const isTTSModelInstalled = fs.existsSync(
-      PYTHON_TCP_SERVER_SRC_TTS_MODEL_PATH
-    )
-    if (!isTTSModelInstalled) {
-      LogHelper.info('TTS model is not installed')
-      await installTTSModel()
-    } else {
-      LogHelper.success('TTS model is already installed')
-    }
-
-    LogHelper.info('Checking whether the ASR model for GPU is installed...')
-    // Check if model.bin file exists in directory (last file in the list)
-    const isASRModelForGPUInstalled = fs.existsSync(
-      path.join(
-        PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_GPU,
-        ASR_GPU_MODEL_FILES[ASR_GPU_MODEL_FILES.length - 1]
-      )
-    )
-    if (!isASRModelForGPUInstalled) {
-      LogHelper.info('ASR model for GPU is not installed')
-      await installASRModelForGPU()
-    } else {
-      LogHelper.success('ASR model for GPU is already installed')
-    }
-
-    LogHelper.info('Checking whether the ASR model for CPU is installed...')
-    // Check if model.bin file exists in directory (last file in the list)
-    const isASRModelForCPUInstalled = fs.existsSync(
-      path.join(
-        PYTHON_TCP_SERVER_SRC_ASR_MODEL_PATH_FOR_CPU,
-        ASR_CPU_MODEL_FILES[ASR_CPU_MODEL_FILES.length - 1]
-      )
-    )
-    if (!isASRModelForCPUInstalled) {
-      LogHelper.info('ASR model for CPU is not installed')
-      await installASRModelForCPU()
-    } else {
-      LogHelper.success('ASR model for CPU is already installed')
     }
   }
 

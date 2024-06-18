@@ -9,11 +9,7 @@ export class Settings<T extends Record<string, unknown>> {
 
   constructor() {
     this.settingsPath = path.join(SKILL_PATH, 'src', 'settings.json')
-    this.settingsSamplePath = path.join(
-      SKILL_PATH,
-      'src',
-      'settings.sample.json'
-    )
+    this.settingsSamplePath = path.join(SKILL_PATH, 'src', 'settings.json')
   }
 
   /**
@@ -32,7 +28,7 @@ export class Settings<T extends Record<string, unknown>> {
   }
 
   /**
-   * Clear the settings and set it to the default settings.sample.json file
+   * Clear the settings and set it to the default settings.json file
    * @example clear()
    */
   public async clear(): Promise<void> {

@@ -11,7 +11,7 @@ import { LogHelper } from '@/helpers/log-helper'
 export default async function (skillFriendlyName, currentSkill) {
   const skillSrcPath = path.join(currentSkill.path, 'src')
   const settingsPath = path.join(skillSrcPath, 'settings.json')
-  const settingsSamplePath = path.join(skillSrcPath, 'settings.sample.json')
+  const settingsSamplePath = path.join(skillSrcPath, 'settings.json')
 
   // If there is a bridge set from the skill settings
   if (currentSkill.bridge) {
@@ -61,12 +61,12 @@ export default async function (skillFriendlyName, currentSkill) {
         }
       }
     } else if (!fs.existsSync(settingsSamplePath)) {
-      // Stop the setup if the settings.sample.json of the current skill does not exist
+      // Stop the setup if the settings.json of the current skill does not exist
       LogHelper.error(
         `The "${skillFriendlyName}" skill settings file does not exist. Try to pull the project (git pull)`
       )
     } else {
-      // Duplicate settings.sample.json of the current skill to settings.json
+      // Duplicate settings.json of the current skill to settings.json
       fs.createReadStream(settingsSamplePath).pipe(
         fs.createWriteStream(`${skillSrcPath}/settings.json`)
       )
