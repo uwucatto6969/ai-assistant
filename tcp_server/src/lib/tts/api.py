@@ -31,13 +31,14 @@ class TTS(nn.Module):
 
             if torch.cuda.is_available():
                 device = 'cuda'
-            else:
-                self.log('GPU not available. CUDA is not installed?')
-
+                self.log('Using CUDA (Compute Unified Device Architecture)')
             if torch.backends.mps.is_available():
                 device = 'mps'
+                self.log('Using MPS (Metal Performance Shaders)')
         if 'cuda' in device:
             assert torch.cuda.is_available()
+        if 'mps' in device:
+            assert torch.backends.mps.is_available()
 
         self.log(f'Device: {device}')
 
@@ -171,7 +172,10 @@ class TTS(nn.Module):
             else:
                 audio_list.append(audio)
 
-        torch.cuda.empty_cache()
+        if self.device == 'cuda':
+            torch.cuda.empty_cache()
+        if self.device == 'mps':
+            torch.mps.empty_cache()
 
         toc = time.perf_counter()
         self.log(f"Time taken to generate audio: {toc - tic:0.4f} seconds")

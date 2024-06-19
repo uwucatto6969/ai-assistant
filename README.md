@@ -34,7 +34,7 @@ _<p align="center">Your open-source personal assistant.</p>_
 
 > [!IMPORTANT]
 > Due to all the new major changes coming to Leon AI, the development branch might be unstable. It is recommended to use the older version under the master branch.
-> 
+>
 > Please note that older versions do not make use of any foundation model, which will be introduced in upcoming versions.
 
 **Outdated Documentation**
