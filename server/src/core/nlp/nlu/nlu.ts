@@ -14,16 +14,14 @@ import type {
   NLUResult
 } from '@/core/nlp/types'
 import { langs } from '@@/core/langs.json'
-import {
-  PYTHON_TCP_SERVER_BIN_PATH,
-  HAS_LLM_ACTION_RECOGNITION
-} from '@/constants'
+import { PYTHON_TCP_SERVER_BIN_PATH } from '@/constants'
 import {
   PYTHON_TCP_CLIENT,
   BRAIN,
   SOCKET_SERVER,
   MODEL_LOADER,
-  NER
+  NER,
+  LLM_MANAGER
 } from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
 import { LangHelper } from '@/helpers/lang-helper'
@@ -207,7 +205,10 @@ export default class NLU {
       ownerHasExplicitlyRequestedChitChat = true
     }
 
-    if (HAS_LLM_ACTION_RECOGNITION && !ownerHasExplicitlyRequestedChitChat) {
+    if (
+      LLM_MANAGER.isLLMActionRecognitionEnabled &&
+      !ownerHasExplicitlyRequestedChitChat
+    ) {
       /**
        * Use LLM for action recognition
        */
