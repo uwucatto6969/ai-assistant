@@ -107,7 +107,7 @@ class TTS(nn.Module):
             print(" > ===========================")
         return texts
 
-    def tts_iter(self, text, speaker_id, sdp_ratio=0.2, noise_scale=0.6, noise_scale_w=0.8, speed=1.0, pbar=None, format=None, position=None, quiet=False, stream=False):
+    def tts_iter(self, text, speaker_id, sdp_ratio=0.2, noise_scale=0.6, noise_scale_w=0.8, speed=1.0, pbar=None, position=None, quiet=False, stream=False):
         tic = time.perf_counter()
         self.log(f"Generating audio for:\n{text}")
         language = self.language
@@ -169,7 +169,18 @@ class TTS(nn.Module):
 
     def tts_to_file(self, text, speaker_id, output_path=None, sdp_ratio=0.2, noise_scale=0.6, noise_scale_w=0.8, speed=1.0, pbar=None, format=None, position=None, quiet=False, stream=False):
         audio_list = []
-        for audio in self.tts_iter(text, speaker_id, sdp_ratio, noise_scale, noise_scale_w, speed, pbar, position, quiet, stream):
+        for audio in self.tts_iter(
+            text=text,
+            speaker_id=speaker_id,
+            sdp_ratio=sdp_ratio,
+            noise_scale=noise_scale,
+            noise_scale_w=noise_scale_w,
+            speed=speed,
+            pbar=pbar,
+            position=position,
+            quiet=quiet,
+            stream=stream
+        ):
             audio_list.append(audio)
 
         audio = np.concatenate(audio_list)
