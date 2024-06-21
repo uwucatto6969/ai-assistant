@@ -219,7 +219,7 @@ class TCPServer:
         audio_id = f'{int(time.time())}_{os.urandom(2).hex()}'
         output_file_name = f'{audio_id}.wav'
         output_path = os.path.join(TMP_PATH, output_file_name)
-        speed = 0.96
+        speed = 1
 
         formatted_speech = speech.replace(' - ', '.').replace(',', '.').replace(': ', '. ')
         # Clean up emojis
