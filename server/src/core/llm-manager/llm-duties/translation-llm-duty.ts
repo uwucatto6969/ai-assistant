@@ -44,6 +44,10 @@ export class TranslationLLMDuty extends LLMDuty {
     }
   }
 
+  public async init(): Promise<void> {
+    // TODO
+  }
+
   public async execute(): Promise<LLMDutyResult | null> {
     LogHelper.title(this.name)
     LogHelper.info('Executing...')

@@ -26,6 +26,10 @@ export class SummarizationLLMDuty extends LLMDuty {
     this.input = params.input
   }
 
+  public async init(): Promise<void> {
+    // TODO
+  }
+
   public async execute(): Promise<LLMDutyResult | null> {
     LogHelper.title(this.name)
     LogHelper.info('Executing...')

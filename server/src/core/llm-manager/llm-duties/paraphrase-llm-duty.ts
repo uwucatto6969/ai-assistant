@@ -39,6 +39,10 @@ The sun is a star, it is the closest star to Earth.`
     this.input = params.input
   }
 
+  public async init(): Promise<void> {
+    // TODO
+  }
+
   public async execute(): Promise<LLMDutyResult | null> {
     LogHelper.title(this.name)
     LogHelper.info('Executing...')

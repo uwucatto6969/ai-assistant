@@ -34,6 +34,10 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
     this.data = params.data
   }
 
+  public async init(): Promise<void> {
+    // TODO
+  }
+
   public async execute(): Promise<LLMDutyResult | null> {
     LogHelper.title(this.name)
     LogHelper.info('Executing...')

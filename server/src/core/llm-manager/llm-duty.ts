@@ -32,5 +32,6 @@ export abstract class LLMDuty {
   protected abstract readonly systemPrompt: LLMDutyParams['systemPrompt']
   protected abstract input: LLMDutyParams['input']
 
+  protected abstract init(): Promise<void>
   protected abstract execute(): Promise<LLMDutyResult | null>
 }
