@@ -226,6 +226,7 @@ export default class NLU {
       }
 
       const actionRecognitionDuty = new ActionRecognitionLLMDuty(dutyParams)
+      await actionRecognitionDuty.init()
       const actionRecognitionResult = await actionRecognitionDuty.execute()
       const foundAction = actionRecognitionResult?.output[
         'intent_name'

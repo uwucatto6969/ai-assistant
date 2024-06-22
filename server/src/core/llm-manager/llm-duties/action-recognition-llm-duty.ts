@@ -1,3 +1,5 @@
+import type { LlamaChatSession, LlamaContext } from 'node-llama-cpp'
+
 import {
   type LLMDutyParams,
   type LLMDutyResult,
@@ -18,8 +20,12 @@ export interface ActionRecognitionLLMDutyParams extends LLMDutyParams {
 const JSON_KEY_RESPONSE = 'intent_name'
 
 export class ActionRecognitionLLMDuty extends LLMDuty {
+  private static instance: ActionRecognitionLLMDuty
+  private static context: LlamaContext = null as unknown as LlamaContext
+  private static session: LlamaChatSession = null as unknown as LlamaChatSession
   protected readonly systemPrompt: LLMDutyParams['systemPrompt'] = null
   protected readonly name = 'Action Recognition LLM Duty'
+  protected shouldUpdateSystemPrompt = false
   protected input: LLMDutyParams['input'] = null
   protected data = {
     existingContextName: null
@@ -28,13 +34,17 @@ export class ActionRecognitionLLMDuty extends LLMDuty {
   constructor(params: ActionRecognitionLLMDutyParams) {
     super()
 
-    LogHelper.title(this.name)
-    LogHelper.success('New instance')
+    if (!ActionRecognitionLLMDuty.instance) {
+      LogHelper.title(this.name)
+      LogHelper.success('New instance')
+
+      ActionRecognitionLLMDuty.instance = this
+    }
 
     this.input = params.input
     this.data = params.data
 
-    const basePrompt = `INTENT MATCHING PROMPT:
+    this.systemPrompt = `INTENT MATCHING PROMPT:
 You are tasked with matching user utterances to their corresponding intents. Your goal is to identify the most probable intent from a given utterance, considering the context of the conversation when necessary.
 Once you have identified the intent, you must check again according to the sample whether the intent is correct or not.
 It is better to not match any intent than to match the wrong intent.
@@ -50,23 +60,28 @@ ${LLM_MANAGER.llmActionsClassifierContent}
 RESPONSE GUIDELINES:
 * If the utterance matches one of the intents, respond with the corresponding intent in the format "{domain}.{skill}.{action}".
 * If the utterance does not match any of the intents, respond with { "${JSON_KEY_RESPONSE}": "not_found" }.`
+  }
 
-    if (this.data.existingContextName) {
-      this.systemPrompt = `${basePrompt}
-* If the utterance is ambiguous and could match multiple intents, consider the context and history of the conversation to disambiguate the intent.
-* Remember, it is always better to not match any intent than to match the wrong intent.
-* If the active context is "social_communication.conversation", then you must firtly verify the conversation history to follow up the conversation.
+  public async init(): Promise<void> {
+    if (LLM_PROVIDER_NAME === LLMProviders.Local) {
+      if (
+        !ActionRecognitionLLMDuty.context ||
+        !ActionRecognitionLLMDuty.session
+      ) {
+        ActionRecognitionLLMDuty.context =
+          await LLM_MANAGER.model.createContext({
+            threads: LLM_THREADS
+          })
 
-CONTEXT: ${this.data.existingContextName}
+        const { LlamaChatSession } = await Function(
+          'return import("node-llama-cpp")'
+        )()
 
-CONTEXTUAL DISAMBIGUATION:
-When the utterance is ambiguous, consider the following context to disambiguate the intent:
-* The history of the conversation. Review the previous messages to understand the context.
-* Do not be creative to match the intent. Instead, you should only consider: the user's utterance, the context of the conversation, and the history of the conversation.
-
-By considering the context, you should be able to resolve the ambiguity and respond with the most probable intent.`
-    } else {
-      this.systemPrompt = basePrompt
+        ActionRecognitionLLMDuty.session = new LlamaChatSession({
+          contextSequence: ActionRecognitionLLMDuty.context.getSequence(),
+          systemPrompt: this.systemPrompt
+        }) as LlamaChatSession
+      }
     }
   }
 
@@ -75,7 +90,14 @@ By considering the context, you should be able to resolve the ambiguity and resp
     LogHelper.info('Executing...')
 
     try {
-      const prompt = `Utterance: "${this.input}"`
+      let prompt = `Utterance: "${this.input}"`
+
+      if (this.data.existingContextName) {
+        prompt += `\nPrevious intent context: "${this.data.existingContextName}"`
+      } else {
+        prompt += '\nPrevious intent context: no context provided.'
+      }
+
       const completionParams = {
         dutyType: LLMDuties.ActionRecognition,
         systemPrompt: this.systemPrompt as string,
@@ -88,30 +110,18 @@ By considering the context, you should be able to resolve the ambiguity and resp
       let completionResult
 
       if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-        const { LlamaChatSession } = await Function(
-          'return import("node-llama-cpp")'
-        )()
-
-        const context = await LLM_MANAGER.model.createContext({
-          threads: LLM_THREADS
-        })
-        const session = new LlamaChatSession({
-          contextSequence: context.getSequence(),
-          systemPrompt: completionParams.systemPrompt
-        })
-
         const history = await LLM_MANAGER.loadHistory(
           CONVERSATION_LOGGER,
-          session,
+          ActionRecognitionLLMDuty.session,
           { nbOfLogsToLoad: 8 }
         )
 
-        session.setChatHistory(history)
+        ActionRecognitionLLMDuty.session.setChatHistory(history)
 
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
-          session,
-          maxTokens: context.contextSize
+          session: ActionRecognitionLLMDuty.session,
+          maxTokens: ActionRecognitionLLMDuty.context.contextSize
         })
       } else {
         completionResult = await LLM_PROVIDER.prompt(prompt, completionParams)
