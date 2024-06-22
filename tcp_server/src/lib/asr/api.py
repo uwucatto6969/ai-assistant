@@ -22,11 +22,9 @@ class ASR:
         self.log('Loading model...')
 
         if device == 'auto':
-
             if torch.cuda.is_available():
                 device = 'cuda'
-            else:
-                self.log('GPU not available. CUDA is not installed?')
+                self.log('Using CUDA (Compute Unified Device Architecture)')
 
         if 'cuda' in device:
             assert torch.cuda.is_available()
