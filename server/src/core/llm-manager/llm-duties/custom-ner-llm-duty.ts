@@ -1,3 +1,5 @@
+import type { LlamaChatSession, LlamaContext } from 'node-llama-cpp'
+
 import {
   type LLMDutyParams,
   type LLMDutyResult,
@@ -16,6 +18,9 @@ interface CustomNERLLMDutyParams<T> extends LLMDutyParams {
 }
 
 export class CustomNERLLMDuty<T> extends LLMDuty {
+  private static instance: CustomNERLLMDuty<unknown>
+  private static context: LlamaContext = null as unknown as LlamaContext
+  private static session: LlamaChatSession = null as unknown as LlamaChatSession
   protected readonly systemPrompt =
     'You are an AI system that extracts entities (Named-Entity Recognition) from a given utterance. E.g. shopping list name = "shopping".'
   protected readonly name = 'Custom NER LLM Duty'
@@ -27,15 +32,34 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
   constructor(params: CustomNERLLMDutyParams<T>) {
     super()
 
-    LogHelper.title(this.name)
-    LogHelper.success('New instance')
+    if (!CustomNERLLMDuty.instance) {
+      LogHelper.title(this.name)
+      LogHelper.success('New instance')
+
+      CustomNERLLMDuty.instance = this
+    }
 
     this.input = params.input
     this.data = params.data
   }
 
   public async init(): Promise<void> {
-    // TODO
+    if (LLM_PROVIDER_NAME === LLMProviders.Local) {
+      if (!CustomNERLLMDuty.context || !CustomNERLLMDuty.session) {
+        CustomNERLLMDuty.context = await LLM_MANAGER.model.createContext({
+          threads: LLM_THREADS
+        })
+
+        const { LlamaChatSession } = await Function(
+          'return import("node-llama-cpp")'
+        )()
+
+        CustomNERLLMDuty.session = new LlamaChatSession({
+          contextSequence: CustomNERLLMDuty.context.getSequence(),
+          systemPrompt: this.systemPrompt
+        })
+      }
+    }
   }
 
   public async execute(): Promise<LLMDutyResult | null> {
@@ -52,22 +76,10 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
       let completionResult
 
       if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-        const { LlamaChatSession } = await Function(
-          'return import("node-llama-cpp")'
-        )()
-
-        const context = await LLM_MANAGER.model.createContext({
-          threads: LLM_THREADS
-        })
-        const session = new LlamaChatSession({
-          contextSequence: context.getSequence(),
-          systemPrompt: completionParams.systemPrompt
-        })
-
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
-          session,
-          maxTokens: context.contextSize
+          session: CustomNERLLMDuty.session,
+          maxTokens: CustomNERLLMDuty.context.contextSize
         })
       } else {
         completionResult = await LLM_PROVIDER.prompt(prompt, completionParams)

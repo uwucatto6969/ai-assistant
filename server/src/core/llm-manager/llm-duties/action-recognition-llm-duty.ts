@@ -25,7 +25,6 @@ export class ActionRecognitionLLMDuty extends LLMDuty {
   private static session: LlamaChatSession = null as unknown as LlamaChatSession
   protected readonly systemPrompt: LLMDutyParams['systemPrompt'] = null
   protected readonly name = 'Action Recognition LLM Duty'
-  protected shouldUpdateSystemPrompt = false
   protected input: LLMDutyParams['input'] = null
   protected data = {
     existingContextName: null
