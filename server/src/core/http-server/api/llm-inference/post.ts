@@ -83,6 +83,7 @@ export const postLLMInference: FastifyPluginAsync<APIOptions> = async (
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error
           const duty = new LLM_DUTIES_MAP[params.dutyType](params)
+          await duty.init()
           llmResult = await duty.execute()
         }
 
