@@ -59,7 +59,7 @@ ${LLM_MANAGER.llmActionsClassifierContent}
 
 RESPONSE GUIDELINES:
 * If the utterance matches one of the intents, respond with the corresponding intent in the format "{domain}.{skill}.{action}".
-* If the utterance does not match any of the intents, respond with { "${JSON_KEY_RESPONSE}": "not_found" }.`
+* If the utterance does not match any of the intents, respond with { "${JSON_KEY_RESPONSE}": "not_found" }. Do not make up new intents by yourself.`
   }
 
   public async init(): Promise<void> {
