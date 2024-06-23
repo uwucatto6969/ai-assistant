@@ -132,9 +132,9 @@ RESPONSE GUIDELINES:
         typeof completionResult.output === 'object' &&
         completionResult.output[JSON_KEY_RESPONSE]
       ) {
-        ;(completionResult.output[JSON_KEY_RESPONSE] as string) = (
-          completionResult.output[JSON_KEY_RESPONSE] as string
-        ).toLowerCase()
+        let intent = completionResult.output[JSON_KEY_RESPONSE] as string
+        intent = intent.toLowerCase().replace(/\s/g, '')
+        ;(completionResult.output[JSON_KEY_RESPONSE] as string) = intent
       }
 
       LogHelper.title(this.name)
