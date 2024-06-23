@@ -178,11 +178,11 @@ Once Pyenv installed, run:
 
 ```bash
 # Install Python
-pyenv install 3.9.10 --force
-pyenv global 3.9.10
+pyenv install 3.11.9 --force
+pyenv global 3.11.9
 
 # Install Pipenv
-pip install pipenv==2022.7.24
+pip install pipenv==2024.0.1
 ```
 
 Your Python environment should be ready now. So now you can set up the respective environments according to what you are going to contribute to and build them:

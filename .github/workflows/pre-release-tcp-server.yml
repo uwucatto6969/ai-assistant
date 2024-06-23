@@ -26,10 +26,10 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.10
+          python-version: 3.11.9
 
       - name: Install Pipenv
-        run: pip install --upgrade pip && pip install pipenv==2022.7.24
+        run: pip install --upgrade pip && pip install pipenv==2024.0.1
 
       - name: Install Node.js
         uses: actions/setup-node@v3
@@ -71,7 +71,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.10
+          python-version: 3.11.9
 
       - name: Set TCP server version
         working-directory: tcp_server/src

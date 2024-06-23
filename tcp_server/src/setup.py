@@ -49,14 +49,14 @@ options = {
 if 'macos' not in sysconfig.get_platform():
     options['build_exe']['include_files'] = [
         *options['build_exe']['include_files'],
-        ('tcp_server/src/.venv/lib/python3.9/site-packages/nvidia/cudnn/lib', 'lib/nvidia/cudnn/lib')
+        ('tcp_server/src/.venv/lib/python3.11/site-packages/nvidia/cudnn/lib', 'lib/nvidia/cudnn/lib')
     ]
 
 # Include private libraries from the tokenizers package for Linux
 # if 'linux' in sysconfig.get_platform():
 #     options['build_exe']['include_files'] = [
 #         *options['build_exe']['include_files'],
-#         ('tcp_server/src/.venv/lib/python3.9/site-packages/tokenizers.libs', 'lib/tokenizers.libs')
+#         ('tcp_server/src/.venv/lib/python3.11/site-packages/tokenizers.libs', 'lib/tokenizers.libs')
 #     ]
 
 executables = [

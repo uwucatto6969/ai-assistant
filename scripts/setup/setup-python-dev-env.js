@@ -136,7 +136,7 @@ SPACY_MODELS.set('fr', {
    * PyTorch will automatically download nvidia-* packages and bundle them.
    *
    * It is important to specify the "--ignore-installed" flag to make sure the
-   * "~/.pyenv/versions/3.9.10/lib/python3.9/site-packages" is not used in case
+   * "~/.pyenv/versions/3.11.9/lib/python3.11/site-packages" is not used in case
    * NVIDIA deps are already installed. Otherwise, it won't install it in our
    * TCP server .venv as it is already installed (satisfied) in
    * the path mentioned above
@@ -235,7 +235,7 @@ SPACY_MODELS.set('fr', {
           'Please check the error above. It might be related to Microsoft C++ Build Tools. If it is, you can check here: "https://stackoverflow.com/a/64262038/1768162" then restart your machine and retry'
         )
         LogHelper.error(
-          'If it is related to some hash mismatch, you can try by installing Pipenv 2022.7.24: pip install pipenv==2022.7.24'
+          'If it is related to some hash mismatch, you can try by installing Pipenv 2024.0.1: pip install pipenv==2024.0.1'
         )
       }
 
