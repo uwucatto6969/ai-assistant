@@ -35,7 +35,7 @@ export class ConversationLLMDuty extends LLMDuty {
   private static session: LlamaChatSession = null as unknown as LlamaChatSession
   private static messagesHistoryForNonLocalProvider: MessageLog[] =
     null as unknown as MessageLog[]
-  protected readonly systemPrompt = ``
+  protected systemPrompt = ``
   protected readonly name = 'Conversation LLM Duty'
   protected input: LLMDutyParams['input'] = null
 
@@ -69,9 +69,11 @@ export class ConversationLLMDuty extends LLMDuty {
           'return import("node-llama-cpp")'
         )()
 
+        this.systemPrompt = PERSONA.getConversationSystemPrompt()
+
         ConversationLLMDuty.session = new LlamaChatSession({
           contextSequence: ConversationLLMDuty.context.getSequence(),
-          systemPrompt: PERSONA.getConversationSystemPrompt()
+          systemPrompt: this.systemPrompt
         }) as LlamaChatSession
       } else {
         let conversationLogger = LOOP_CONVERSATION_LOGGER
@@ -126,7 +128,7 @@ export class ConversationLLMDuty extends LLMDuty {
       const prompt = NLU.nluResult.newUtterance
       const completionParams = {
         dutyType: LLMDuties.Conversation,
-        systemPrompt: PERSONA.getConversationSystemPrompt(),
+        systemPrompt: this.systemPrompt,
         temperature: 1.3
       }
       let completionResult

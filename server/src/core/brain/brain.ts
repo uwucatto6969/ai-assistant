@@ -218,6 +218,7 @@ export default class Brain {
               const paraphraseDuty = new ParaphraseLLMDuty({
                 input: textAnswer
               })
+              await paraphraseDuty.init()
               const paraphraseResult = await paraphraseDuty.execute()
 
               textAnswer = paraphraseResult?.output as unknown as string

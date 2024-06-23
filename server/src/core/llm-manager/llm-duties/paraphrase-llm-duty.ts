@@ -1,3 +1,5 @@
+import type { LlamaChatSession, LlamaContext } from 'node-llama-cpp'
+
 import {
   type LLMDutyParams,
   type LLMDutyResult,
@@ -13,7 +15,10 @@ import { StringHelper } from '@/helpers/string-helper'
 interface ParaphraseLLMDutyParams extends LLMDutyParams {}
 
 export class ParaphraseLLMDuty extends LLMDuty {
-  protected readonly systemPrompt = `You are an AI system that generates answers (Natural Language Generation).
+  private static instance: ParaphraseLLMDuty
+  private static context: LlamaContext = null as unknown as LlamaContext
+  private static session: LlamaChatSession = null as unknown as LlamaChatSession
+  protected systemPrompt = `You are an AI system that generates answers (Natural Language Generation).
 You must provide a text alternative according to your current mood and your personality.
 Never indicate that it's a modified version.
 Do not interpret the text, just paraphrase it.
@@ -33,14 +38,35 @@ The sun is a star, it is the closest star to Earth.`
   constructor(params: ParaphraseLLMDutyParams) {
     super()
 
-    LogHelper.title(this.name)
-    LogHelper.success('New instance')
+    if (!ParaphraseLLMDuty.instance) {
+      LogHelper.title(this.name)
+      LogHelper.success('New instance')
+
+      ParaphraseLLMDuty.instance = this
+    }
 
     this.input = params.input
   }
 
   public async init(): Promise<void> {
-    // TODO
+    if (LLM_PROVIDER_NAME === LLMProviders.Local) {
+      if (!ParaphraseLLMDuty.context || !ParaphraseLLMDuty.session) {
+        ParaphraseLLMDuty.context = await LLM_MANAGER.model.createContext({
+          threads: LLM_THREADS
+        })
+
+        const { LlamaChatSession } = await Function(
+          'return import("node-llama-cpp")'
+        )()
+
+        this.systemPrompt = PERSONA.getDutySystemPrompt(this.systemPrompt)
+
+        ParaphraseLLMDuty.session = new LlamaChatSession({
+          contextSequence: ParaphraseLLMDuty.context.getSequence(),
+          systemPrompt: this.systemPrompt
+        }) as LlamaChatSession
+      }
+    }
   }
 
   public async execute(): Promise<LLMDutyResult | null> {
@@ -51,40 +77,28 @@ The sun is a star, it is the closest star to Earth.`
       const prompt = `Modify the following text but do not say you modified it: ${this.input}`
       const completionParams = {
         dutyType: LLMDuties.Paraphrase,
-        systemPrompt: PERSONA.getDutySystemPrompt(this.systemPrompt),
+        systemPrompt: this.systemPrompt,
         temperature: 0.8
       }
       let completionResult
 
       if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-        const { LlamaChatSession } = await Function(
-          'return import("node-llama-cpp")'
-        )()
-
         /*const history = await LLM_MANAGER.loadHistory(
           CONVERSATION_LOGGER,
-          session
+          session: ParaphraseLLMDuty.session,
         )*/
         /**
          * Only the first (system prompt) messages is used
          * to provide some context
          */
-        // session.setChatHistory([history[0], history[history.length - 1]])
-        // session.setChatHistory([history[0]])
-
-        const context = await LLM_MANAGER.model.createContext({
-          threads: LLM_THREADS
-        })
-        const session = new LlamaChatSession({
-          contextSequence: context.getSequence(),
-          systemPrompt: completionParams.systemPrompt
-        })
+        // ParaphraseLLMDuty.session.setChatHistory([history[0], history[history.length - 1]])
+        // ParaphraseLLMDuty.session.setChatHistory([history[0]])
 
         const generationId = StringHelper.random(6, { onlyLetters: true })
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
-          session,
-          maxTokens: context.contextSize,
+          session: ParaphraseLLMDuty.session,
+          maxTokens: ParaphraseLLMDuty.context.contextSize,
           onToken: (chunk) => {
             const detokenizedChunk = LLM_PROVIDER.cleanUpResult(
               LLM_MANAGER.model.detokenize(chunk)

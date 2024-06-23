@@ -335,6 +335,7 @@ export default class NER {
         schema
       }
     })
+    await customNERDuty.init()
     const result = await customNERDuty.execute()
 
     const schemaKeys = Object.keys(schema)
