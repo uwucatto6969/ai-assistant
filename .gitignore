@@ -34,6 +34,7 @@ core/data/models/*.nlp
 core/data/models/*.json
 core/data/models/llm/*
 core/data/models/audio/tts/**/*.*
+!core/data/models/audio/tts/config.json
 core/data/models/audio/asr/**/*.*
 !core/data/models/**/.gitkeep
 package.json.backup
