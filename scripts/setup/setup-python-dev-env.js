@@ -213,7 +213,9 @@ SPACY_MODELS.set('fr', {
 
       LogHelper.success('Python packages installed')
 
-      await installPytorch()
+      if (givenSetupTarget === 'tcp-server') {
+        await installPytorch()
+      }
     } catch (e) {
       if (hasDotVenv) {
         await fs.promises.rm(dotVenvPath, { recursive: true, force: true })
