@@ -1,3 +1,5 @@
+import type { LlamaChatSession, LlamaContext } from 'node-llama-cpp'
+
 import {
   type LLMDutyParams,
   type LLMDutyResult,
@@ -12,6 +14,9 @@ import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 interface SummarizationLLMDutyParams extends LLMDutyParams {}
 
 export class SummarizationLLMDuty extends LLMDuty {
+  private static instance: SummarizationLLMDuty
+  private static context: LlamaContext = null as unknown as LlamaContext
+  private static session: LlamaChatSession = null as unknown as LlamaChatSession
   protected readonly systemPrompt =
     'You are an AI system that summarizes a given text in a few sentences. You do not add any context to your response.'
   protected readonly name = 'Summarization LLM Duty'
@@ -20,14 +25,33 @@ export class SummarizationLLMDuty extends LLMDuty {
   constructor(params: SummarizationLLMDutyParams) {
     super()
 
-    LogHelper.title(this.name)
-    LogHelper.success('New instance')
+    if (!SummarizationLLMDuty.instance) {
+      LogHelper.title(this.name)
+      LogHelper.success('New instance')
+
+      SummarizationLLMDuty.instance = this
+    }
 
     this.input = params.input
   }
 
   public async init(): Promise<void> {
-    // TODO
+    if (LLM_PROVIDER_NAME === LLMProviders.Local) {
+      if (!SummarizationLLMDuty.context || !SummarizationLLMDuty.session) {
+        SummarizationLLMDuty.context = await LLM_MANAGER.model.createContext({
+          threads: LLM_THREADS
+        })
+
+        const { LlamaChatSession } = await Function(
+          'return import("node-llama-cpp")'
+        )()
+
+        SummarizationLLMDuty.session = new LlamaChatSession({
+          contextSequence: SummarizationLLMDuty.context.getSequence(),
+          systemPrompt: this.systemPrompt
+        }) as LlamaChatSession
+      }
+    }
   }
 
   public async execute(): Promise<LLMDutyResult | null> {
@@ -43,22 +67,10 @@ export class SummarizationLLMDuty extends LLMDuty {
       let completionResult
 
       if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-        const { LlamaChatSession } = await Function(
-          'return import("node-llama-cpp")'
-        )()
-
-        const context = await LLM_MANAGER.model.createContext({
-          threads: LLM_THREADS
-        })
-        const session = new LlamaChatSession({
-          contextSequence: context.getSequence(),
-          systemPrompt: completionParams.systemPrompt
-        })
-
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
-          session,
-          maxTokens: context.contextSize
+          session: SummarizationLLMDuty.session,
+          maxTokens: SummarizationLLMDuty.context.contextSize
         })
       } else {
         completionResult = await LLM_PROVIDER.prompt(prompt, completionParams)
