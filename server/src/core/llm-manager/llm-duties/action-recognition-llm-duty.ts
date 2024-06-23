@@ -50,6 +50,7 @@ It is better to not match any intent than to match the wrong intent.
 
 INTENT FORMAT:
 The intent format is "{domain}.{skill}.{action}", for example, "food_drink.advisor.suggest".
+The intent format should always contain the domain, skill, and action.
 
 INTENT LIST:
 The valid intents are listed below. You must only respond with one of the intents from this list. Do not generate new intents.

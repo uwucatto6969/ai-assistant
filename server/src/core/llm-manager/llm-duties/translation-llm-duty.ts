@@ -1,3 +1,5 @@
+import type { LlamaChatSession, LlamaContext } from 'node-llama-cpp'
+
 import {
   type LLMDutyParams,
   type LLMDutyResult,
@@ -18,7 +20,10 @@ interface TranslationLLMDutyParams extends LLMDutyParams {
 }
 
 export class TranslationLLMDuty extends LLMDuty {
-  protected readonly systemPrompt: LLMDutyParams['systemPrompt'] = null
+  private static instance: TranslationLLMDuty
+  private static context: LlamaContext = null as unknown as LlamaContext
+  private static session: LlamaChatSession = null as unknown as LlamaChatSession
+  protected readonly systemPrompt: LLMDutyParams['systemPrompt'] = `You are an AI system that does translation. You do not add any context to your response. You only provide the translation without any additional information.`
   protected readonly name = 'Translation LLM Duty'
   protected input: LLMDutyParams['input'] = null
   protected data = {
@@ -30,8 +35,12 @@ export class TranslationLLMDuty extends LLMDuty {
   constructor(params: TranslationLLMDutyParams) {
     super()
 
-    LogHelper.title(this.name)
-    LogHelper.success('New instance')
+    if (!TranslationLLMDuty.instance) {
+      LogHelper.title(this.name)
+      LogHelper.success('New instance')
+
+      TranslationLLMDuty.instance = this
+    }
 
     this.input = params.input
     this.data = params.data
@@ -45,7 +54,22 @@ export class TranslationLLMDuty extends LLMDuty {
   }
 
   public async init(): Promise<void> {
-    // TODO
+    if (LLM_PROVIDER_NAME === LLMProviders.Local) {
+      if (!TranslationLLMDuty.context || !TranslationLLMDuty.session) {
+        TranslationLLMDuty.context = await LLM_MANAGER.model.createContext({
+          threads: LLM_THREADS
+        })
+
+        const { LlamaChatSession } = await Function(
+          'return import("node-llama-cpp")'
+        )()
+
+        TranslationLLMDuty.session = new LlamaChatSession({
+          contextSequence: TranslationLLMDuty.context.getSequence(),
+          systemPrompt: this.systemPrompt
+        }) as LlamaChatSession
+      }
+    }
   }
 
   public async execute(): Promise<LLMDutyResult | null> {
@@ -53,7 +77,16 @@ export class TranslationLLMDuty extends LLMDuty {
     LogHelper.info('Executing...')
 
     try {
-      const prompt = `Text to translate: ${this.input}`
+      let prompt
+
+      if (this.data.autoDetectLanguage && !this.data.source) {
+        prompt = `Translate the given text to "${this.data.target}" by auto-detecting the source language.`
+      } else {
+        prompt = `Translate the given text from "${this.data.source}" to "${this.data.target}".`
+      }
+
+      prompt += `\nText to translate: "${this.input}"`
+
       const completionParams = {
         dutyType: LLMDuties.Translation,
         systemPrompt: this.systemPrompt as string
@@ -61,22 +94,10 @@ export class TranslationLLMDuty extends LLMDuty {
       let completionResult
 
       if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-        const { LlamaChatSession } = await Function(
-          'return import("node-llama-cpp")'
-        )()
-
-        const context = await LLM_MANAGER.model.createContext({
-          threads: LLM_THREADS
-        })
-        const session = new LlamaChatSession({
-          contextSequence: context.getSequence(),
-          systemPrompt: completionParams.systemPrompt
-        })
-
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
-          session,
-          maxTokens: context.contextSize
+          session: TranslationLLMDuty.session,
+          maxTokens: TranslationLLMDuty.context.contextSize
         })
       } else {
         completionResult = await LLM_PROVIDER.prompt(prompt, completionParams)
