@@ -127,6 +127,16 @@ RESPONSE GUIDELINES:
         completionResult = await LLM_PROVIDER.prompt(prompt, completionParams)
       }
 
+      if (
+        completionResult?.output &&
+        typeof completionResult.output === 'object' &&
+        completionResult.output[JSON_KEY_RESPONSE]
+      ) {
+        ;(completionResult.output[JSON_KEY_RESPONSE] as string) = (
+          completionResult.output[JSON_KEY_RESPONSE] as string
+        ).toLowerCase()
+      }
+
       LogHelper.title(this.name)
       LogHelper.success('Duty executed')
       LogHelper.success(`Prompt — ${prompt}`)
