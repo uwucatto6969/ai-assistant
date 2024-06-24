@@ -147,7 +147,12 @@ SPACY_MODELS.set('fr', {
    * @see https://docs.nvidia.com/deeplearning/cudnn/latest/reference/support-matrix.html
    */
   const installPytorch = async () => {
-    LogHelper.info('Installing PyTorch with CUDA support...')
+    const logInfo =
+      osType === OSTypes.MacOS
+        ? 'Installing PyTorch...'
+        : 'Installing PyTorch with CUDA support...'
+    LogHelper.info(logInfo)
+
     try {
       // There is no CUDA support on macOS
       const commandToExecute =
