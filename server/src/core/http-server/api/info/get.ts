@@ -33,6 +33,7 @@ export const getInfo: FastifyPluginAsync<APIOptions> = async (
         message,
         after_speech: HAS_AFTER_SPEECH,
         telemetry: IS_TELEMETRY_ENABLED,
+        shouldWarmUpLLMDuties: LLM_MANAGER.shouldWarmUpLLMDuties,
         llm: {
           enabled: LLM_MANAGER.isLLMEnabled,
           provider: LLM_PROVIDER

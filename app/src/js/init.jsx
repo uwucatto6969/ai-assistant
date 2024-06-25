@@ -99,7 +99,8 @@ function Init() {
   const [statusMap, setStatusMap] = useState({
     clientCoreServerHandshake: 'loading',
     tcpServerBoot: 'loading',
-    llm: 'loading'
+    llm: 'loading',
+    llmDutiesWarmUp: 'loading'
   })
 
   useEffect(() => {
@@ -172,6 +173,11 @@ function Init() {
             <Item status={statusMap.tcpServerBoot}>TCP server booted</Item>
             {config.llm && config.llm.enabled && (
               <Item status={statusMap.llm}>LLM loaded</Item>
+            )}
+            {config.shouldWarmUpLLMDuties && (
+              <Item status={statusMap.llmDutiesWarmUp}>
+                LLM duties warmed up
+              </Item>
             )}
           </List>
         </WidgetWrapper>

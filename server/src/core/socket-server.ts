@@ -80,7 +80,7 @@ export default class SocketServer {
       this.socket = socket
 
       // Init
-      this.socket.on('init', (data: string) => {
+      this.socket.on('init', async (data: string) => {
         LogHelper.info(`Type: ${data}`)
         LogHelper.info(`Socket ID: ${this.socket?.id}`)
 
@@ -102,6 +102,20 @@ export default class SocketServer {
 
         if (LLM_MANAGER.isLLMEnabled) {
           this.socket?.emit('init-llm', 'success')
+        }
+
+        if (LLM_MANAGER.shouldWarmUpLLMDuties) {
+          if (!LLM_MANAGER.areLLMDutiesWarmedUp) {
+            // TODO
+            const interval = setInterval(() => {
+              if (LLM_MANAGER.areLLMDutiesWarmedUp) {
+                clearInterval(interval)
+                this.socket?.emit('warmup-llm-duties', 'success')
+              }
+            }, 2_000)
+          } else {
+            this.socket?.emit('warmup-llm-duties', 'success')
+          }
         }
 
         if (data === 'hotword-node') {

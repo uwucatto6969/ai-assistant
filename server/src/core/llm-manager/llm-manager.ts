@@ -16,12 +16,14 @@ import {
   LLM_NAME_WITH_VERSION,
   LLM_PATH,
   LLM_PROVIDER,
-  LLM_ACTIONS_CLASSIFIER_PATH
+  LLM_ACTIONS_CLASSIFIER_PATH,
+  IS_PRODUCTION_ENV
 } from '@/constants'
 import { LogHelper } from '@/helpers/log-helper'
 import { SystemHelper } from '@/helpers/system-helper'
 import { ConversationLogger } from '@/conversation-logger'
 import { LLMProviders } from '@/core/llm-manager/types'
+import warmUpLlmDuties from '@/core/llm-manager/warm-up-llm-duties'
 
 type LLMManagerLlama = Llama | null
 type LLMManagerModel = LlamaModel | null
@@ -39,6 +41,8 @@ export default class LLMManager {
   private _isLLMEnabled = false
   private _isLLMNLGEnabled = false
   private _isLLMActionRecognitionEnabled = false
+  private _shouldWarmUpLLMDuties = false
+  private _areLLMDutiesWarmedUp = false
   private _llama: LLMManagerLlama = null
   private _model: LLMManagerModel = null
   private _llmActionsClassifierContent: ActionsClassifierContent = null
@@ -65,6 +69,14 @@ export default class LLMManager {
 
   get isLLMActionRecognitionEnabled(): boolean {
     return this._isLLMActionRecognitionEnabled
+  }
+
+  get shouldWarmUpLLMDuties(): boolean {
+    return this._shouldWarmUpLLMDuties
+  }
+
+  get areLLMDutiesWarmedUp(): boolean {
+    return this._areLLMDutiesWarmedUp
   }
 
   constructor() {
@@ -216,6 +228,12 @@ export default class LLMManager {
       }
     }
 
+    this._shouldWarmUpLLMDuties =
+      IS_PRODUCTION_ENV &&
+      this._isLLMEnabled &&
+      LLM_PROVIDER === LLMProviders.Local
+    // this._shouldWarmUpLLMDuties = this._isLLMEnabled && LLM_PROVIDER === LLMProviders.Local
+
     try {
       // Post checking after loading the LLM
       await this.postCheck()
@@ -234,6 +252,28 @@ export default class LLMManager {
       LogHelper.error(`LLM Manager failed to single load: ${e}`)
 
       process.exit(1)
+    }
+
+    if (this._shouldWarmUpLLMDuties) {
+      this.warmUpLLMDuties()
+    }
+  }
+
+  public async warmUpLLMDuties(): Promise<void> {
+    if (this._shouldWarmUpLLMDuties) {
+      try {
+        LogHelper.title('LLM Manager')
+        LogHelper.info('Warming up LLM duties...')
+
+        await warmUpLlmDuties()
+
+        this._areLLMDutiesWarmedUp = true
+      } catch (e) {
+        LogHelper.title('LLM Manager')
+        LogHelper.error(`LLM Manager failed to warm up LLM duties: ${e}`)
+
+        this._areLLMDutiesWarmedUp = false
+      }
     }
   }
 
