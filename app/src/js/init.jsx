@@ -127,14 +127,15 @@ function Init() {
       )
   }, [])
 
-  const statuses = Object.keys(statusMap).reduce((acc, key) => {
-    // If config[key] is either not present or enabled, include it in status check
-    if (!config[key] || config[key].enabled) {
-      acc.push(statusMap[key])
+  const statuses = []
+  for (let key of Object.keys(statusMap)) {
+    // If LLM is not enabled, we don't need to check for LLM duties warm up
+    if (key === 'llmDutiesWarmUp' && !config.llm?.enabled) {
+      statuses.push('success')
+    } else if (!config[key] || config[key].enabled) {
+      statuses.push(statusMap[key])
     }
-
-    return acc
-  }, [])
+  }
 
   const areAllStatusesSuccess = statuses.every((status) => status === 'success')
 
