@@ -21,7 +21,9 @@ export default async (): Promise<void> => {
    */
   const conversationDuty = new ConversationLLMDuty()
   await conversationDuty.init()
-  await conversationDuty.execute()
+  await conversationDuty.execute({
+    isWarmingUp: true
+  })
 
   /**
    * Custom NER LLM Duty warm-up
@@ -53,5 +55,7 @@ export default async (): Promise<void> => {
     input: 'We have a wonderful planet.'
   })
   await paraphraseDuty.init()
-  await paraphraseDuty.execute()
+  await paraphraseDuty.execute({
+    isWarmingUp: true
+  })
 }

@@ -3,7 +3,9 @@ import type { LlamaChatSession, LlamaContext } from 'node-llama-cpp'
 import {
   type LLMDutyParams,
   type LLMDutyResult,
-  LLMDuty
+  type LLMDutyExecuteParams,
+  LLMDuty,
+  DEFAULT_EXECUTE_PARAMS
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER, LLM_PROVIDER, PERSONA, SOCKET_SERVER } from '@/core'
@@ -69,7 +71,9 @@ The sun is a star, it is the closest star to Earth.`
     }
   }
 
-  public async execute(): Promise<LLMDutyResult | null> {
+  public async execute(
+    params: LLMDutyExecuteParams = DEFAULT_EXECUTE_PARAMS
+  ): Promise<LLMDutyResult | null> {
     LogHelper.title(this.name)
     LogHelper.info('Executing...')
 
@@ -100,14 +104,16 @@ The sun is a star, it is the closest star to Earth.`
           session: ParaphraseLLMDuty.session,
           maxTokens: ParaphraseLLMDuty.context.contextSize,
           onToken: (chunk) => {
-            const detokenizedChunk = LLM_PROVIDER.cleanUpResult(
-              LLM_MANAGER.model.detokenize(chunk)
-            )
+            if (!params.isWarmingUp) {
+              const detokenizedChunk = LLM_PROVIDER.cleanUpResult(
+                LLM_MANAGER.model.detokenize(chunk)
+              )
 
-            SOCKET_SERVER.socket?.emit('llm-token', {
-              token: detokenizedChunk,
-              generationId
-            })
+              SOCKET_SERVER.socket?.emit('llm-token', {
+                token: detokenizedChunk,
+                generationId
+              })
+            }
           }
         })
       } else {

@@ -4,7 +4,9 @@ import type { MessageLog } from '@/types'
 import {
   type LLMDutyParams,
   type LLMDutyResult,
-  LLMDuty
+  type LLMDutyExecuteParams,
+  LLMDuty,
+  DEFAULT_EXECUTE_PARAMS
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
 import {
@@ -115,7 +117,9 @@ export class ConversationLLMDuty extends LLMDuty {
     }
   }
 
-  public async execute(): Promise<LLMDutyResult | null> {
+  public async execute(
+    params: LLMDutyExecuteParams = DEFAULT_EXECUTE_PARAMS
+  ): Promise<LLMDutyResult | null> {
     LogHelper.title(this.name)
     LogHelper.info('Executing...')
 
@@ -140,14 +144,16 @@ export class ConversationLLMDuty extends LLMDuty {
           session: ConversationLLMDuty.session,
           maxTokens: ConversationLLMDuty.context.contextSize,
           onToken: (chunk) => {
-            const detokenizedChunk = LLM_PROVIDER.cleanUpResult(
-              LLM_MANAGER.model.detokenize(chunk)
-            )
+            if (!params.isWarmingUp) {
+              const detokenizedChunk = LLM_PROVIDER.cleanUpResult(
+                LLM_MANAGER.model.detokenize(chunk)
+              )
 
-            SOCKET_SERVER.socket?.emit('llm-token', {
-              token: detokenizedChunk,
-              generationId
-            })
+              SOCKET_SERVER.socket?.emit('llm-token', {
+                token: detokenizedChunk,
+                generationId
+              })
+            }
           }
         })
       } else {
