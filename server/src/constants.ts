@@ -218,6 +218,8 @@ export const STT_PROVIDER = process.env['LEON_STT_PROVIDER']
 export const HAS_TTS = process.env['LEON_TTS'] === 'true'
 export const TTS_PROVIDER = process.env['LEON_TTS_PROVIDER']
 
+export const HAS_WARM_UP_LLM_DUTIES =
+  process.env['LEON_WARM_UP_LLM_DUTIES'] === 'true'
 export const HAS_OVER_HTTP = process.env['LEON_OVER_HTTP'] === 'true'
 export const HTTP_API_KEY = process.env['LEON_HTTP_API_KEY']
 export const HTTP_API_LANG = process.env['LEON_HTTP_API_LANG']

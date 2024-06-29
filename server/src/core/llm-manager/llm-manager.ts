@@ -17,7 +17,8 @@ import {
   LLM_PATH,
   LLM_PROVIDER,
   LLM_ACTIONS_CLASSIFIER_PATH,
-  IS_PRODUCTION_ENV
+  IS_PRODUCTION_ENV,
+  HAS_WARM_UP_LLM_DUTIES
 } from '@/constants'
 import { LogHelper } from '@/helpers/log-helper'
 import { SystemHelper } from '@/helpers/system-helper'
@@ -229,7 +230,7 @@ export default class LLMManager {
     }
 
     this._shouldWarmUpLLMDuties =
-      IS_PRODUCTION_ENV &&
+      (IS_PRODUCTION_ENV || HAS_WARM_UP_LLM_DUTIES) &&
       this._isLLMEnabled &&
       LLM_PROVIDER === LLMProviders.Local
     // this._shouldWarmUpLLMDuties = this._isLLMEnabled && LLM_PROVIDER === LLMProviders.Local

@@ -14,6 +14,9 @@
  */
 import { LLMDuties } from '@/core/llm-manager/types'
 
+export interface LLMDutyExecuteParams {
+  isWarmingUp?: boolean
+}
 export interface LLMDutyParams {
   input: string | null
   data?: Record<string, unknown>
@@ -27,11 +30,17 @@ export interface LLMDutyResult {
   data: Record<string, unknown>
 }
 
+export const DEFAULT_EXECUTE_PARAMS: LLMDutyExecuteParams = {
+  isWarmingUp: false
+}
+
 export abstract class LLMDuty {
   protected abstract readonly name: string
   protected abstract readonly systemPrompt: LLMDutyParams['systemPrompt']
   protected abstract input: LLMDutyParams['input']
 
   protected abstract init(): Promise<void>
-  protected abstract execute(): Promise<LLMDutyResult | null>
+  protected abstract execute(
+    params: LLMDutyExecuteParams
+  ): Promise<LLMDutyResult | null>
 }
