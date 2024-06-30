@@ -18,6 +18,7 @@ from ..utils import is_macos
 class TTS(nn.Module):
     def __init__(self,
                 language,
+                # auto, cpu, cuda, mps
                 device='auto',
                 use_hf=True,
                 config_path=None,
