@@ -31,7 +31,7 @@ type LLMManagerModel = LlamaModel | null
 type ActionsClassifierContent = string | null
 
 // Set to 0 to use the maximum threads supported by the current machine hardware
-export const LLM_THREADS = 4
+export const LLM_THREADS = 6
 
 /**
  * node-llama-cpp beta 3 docs:
