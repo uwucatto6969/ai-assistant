@@ -4,7 +4,8 @@ import type {
   Llama,
   LlamaModel,
   ChatHistoryItem,
-  LlamaChatSession
+  LlamaChatSession,
+  LlamaContext
 } from 'node-llama-cpp'
 
 import {
@@ -23,15 +24,33 @@ import {
 import { LogHelper } from '@/helpers/log-helper'
 import { SystemHelper } from '@/helpers/system-helper'
 import { ConversationLogger } from '@/conversation-logger'
-import { LLMProviders } from '@/core/llm-manager/types'
+import { LLMDuties, LLMProviders } from '@/core/llm-manager/types'
 import warmUpLlmDuties from '@/core/llm-manager/warm-up-llm-duties'
 
 type LLMManagerLlama = Llama | null
 type LLMManagerModel = LlamaModel | null
+type LLMManagerContext = LlamaContext | null
 type ActionsClassifierContent = string | null
 
 // Set to 0 to use the maximum threads supported by the current machine hardware
 export const LLM_THREADS = 6
+
+// const TRAINED_CONTEXT_SIZE = 8_192
+const MINIMUM_CORE_LLM_DUTIES_CONTEXT_SIZE = 2_048
+// Give some VRAM space because the TCP server uses some VRAM too
+// const TCP_SERVER_DELTA = 2_048
+const MAXIMUM_CORE_LLM_DUTIES_CONTEXT_SIZE = 2_048
+/**
+ * Core LLM duties are the ones that rely on the same context.
+ * Every core LLM duty counts as one sequence.
+ * This allows to dynamically allocate the context size.
+ * The conversation duty is not included because it needs a dedicated context to load history
+ */
+const CORE_LLM_DUTIES: LLMDuties[] = [
+  LLMDuties.CustomNER,
+  LLMDuties.ActionRecognition,
+  LLMDuties.Paraphrase
+]
 
 /**
  * node-llama-cpp beta 3 docs:
@@ -46,7 +65,9 @@ export default class LLMManager {
   private _areLLMDutiesWarmedUp = false
   private _llama: LLMManagerLlama = null
   private _model: LLMManagerModel = null
+  private _context: LLMManagerContext = null
   private _llmActionsClassifierContent: ActionsClassifierContent = null
+  private _coreLLMDuties = CORE_LLM_DUTIES
 
   get llama(): Llama {
     return this._llama as Llama
@@ -54,6 +75,10 @@ export default class LLMManager {
 
   get model(): LlamaModel {
     return this._model as LlamaModel
+  }
+
+  get context(): LlamaContext {
+    return this._context as LlamaContext
   }
 
   get llmActionsClassifierContent(): ActionsClassifierContent {
@@ -195,14 +220,36 @@ export default class LLMManager {
         this._model = await this._llama.loadModel({
           modelPath: LLM_PATH
         })
-        this._isLLMEnabled = true
 
         if (HAS_LLM_NLG) {
           this._isLLMNLGEnabled = true
+        } else {
+          // Remove the paraphrase duty if the NLG is not enabled
+          this._coreLLMDuties.splice(
+            this._coreLLMDuties.indexOf(LLMDuties.Paraphrase),
+            1
+          )
         }
+
         if (HAS_LLM_ACTION_RECOGNITION) {
           this._isLLMActionRecognitionEnabled = true
+        } else {
+          // Remove the action recognition duty if the action recognition is not enabled
+          this._coreLLMDuties.splice(
+            this._coreLLMDuties.indexOf(LLMDuties.ActionRecognition),
+            1
+          )
         }
+
+        this._context = await this._model.createContext({
+          sequences: this._coreLLMDuties.length,
+          threads: LLM_THREADS,
+          contextSize: {
+            min: MINIMUM_CORE_LLM_DUTIES_CONTEXT_SIZE,
+            max: MAXIMUM_CORE_LLM_DUTIES_CONTEXT_SIZE
+          }
+        })
+        this._isLLMEnabled = true
 
         LogHelper.title('LLM Manager')
         LogHelper.success(`${LLM_NAME_WITH_VERSION} LLM has been loaded`)
@@ -233,7 +280,6 @@ export default class LLMManager {
       (IS_PRODUCTION_ENV || HAS_WARM_UP_LLM_DUTIES) &&
       this._isLLMEnabled &&
       LLM_PROVIDER === LLMProviders.Local
-    // this._shouldWarmUpLLMDuties = this._isLLMEnabled && LLM_PROVIDER === LLMProviders.Local
 
     try {
       // Post checking after loading the LLM
@@ -266,7 +312,7 @@ export default class LLMManager {
         LogHelper.title('LLM Manager')
         LogHelper.info('Warming up LLM duties...')
 
-        await warmUpLlmDuties()
+        await warmUpLlmDuties(this._coreLLMDuties)
 
         this._areLLMDutiesWarmedUp = true
       } catch (e) {

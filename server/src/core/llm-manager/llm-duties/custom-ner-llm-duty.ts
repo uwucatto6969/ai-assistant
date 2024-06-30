@@ -1,4 +1,4 @@
-import type { LlamaChatSession, LlamaContext } from 'node-llama-cpp'
+import type { LlamaChatSession } from 'node-llama-cpp'
 
 import {
   type LLMDutyParams,
@@ -7,7 +7,6 @@ import {
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER, LLM_PROVIDER } from '@/core'
-import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
 import { LLMProviders, LLMDuties } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 
@@ -19,7 +18,6 @@ interface CustomNERLLMDutyParams<T> extends LLMDutyParams {
 
 export class CustomNERLLMDuty<T> extends LLMDuty {
   private static instance: CustomNERLLMDuty<unknown>
-  private static context: LlamaContext = null as unknown as LlamaContext
   private static session: LlamaChatSession = null as unknown as LlamaChatSession
   protected readonly systemPrompt =
     'You are an AI system that extracts entities (Named-Entity Recognition) from a given utterance. E.g. shopping list name = "shopping".'
@@ -45,17 +43,13 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
 
   public async init(): Promise<void> {
     if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-      if (!CustomNERLLMDuty.context || !CustomNERLLMDuty.session) {
-        CustomNERLLMDuty.context = await LLM_MANAGER.model.createContext({
-          threads: LLM_THREADS
-        })
-
+      if (!CustomNERLLMDuty.session) {
         const { LlamaChatSession } = await Function(
           'return import("node-llama-cpp")'
         )()
 
         CustomNERLLMDuty.session = new LlamaChatSession({
-          contextSequence: CustomNERLLMDuty.context.getSequence(),
+          contextSequence: LLM_MANAGER.context.getSequence(),
           systemPrompt: this.systemPrompt
         })
       }
@@ -79,7 +73,7 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
           session: CustomNERLLMDuty.session,
-          maxTokens: CustomNERLLMDuty.context.contextSize
+          maxTokens: LLM_MANAGER.context.contextSize
         })
       } else {
         completionResult = await LLM_PROVIDER.prompt(prompt, completionParams)
@@ -88,7 +82,9 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
       LogHelper.title(this.name)
       LogHelper.success('Duty executed')
       LogHelper.success(`Prompt — ${prompt}`)
-      LogHelper.success(`Output — ${JSON.stringify(completionResult?.output)}`)
+      LogHelper.success(`Output — ${JSON.stringify(completionResult?.output)}
+usedInputTokens: ${completionResult?.usedInputTokens}
+usedOutputTokens: ${completionResult?.usedOutputTokens}`)
 
       return completionResult as unknown as LLMDutyResult
     } catch (e) {

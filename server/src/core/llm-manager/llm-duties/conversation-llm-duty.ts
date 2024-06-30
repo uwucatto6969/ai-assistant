@@ -171,7 +171,9 @@ export class ConversationLLMDuty extends LLMDuty {
       LogHelper.title(this.name)
       LogHelper.success('Duty executed')
       LogHelper.success(`Prompt — ${prompt}`)
-      LogHelper.success(`Output — ${completionResult?.output}`)
+      LogHelper.success(`Output — ${completionResult?.output}
+usedInputTokens: ${completionResult?.usedInputTokens}
+usedOutputTokens: ${completionResult?.usedOutputTokens}`)
 
       return completionResult as unknown as LLMDutyResult
     } catch (e) {

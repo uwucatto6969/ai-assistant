@@ -1,4 +1,4 @@
-import type { LlamaChatSession, LlamaContext } from 'node-llama-cpp'
+import type { LlamaChatSession } from 'node-llama-cpp'
 
 import {
   type LLMDutyParams,
@@ -9,7 +9,6 @@ import {
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER, LLM_PROVIDER, PERSONA, SOCKET_SERVER } from '@/core'
-import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
 import { LLMProviders, LLMDuties } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 import { StringHelper } from '@/helpers/string-helper'
@@ -18,7 +17,6 @@ interface ParaphraseLLMDutyParams extends LLMDutyParams {}
 
 export class ParaphraseLLMDuty extends LLMDuty {
   private static instance: ParaphraseLLMDuty
-  private static context: LlamaContext = null as unknown as LlamaContext
   private static session: LlamaChatSession = null as unknown as LlamaChatSession
   protected systemPrompt = `You are an AI system that generates answers (Natural Language Generation).
 You must provide a text alternative according to your current mood and your personality.
@@ -52,11 +50,7 @@ The sun is a star, it is the closest star to Earth.`
 
   public async init(): Promise<void> {
     if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-      if (!ParaphraseLLMDuty.context || !ParaphraseLLMDuty.session) {
-        ParaphraseLLMDuty.context = await LLM_MANAGER.model.createContext({
-          threads: LLM_THREADS
-        })
-
+      if (!ParaphraseLLMDuty.session) {
         const { LlamaChatSession } = await Function(
           'return import("node-llama-cpp")'
         )()
@@ -64,7 +58,7 @@ The sun is a star, it is the closest star to Earth.`
         this.systemPrompt = PERSONA.getDutySystemPrompt(this.systemPrompt)
 
         ParaphraseLLMDuty.session = new LlamaChatSession({
-          contextSequence: ParaphraseLLMDuty.context.getSequence(),
+          contextSequence: LLM_MANAGER.context.getSequence(),
           systemPrompt: this.systemPrompt
         }) as LlamaChatSession
       }
@@ -102,7 +96,7 @@ The sun is a star, it is the closest star to Earth.`
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
           session: ParaphraseLLMDuty.session,
-          maxTokens: ParaphraseLLMDuty.context.contextSize,
+          maxTokens: LLM_MANAGER.context.contextSize,
           onToken: (chunk) => {
             if (!params.isWarmingUp) {
               const detokenizedChunk = LLM_PROVIDER.cleanUpResult(
@@ -123,7 +117,9 @@ The sun is a star, it is the closest star to Earth.`
       LogHelper.title(this.name)
       LogHelper.success('Duty executed')
       LogHelper.success(`Prompt — ${prompt}`)
-      LogHelper.success(`Output — ${completionResult?.output}`)
+      LogHelper.success(`Output — ${completionResult?.output}
+usedInputTokens: ${completionResult?.usedInputTokens}
+usedOutputTokens: ${completionResult?.usedOutputTokens}`)
 
       return completionResult as unknown as LLMDutyResult
     } catch (e) {

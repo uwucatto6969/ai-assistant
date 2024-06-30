@@ -1,4 +1,4 @@
-import type { LlamaChatSession, LlamaContext } from 'node-llama-cpp'
+import type { LlamaChatSession } from 'node-llama-cpp'
 
 import {
   type LLMDutyParams,
@@ -7,7 +7,6 @@ import {
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
 import { CONVERSATION_LOGGER, LLM_MANAGER, LLM_PROVIDER } from '@/core'
-import { LLM_THREADS } from '@/core/llm-manager/llm-manager'
 import { LLMProviders, LLMDuties } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 
@@ -21,7 +20,6 @@ const JSON_KEY_RESPONSE = 'intent_name'
 
 export class ActionRecognitionLLMDuty extends LLMDuty {
   private static instance: ActionRecognitionLLMDuty
-  private static context: LlamaContext = null as unknown as LlamaContext
   private static session: LlamaChatSession = null as unknown as LlamaChatSession
   protected readonly systemPrompt: LLMDutyParams['systemPrompt'] = null
   protected readonly name = 'Action Recognition LLM Duty'
@@ -64,21 +62,13 @@ RESPONSE GUIDELINES:
 
   public async init(): Promise<void> {
     if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-      if (
-        !ActionRecognitionLLMDuty.context ||
-        !ActionRecognitionLLMDuty.session
-      ) {
-        ActionRecognitionLLMDuty.context =
-          await LLM_MANAGER.model.createContext({
-            threads: LLM_THREADS
-          })
-
+      if (!ActionRecognitionLLMDuty.session) {
         const { LlamaChatSession } = await Function(
           'return import("node-llama-cpp")'
         )()
 
         ActionRecognitionLLMDuty.session = new LlamaChatSession({
-          contextSequence: ActionRecognitionLLMDuty.context.getSequence(),
+          contextSequence: LLM_MANAGER.context.getSequence(),
           systemPrompt: this.systemPrompt
         }) as LlamaChatSession
       }
@@ -121,7 +111,7 @@ RESPONSE GUIDELINES:
         completionResult = await LLM_PROVIDER.prompt(prompt, {
           ...completionParams,
           session: ActionRecognitionLLMDuty.session,
-          maxTokens: ActionRecognitionLLMDuty.context.contextSize
+          maxTokens: LLM_MANAGER.context.contextSize
         })
       } else {
         completionResult = await LLM_PROVIDER.prompt(prompt, completionParams)
@@ -140,7 +130,9 @@ RESPONSE GUIDELINES:
       LogHelper.title(this.name)
       LogHelper.success('Duty executed')
       LogHelper.success(`Prompt — ${prompt}`)
-      LogHelper.success(`Output — ${JSON.stringify(completionResult?.output)}`)
+      LogHelper.success(`Output — ${JSON.stringify(completionResult?.output)}
+usedInputTokens: ${completionResult?.usedInputTokens}
+usedOutputTokens: ${completionResult?.usedOutputTokens}`)
 
       return completionResult as unknown as LLMDutyResult
     } catch (e) {
