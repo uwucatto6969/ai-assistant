@@ -37,6 +37,8 @@ import { LogHelper } from '@/helpers/log-helper'
     .filter(
       (p) =>
         p.cmd?.includes(PYTHON_TCP_SERVER_BIN_PATH) ||
+        // PyTorch thread from the TCP server
+        p.name?.includes('pt_main_thread') ||
         (p.cmd === process.title && p.pid !== process.pid)
     )
     .forEach((p) => {
