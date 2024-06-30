@@ -58,7 +58,7 @@ class TCPServer:
             return
 
         self.tts = TTS(language='EN',
-                       device='auto',
+                       device='cpu',
                        config_path=TTS_MODEL_CONFIG_PATH,
                        ckpt_path=TTS_MODEL_PATH
                        )
