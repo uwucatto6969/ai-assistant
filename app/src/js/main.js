@@ -34,9 +34,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.leonConfigInfo = response.data
     const infoKeys = [
+      'timeZone',
       'telemetry',
-      'shouldWarmUpLLMDuties',
       'llm',
+      'shouldWarmUpLLMDuties',
+      'isLLMActionRecognitionEnabled',
+      'isLLMNLGEnabled',
       'stt',
       'tts',
       'mood',

@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify'
 
+import type { APIOptions } from '@/core/http-server/http-server'
 import {
   LEON_VERSION,
   HAS_AFTER_SPEECH,
@@ -12,7 +13,7 @@ import {
 } from '@/constants'
 import { LLM_MANAGER, PERSONA } from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
-import type { APIOptions } from '@/core/http-server/http-server'
+import { DateHelper } from '@/helpers/date-helper'
 
 export const getInfo: FastifyPluginAsync<APIOptions> = async (
   fastify,
@@ -34,6 +35,10 @@ export const getInfo: FastifyPluginAsync<APIOptions> = async (
         after_speech: HAS_AFTER_SPEECH,
         telemetry: IS_TELEMETRY_ENABLED,
         shouldWarmUpLLMDuties: LLM_MANAGER.shouldWarmUpLLMDuties,
+        isLLMActionRecognitionEnabled:
+          LLM_MANAGER.isLLMActionRecognitionEnabled,
+        isLLMNLGEnabled: LLM_MANAGER.isLLMNLGEnabled,
+        timeZone: DateHelper.getTimeZone(),
         llm: {
           enabled: LLM_MANAGER.isLLMEnabled,
           provider: LLM_PROVIDER
