@@ -187,8 +187,8 @@ export default class LLMManager {
         )()
 
         this._llama = await getLlama({
-          logLevel: LlamaLogLevel.disabled
-          // logLevel: LlamaLogLevel.debug
+          // logLevel: LlamaLogLevel.disabled
+          logLevel: LlamaLogLevel.debug
         })
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
