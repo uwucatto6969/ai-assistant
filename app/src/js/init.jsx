@@ -130,7 +130,10 @@ function Init() {
   const statuses = []
   for (let key of Object.keys(statusMap)) {
     // If LLM is not enabled, we don't need to check for LLM duties warm up
-    if (key === 'llmDutiesWarmUp' && !config.llm?.enabled) {
+    if (
+      key === 'llmDutiesWarmUp' &&
+      (!config.llm?.enabled || !config.llmDutiesWarmUp)
+    ) {
       statuses.push('success')
     } else if (!config[key] || config[key].enabled) {
       statuses.push(statusMap[key])
