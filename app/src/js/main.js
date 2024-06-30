@@ -27,16 +27,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     const input = document.querySelector('#utterance')
     const mic = document.querySelector('#mic-button')
     const v = document.querySelector('#version small')
+    const infoButton = document.querySelector('#info')
     const client = new Client(config.app, serverUrl, input)
     // let rec = {}
     // let chunks = []
 
     window.leonConfigInfo = response.data
+    const infoKeys = [
+      'telemetry',
+      'shouldWarmUpLLMDuties',
+      'llm',
+      'stt',
+      'tts',
+      'mood',
+      'version'
+    ]
+    const infoToDisplay = {}
+    infoKeys.forEach((key) => {
+      infoToDisplay[key] = window.leonConfigInfo[key]
+    })
 
     v.textContent += window.leonConfigInfo.version
 
     client.updateMood(window.leonConfigInfo.mood)
     client.init()
+
+    infoButton.addEventListener('click', () => {
+      alert(JSON.stringify(infoToDisplay, null, 2))
+    })
 
     /*if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices

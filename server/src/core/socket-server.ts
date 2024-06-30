@@ -106,7 +106,6 @@ export default class SocketServer {
 
         if (LLM_MANAGER.shouldWarmUpLLMDuties) {
           if (!LLM_MANAGER.areLLMDutiesWarmedUp) {
-            // TODO
             const interval = setInterval(() => {
               if (LLM_MANAGER.areLLMDutiesWarmedUp) {
                 clearInterval(interval)

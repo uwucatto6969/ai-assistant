@@ -261,11 +261,26 @@ textarea::-webkit-scrollbar-thumb {
   height: 40px;
 }
 
-#mood {
-  font-size: 16px;
+#top-container {
   position: absolute;
   top: 6%;
   color: var(--grey-color);
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+#mood {
+  position: relative;
+  font-size: 16px;
+}
+#info {
+  position: relative;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  color: var(--grey-color);
+  cursor: pointer;
+  font-size: inherit;
 }
 
 #feed {
