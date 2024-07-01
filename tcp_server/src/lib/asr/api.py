@@ -111,7 +111,7 @@ class ASR:
             self.log("Recording...")
 
             while self.is_recording:
-                data = self.stream.read(self.frames_per_buffer)
+                data = self.stream.read(self.frames_per_buffer, exception_on_overflow=False)
                 rms = audioop.rms(data, 2)  # width=2 for format=paInt16
 
                 if rms >= self.rms_threshold:
