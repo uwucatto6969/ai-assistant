@@ -1,6 +1,6 @@
 {
   "asr": {
-    "rms_threshold": 196,
+    "rms_mic_threshold": 196,
     "device": "auto"
   },
   "tts": {
