@@ -132,7 +132,7 @@ function Init() {
     // If LLM is not enabled, we don't need to check for LLM duties warm up
     if (
       key === 'llmDutiesWarmUp' &&
-      (!config.llm?.enabled || !config.llmDutiesWarmUp)
+      (!config.llm?.enabled || !config.shouldWarmUpLLMDuties)
     ) {
       statuses.push('success')
     } else if (!config[key] || config[key].enabled) {
