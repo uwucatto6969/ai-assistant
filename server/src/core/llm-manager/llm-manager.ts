@@ -12,8 +12,8 @@ import {
   HAS_LLM,
   HAS_LLM_ACTION_RECOGNITION,
   HAS_LLM_NLG,
-  LLM_MINIMUM_FREE_RAM,
-  LLM_MINIMUM_TOTAL_RAM,
+  LLM_MINIMUM_FREE_VRAM,
+  LLM_MINIMUM_TOTAL_VRAM,
   LLM_NAME_WITH_VERSION,
   LLM_PATH,
   LLM_PROVIDER,
@@ -180,11 +180,13 @@ export default class LLMManager {
     }
 
     if (LLM_PROVIDER === LLMProviders.Local) {
-      const freeRAMInGB = SystemHelper.getFreeRAM()
-      const totalRAMInGB = SystemHelper.getTotalRAM()
+      const [freeVRAMInGB, totalVRAMInGB] = await Promise.all([
+        SystemHelper.getFreeVRAM(),
+        SystemHelper.getTotalVRAM()
+      ])
       const isLLMPathFound = fs.existsSync(LLM_PATH)
-      const isCurrentFreeRAMEnough = LLM_MINIMUM_FREE_RAM <= freeRAMInGB * 4 // Multiply by 4 to boost probability of success
-      const isTotalRAMEnough = LLM_MINIMUM_TOTAL_RAM <= totalRAMInGB
+      const isCurrentFreeRAMEnough = LLM_MINIMUM_FREE_VRAM <= freeVRAMInGB
+      const isTotalRAMEnough = LLM_MINIMUM_TOTAL_VRAM <= totalVRAMInGB
 
       /**
        * In case the LLM is not set up and

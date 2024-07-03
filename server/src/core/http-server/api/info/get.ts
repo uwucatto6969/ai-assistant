@@ -14,6 +14,7 @@ import {
 import { LLM_MANAGER, PERSONA } from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
 import { DateHelper } from '@/helpers/date-helper'
+import { SystemHelper } from '@/helpers/system-helper'
 
 export const getInfo: FastifyPluginAsync<APIOptions> = async (
   fastify,
@@ -27,6 +28,20 @@ export const getInfo: FastifyPluginAsync<APIOptions> = async (
       const message = 'Information pulled.'
       LogHelper.success(message)
 
+      const [
+        gpuDeviceNames,
+        graphicsComputeAPI,
+        totalVRAM,
+        freeVRAM,
+        usedVRAM
+      ] = await Promise.all([
+        SystemHelper.getGPUDeviceNames(),
+        SystemHelper.getGraphicsComputeAPI(),
+        SystemHelper.getTotalVRAM(),
+        SystemHelper.getFreeVRAM(),
+        SystemHelper.getUsedVRAM()
+      ])
+
       reply.send({
         success: true,
         status: 200,
@@ -39,6 +54,11 @@ export const getInfo: FastifyPluginAsync<APIOptions> = async (
           LLM_MANAGER.isLLMActionRecognitionEnabled,
         isLLMNLGEnabled: LLM_MANAGER.isLLMNLGEnabled,
         timeZone: DateHelper.getTimeZone(),
+        gpu: gpuDeviceNames[0],
+        graphicsComputeAPI,
+        totalVRAM,
+        freeVRAM,
+        usedVRAM,
         llm: {
           enabled: LLM_MANAGER.isLLMEnabled,
           provider: LLM_PROVIDER

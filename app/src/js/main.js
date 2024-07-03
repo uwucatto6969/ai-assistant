@@ -36,6 +36,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const infoKeys = [
       'timeZone',
       'telemetry',
+      'gpu',
+      'graphicsComputeAPI',
+      'totalVRAM',
+      'freeVRAM',
+      'usedVRAM',
       'llm',
       'shouldWarmUpLLMDuties',
       'isLLMActionRecognitionEnabled',

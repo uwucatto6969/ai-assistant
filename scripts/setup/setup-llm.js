@@ -7,7 +7,7 @@ import { command } from 'execa'
 import {
   LLM_NAME,
   LLM_NAME_WITH_VERSION,
-  LLM_MINIMUM_TOTAL_RAM,
+  LLM_MINIMUM_TOTAL_VRAM,
   LLM_DIR_PATH,
   LLM_PATH,
   LLM_VERSION,
@@ -31,8 +31,27 @@ import { FileHelper } from '@/helpers/file-helper'
 const LLM_MANIFEST_PATH = path.join(LLM_DIR_PATH, 'manifest.json')
 let manifest = null
 
-function checkMinimumHardwareRequirements() {
-  return SystemHelper.getTotalRAM() >= LLM_MINIMUM_TOTAL_RAM
+async function checkMinimumHardwareRequirements() {
+  const { getLlama, LlamaLogLevel } = await Function(
+    'return import("node-llama-cpp")'
+  )()
+  const llama = await getLlama({
+    logLevel: LlamaLogLevel.disabled
+  })
+
+  if (!(await SystemHelper.hasGPU(llama))) {
+    return false
+  }
+
+  LogHelper.info(
+    `GPU detected: ${(await SystemHelper.getGPUDeviceNames(llama))[0]}`
+  )
+  LogHelper.info(
+    `Graphics compute API: ${await SystemHelper.getGraphicsComputeAPI(llama)}`
+  )
+  LogHelper.info(`Total VRAM: ${await SystemHelper.getTotalVRAM(llama)} GB`)
+
+  return (await SystemHelper.getTotalVRAM(llama)) >= LLM_MINIMUM_TOTAL_VRAM
 }
 
 async function downloadLLM() {
@@ -162,13 +181,19 @@ async function downloadAndCompileLlamaCPP() {
 }
 
 export default async () => {
-  const canSetupLLM = checkMinimumHardwareRequirements()
+  const canSetupLLM = await checkMinimumHardwareRequirements()
 
   if (!canSetupLLM) {
-    const totalRAM = SystemHelper.getTotalRAM()
+    const { getLlama, LlamaLogLevel } = await Function(
+      'return import("node-llama-cpp")'
+    )()
+    const llama = await getLlama({
+      logLevel: LlamaLogLevel.disabled
+    })
+    const totalVRAM = await SystemHelper.getTotalVRAM(llama)
 
     LogHelper.warning(
-      `LLM requires at least ${LLM_MINIMUM_TOTAL_RAM} of total RAM. Current total RAM is ${totalRAM} GB. No worries though, Leon can still run without LLM.`
+      `LLM requires at least ${LLM_MINIMUM_TOTAL_VRAM} GB of total VRAM. Current total VRAM is ${totalVRAM} GB. No worries though, Leon can still run without LLM.`
     )
   } else {
     await downloadLLM()

@@ -24,14 +24,14 @@ export class LogHelper {
    * This one looks obvious :)
    */
   public static info(value: string): void {
-    console.info('\x1b[36mℹ️  %s\x1b[0m', value)
+    console.info('\x1b[36mℹ️ %s\x1b[0m', value)
   }
 
   /**
    * This one looks obvious :)
    */
   public static warning(value: string): void {
-    console.warn('\x1b[33m⚠️  %s\x1b[0m', value)
+    console.warn('\x1b[33m⚠️ %s\x1b[0m', value)
   }
 
   /**

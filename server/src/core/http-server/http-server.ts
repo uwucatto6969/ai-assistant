@@ -19,6 +19,7 @@ import { llmInferencePlugin } from '@/core/http-server/api/llm-inference'
 import { keyMidd } from '@/core/http-server/plugins/key'
 import { utterancePlugin } from '@/core/http-server/api/utterance'
 import { LLM_MANAGER, PERSONA } from '@/core'
+import { SystemHelper } from '@/helpers/system-helper'
 
 const API_VERSION = 'v1'
 
@@ -64,6 +65,12 @@ export default class HTTPServer {
     LogHelper.info(`LLM provider: ${LLM_PROVIDER}`)
 
     LogHelper.info(`Mood: ${PERSONA.mood.type}`)
+
+    LogHelper.info(`GPU: ${(await SystemHelper.getGPUDeviceNames())[0]}`)
+    LogHelper.info(
+      `Graphics compute API: ${await SystemHelper.getGraphicsComputeAPI()}`
+    )
+    LogHelper.info(`Total VRAM: ${await SystemHelper.getTotalVRAM()} GB`)
 
     const isLLMEnabled = LLM_MANAGER.isLLMEnabled ? 'enabled' : 'disabled'
     LogHelper.info(`LLM: ${isLLMEnabled}`)

@@ -283,8 +283,8 @@ export const LLM_FILE_NAME = `Lexi-Llama-${LLM_VERSION}.gguf`
 export const LLM_NAME_WITH_VERSION = `${LLM_NAME} (${LLM_VERSION})`
 export const LLM_DIR_PATH = path.join(MODELS_PATH, 'llm')
 export const LLM_PATH = path.join(LLM_DIR_PATH, LLM_FILE_NAME)
-export const LLM_MINIMUM_TOTAL_RAM = 8
-export const LLM_MINIMUM_FREE_RAM = 8
+export const LLM_MINIMUM_TOTAL_VRAM = 8
+export const LLM_MINIMUM_FREE_VRAM = 8
 /*export const LLM_HF_DOWNLOAD_URL = NetworkHelper.setHuggingFaceURL(
   'https://huggingface.co/QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct.Q5_K_S.gguf?download=true'
 )*/
