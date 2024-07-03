@@ -207,6 +207,20 @@ export class SystemHelper {
   }
 
   /**
+   * Check if the machine has a GPU
+   * @example hasGPU() // true
+   */
+  public static async hasGPU(): Promise<boolean> {
+    const { LLM_MANAGER } = await import('@/core')
+
+    if (LLM_MANAGER.llama) {
+      return !!LLM_MANAGER.llama.gpu
+    }
+
+    return false
+  }
+
+  /**
    * Get the graphics compute API used by the machine
    * @example getGraphicsComputeAPI() // 'cuda'
    */
