@@ -110,7 +110,7 @@ export class SystemHelper {
   }
 
   /**
-   * Get the number of cores on your machine
+   * Get the number of cores on the machine
    * @example getNumberOfCPUCores() // 8
    */
   public static getNumberOfCPUCores(): number {
@@ -118,7 +118,7 @@ export class SystemHelper {
   }
 
   /**
-   * Get the total amount of memory (in GB) on your machine
+   * Get the total amount of memory (in GB) on the machine
    * @example getTotalRAM() // 4
    */
   public static getTotalRAM(): number {
@@ -126,7 +126,7 @@ export class SystemHelper {
   }
 
   /**
-   * Get the amount of free memory (in GB) on your machine
+   * Get the amount of free memory (in GB) on the machine
    * @example getFreeRAM() // 6
    */
   public static getFreeRAM(): number {
@@ -232,5 +232,53 @@ export class SystemHelper {
     }
 
     return GraphicsComputeAPIs.CPU
+  }
+
+  /**
+   * Get the amount of used VRAM (in GB) on the machine
+   * @example getUsedVRAM() // 6.04
+   */
+  public static async getUsedVRAM(): Promise<number> {
+    const { LLM_MANAGER } = await import('@/core')
+
+    if (LLM_MANAGER.llama) {
+      const vramState = await LLM_MANAGER.llama.getVramState()
+
+      return Number((vramState.used / (1_024 * 1_024 * 1_024)).toFixed(2))
+    }
+
+    return 0
+  }
+
+  /**
+   * Get the total amount of VRAM (in GB) on the machine
+   * @example getTotalVRAM() // 12
+   */
+  public static async getTotalVRAM(): Promise<number> {
+    const { LLM_MANAGER } = await import('@/core')
+
+    if (LLM_MANAGER.llama) {
+      const vramState = await LLM_MANAGER.llama.getVramState()
+
+      return Number((vramState.total / (1_024 * 1_024 * 1_024)).toFixed(2))
+    }
+
+    return 0
+  }
+
+  /**
+   * Get the amount of free VRAM (in GB) on the machine
+   * @example getFreeVRAM() // 6
+   */
+  public static async getFreeVRAM(): Promise<number> {
+    const { LLM_MANAGER } = await import('@/core')
+
+    if (LLM_MANAGER.llama) {
+      const vramState = await LLM_MANAGER.llama.getVramState()
+
+      return Number((vramState.free / (1_024 * 1_024 * 1_024)).toFixed(2))
+    }
+
+    return 0
   }
 }

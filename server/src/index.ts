@@ -28,7 +28,6 @@ import { Telemetry } from '@/telemetry'
 // import { ActionRecognitionLLMDuty } from '@/core/llm-manager/llm-duties/action-recognition-llm-duty'
 import { LangHelper } from '@/helpers/lang-helper'
 import { LogHelper } from '@/helpers/log-helper'
-import { SystemHelper } from '@/helpers/system-helper'
 ;(async (): Promise<void> => {
   process.title = 'leon'
 
@@ -85,8 +84,6 @@ import { SystemHelper } from '@/helpers/system-helper'
   } catch (e) {
     LogHelper.error(`LLM Manager failed to load: ${e}`)
   }
-
-  await SystemHelper.getGPUDeviceNames()
 
   /*const actionRecognitionDuty = new ActionRecognitionLLMDuty({
     input: 'Provide a number'

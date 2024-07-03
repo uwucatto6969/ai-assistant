@@ -165,11 +165,6 @@ export default class LLMManager {
         // logLevel: LlamaLogLevel.disabled
         logLevel: LlamaLogLevel.debug
       })
-
-      // TODO: use VRAM to judge for LLM instead of RAM. But cannot use CPU though?
-
-      console.log(this._llama?.gpu)
-      console.log(await this._llama?.getVramState())
     } catch (e) {
       LogHelper.title('LLM Manager')
       LogHelper.error(`LLM Manager failed to load: ${e}`)
