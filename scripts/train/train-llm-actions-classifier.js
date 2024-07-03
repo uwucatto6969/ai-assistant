@@ -42,14 +42,17 @@ export default () =>
             const actionName = actionsKeys[j]
             const actionObj = actions[actionName]
 
-            // Skip actions without utterance samples
-            if (!actionObj.utterance_samples) {
+            /**
+             * Skip actions without utterance samples to make sure we only match
+             * actions that are actionable from an utterance
+             */
+            if (!actionObj.utterance_samples || !actionObj.description) {
               continue
             }
 
             const actionObjWithUtteranceSamples = {
               name: `${currentDomain.domainId}.${skillName}.${actionName}`,
-              // only grab the first utterance sample when utterance_samples exists
+              // Only grab the first utterance sample when utterance_samples exists
               sample: actionObj.utterance_samples
                 ? actionObj.utterance_samples[0]
                 : ''

@@ -179,6 +179,12 @@ export const skillConfigSchemaObject = Type.Strict(
       Type.Object(
         {
           type: Type.Union(skillActionTypes),
+          /*description: Type.String({
+            minLength: 5,
+            maxLength: 64,
+            description:
+              'This helps to understand what your action does. Also used by the LLM (Large Language Model) to match the action.'
+          }),*/
           disable_llm_nlg: Type.Optional(
             Type.Boolean({
               description:
