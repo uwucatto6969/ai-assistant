@@ -168,7 +168,6 @@ export default class LLMManager {
 
       // TODO: use VRAM to judge for LLM instead of RAM. But cannot use CPU though?
 
-      console.log(await this._llama?.getGpuDeviceNames())
       console.log(this._llama?.gpu)
       console.log(await this._llama?.getVramState())
     } catch (e) {

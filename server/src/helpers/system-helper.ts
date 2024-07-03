@@ -8,12 +8,12 @@ enum OSNames {
   Linux = 'Linux',
   Unknown = 'Unknown'
 }
-/*enum GraphicsComputeAPIs {
+enum GraphicsComputeAPIs {
   CPU = 'cpu',
   CUDA = 'cuda',
   Vulkan = 'vulkan',
   Metal = 'metal'
-}*/
+}
 export enum BinaryFolderNames {
   Linux64Bit = 'linux-x86_64', // Linux 64-bit (Intel)
   LinuxARM64 = 'linux-aarch64', // Linux 64-bit (ARM)
@@ -204,5 +204,19 @@ export class SystemHelper {
     }
 
     return []
+  }
+
+  /**
+   * Get the graphics compute API used by the machine
+   * @example getGraphicsComputeAPI() // 'cuda'
+   */
+  public static async getGraphicsComputeAPI(): Promise<GraphicsComputeAPIs> {
+    const { LLM_MANAGER } = await import('@/core')
+
+    if (LLM_MANAGER.llama && LLM_MANAGER.llama.gpu) {
+      return LLM_MANAGER.llama.gpu as GraphicsComputeAPIs
+    }
+
+    return GraphicsComputeAPIs.CPU
   }
 }
