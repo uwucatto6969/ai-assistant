@@ -8,6 +8,12 @@ enum OSNames {
   Linux = 'Linux',
   Unknown = 'Unknown'
 }
+/*enum GraphicsComputeAPIs {
+  CPU = 'cpu',
+  CUDA = 'cuda',
+  Vulkan = 'vulkan',
+  Metal = 'metal'
+}*/
 export enum BinaryFolderNames {
   Linux64Bit = 'linux-x86_64', // Linux 64-bit (Intel)
   LinuxARM64 = 'linux-aarch64', // Linux 64-bit (ARM)
@@ -184,5 +190,19 @@ export class SystemHelper {
     const { type } = this.getInformation()
 
     return type === OSTypes.Linux
+  }
+
+  /**
+   * Get the names of the GPU devices on the machine
+   * @example getGPUDeviceNames() // ['Apple M1 Pro']
+   */
+  public static async getGPUDeviceNames(): Promise<string[]> {
+    const { LLM_MANAGER } = await import('@/core')
+
+    if (LLM_MANAGER.llama) {
+      return LLM_MANAGER.llama.getGpuDeviceNames()
+    }
+
+    return []
   }
 }

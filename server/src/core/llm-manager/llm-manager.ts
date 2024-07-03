@@ -152,6 +152,30 @@ export default class LLMManager {
   }
 
   public async loadLLM(): Promise<void> {
+    /**
+     * Get Llama even if LLM is not enabled because it provides good utilities
+     * for graphics card information and other useful stuff
+     */
+    try {
+      const { LlamaLogLevel, getLlama } = await Function(
+        'return import("node-llama-cpp")'
+      )()
+
+      this._llama = await getLlama({
+        // logLevel: LlamaLogLevel.disabled
+        logLevel: LlamaLogLevel.debug
+      })
+
+      // TODO: use VRAM to judge for LLM instead of RAM. But cannot use CPU though?
+
+      console.log(await this._llama?.getGpuDeviceNames())
+      console.log(this._llama?.gpu)
+      console.log(await this._llama?.getVramState())
+    } catch (e) {
+      LogHelper.title('LLM Manager')
+      LogHelper.error(`LLM Manager failed to load: ${e}`)
+    }
+
     if (!HAS_LLM) {
       LogHelper.title('LLM Manager')
       LogHelper.warning(
@@ -207,14 +231,6 @@ export default class LLMManager {
       }
 
       try {
-        const { LlamaLogLevel, getLlama } = await Function(
-          'return import("node-llama-cpp")'
-        )()
-
-        this._llama = await getLlama({
-          // logLevel: LlamaLogLevel.disabled
-          logLevel: LlamaLogLevel.debug
-        })
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         this._model = await this._llama.loadModel({
