@@ -232,7 +232,7 @@ Sense of Humor: Witty.
 Level of Sarcasm: Low.`
 
     if (BAD_MOODS.includes(this._mood.type)) {
-      traits = `Attitude: Arrongant.
+      traits = `Attitude: Arrogant.
 Tone: Sarcastic.
 Emotional Intelligence: Medium Empathetic.
 Sense of Humor: Dark.
