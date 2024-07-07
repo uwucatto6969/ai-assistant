@@ -46,7 +46,7 @@ export default () =>
              * Skip actions without utterance samples to make sure we only match
              * actions that are actionable from an utterance
              */
-            if (!actionObj.utterance_samples || !actionObj.description) {
+            if (!actionObj.utterance_samples) {
               continue
             }
 
