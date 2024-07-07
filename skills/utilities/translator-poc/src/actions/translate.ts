@@ -8,6 +8,8 @@ export const run: ActionFunction = async function (params) {
   const network = new Network({
     baseURL: `${process.env['LEON_HOST']}:${process.env['LEON_PORT']}/api/v1`
   })
+  const systemPrompt = `You are an AI system that translates a given text to "${targetLanguage}" by auto-detecting the source language. You do not add any context to your response.`
+  const prompt = `Text to translate: "${textToTranslate}"`
 
   /**
    * TODO: create SDK methods to handle request and response for every LLM duty
@@ -16,11 +18,10 @@ export const run: ActionFunction = async function (params) {
     url: '/llm-inference',
     method: 'POST',
     data: {
-      dutyType: 'translation',
-      input: textToTranslate,
+      dutyType: 'custom',
+      input: prompt,
       data: {
-        target: targetLanguage,
-        autoDetectLanguage: true
+        systemPrompt
       }
     }
   })

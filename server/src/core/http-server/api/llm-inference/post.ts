@@ -3,11 +3,10 @@ import type { FastifyPluginAsync } from 'fastify'
 import type { APIOptions } from '@/core/http-server/http-server'
 import { LLMDuties } from '@/core/llm-manager/types'
 import { CustomNERLLMDuty } from '@/core/llm-manager/llm-duties/custom-ner-llm-duty'
-import { SummarizationLLMDuty } from '@/core/llm-manager/llm-duties/summarization-llm-duty'
-import { TranslationLLMDuty } from '@/core/llm-manager/llm-duties/translation-llm-duty'
 import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
 import { ConversationLLMDuty } from '@/core/llm-manager/llm-duties/conversation-llm-duty'
 import { ActionRecognitionLLMDuty } from '@/core/llm-manager/llm-duties/action-recognition-llm-duty'
+import { CustomLLMDuty } from '@/core/llm-manager/llm-duties/custom-llm-duty'
 import { LLM_MANAGER } from '@/core'
 
 interface PostLLMInferenceSchema {
@@ -22,10 +21,9 @@ interface PostLLMInferenceSchema {
 const LLM_DUTIES_MAP = {
   [LLMDuties.ActionRecognition]: ActionRecognitionLLMDuty,
   [LLMDuties.CustomNER]: CustomNERLLMDuty,
-  [LLMDuties.Summarization]: SummarizationLLMDuty,
-  [LLMDuties.Translation]: TranslationLLMDuty,
   [LLMDuties.Paraphrase]: ParaphraseLLMDuty,
-  [LLMDuties.Conversation]: ConversationLLMDuty
+  [LLMDuties.Conversation]: ConversationLLMDuty,
+  [LLMDuties.Custom]: CustomLLMDuty
 }
 
 export const postLLMInference: FastifyPluginAsync<APIOptions> = async (
