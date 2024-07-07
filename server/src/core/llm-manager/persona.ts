@@ -1,4 +1,4 @@
-import { SOCKET_SERVER } from '@/core'
+import { EVENT_EMITTER, SOCKET_SERVER } from '@/core'
 import { LogHelper } from '@/helpers/log-helper'
 import { StringHelper } from '@/helpers/string-helper'
 import { DateHelper } from '@/helpers/date-helper'
@@ -92,16 +92,15 @@ export default class Persona {
       this.setMood()
       setInterval(() => {
         this.setMood()
+        EVENT_EMITTER.emit('persona_new-mood-set')
       }, 60_000 * 60)
 
       this.setContextInfo()
-      setInterval(() => {
-        this.setContextInfo()
-      }, 60_000 * 5)
-
       this.setOwnerInfo()
       setInterval(() => {
+        this.setContextInfo()
         this.setOwnerInfo()
+        EVENT_EMITTER.emit('persona_new-info-set')
       }, 60_000 * 5)
     }
   }

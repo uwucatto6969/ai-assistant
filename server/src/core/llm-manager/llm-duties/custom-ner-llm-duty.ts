@@ -2,8 +2,10 @@ import type { LlamaChatSession } from 'node-llama-cpp'
 
 import {
   type LLMDutyParams,
+  type LLMDutyInitParams,
   type LLMDutyResult,
-  LLMDuty
+  LLMDuty,
+  DEFAULT_INIT_PARAMS
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
 import { LLM_MANAGER, LLM_PROVIDER } from '@/core'
@@ -41,17 +43,39 @@ export class CustomNERLLMDuty<T> extends LLMDuty {
     this.data = params.data
   }
 
-  public async init(): Promise<void> {
+  public async init(
+    params: LLMDutyInitParams = DEFAULT_INIT_PARAMS
+  ): Promise<void> {
     if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-      if (!CustomNERLLMDuty.session) {
-        const { LlamaChatSession } = await Function(
-          'return import("node-llama-cpp")'
-        )()
+      if (!CustomNERLLMDuty.session || params.force) {
+        LogHelper.title(this.name)
+        LogHelper.info('Initializing...')
 
-        CustomNERLLMDuty.session = new LlamaChatSession({
-          contextSequence: LLM_MANAGER.context.getSequence(),
-          systemPrompt: this.systemPrompt
-        })
+        try {
+          const { LlamaChatSession } = await Function(
+            'return import("node-llama-cpp")'
+          )()
+
+          /**
+           * Dispose the previous session and sequence
+           * to give space for the new one
+           */
+          if (params.force) {
+            CustomNERLLMDuty.session.dispose({ disposeSequence: true })
+            LogHelper.info('Session disposed')
+          }
+
+          CustomNERLLMDuty.session = new LlamaChatSession({
+            contextSequence: LLM_MANAGER.context.getSequence(),
+            autoDisposeSequence: true,
+            systemPrompt: this.systemPrompt
+          })
+
+          LogHelper.success('Initialized')
+        } catch (e) {
+          LogHelper.title(this.name)
+          LogHelper.error(`Failed to initialize: ${e}`)
+        }
       }
     }
   }

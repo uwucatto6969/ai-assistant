@@ -1,3 +1,5 @@
+import { EventEmitter } from 'node:events'
+
 import {
   HOST,
   PORT,
@@ -40,6 +42,8 @@ export const PYTHON_TCP_CLIENT = new TCPClient(
   String(PYTHON_TCP_SERVER_HOST),
   PYTHON_TCP_SERVER_PORT
 )
+
+export const EVENT_EMITTER = new EventEmitter()
 
 /**
  * Register core singletons

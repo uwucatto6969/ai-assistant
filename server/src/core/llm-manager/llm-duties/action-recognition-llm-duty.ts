@@ -2,8 +2,10 @@ import type { LlamaChatSession } from 'node-llama-cpp'
 
 import {
   type LLMDutyParams,
+  type LLMDutyInitParams,
   type LLMDutyResult,
-  LLMDuty
+  LLMDuty,
+  DEFAULT_INIT_PARAMS
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
 import { CONVERSATION_LOGGER, LLM_MANAGER, LLM_PROVIDER } from '@/core'
@@ -60,17 +62,39 @@ RESPONSE GUIDELINES:
 * If the utterance does not match any of the intents, respond with { "${JSON_KEY_RESPONSE}": "not_found" }. Do not make up new intents by yourself.`
   }
 
-  public async init(): Promise<void> {
+  public async init(
+    params: LLMDutyInitParams = DEFAULT_INIT_PARAMS
+  ): Promise<void> {
     if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-      if (!ActionRecognitionLLMDuty.session) {
-        const { LlamaChatSession } = await Function(
-          'return import("node-llama-cpp")'
-        )()
+      if (!ActionRecognitionLLMDuty.session || params.force) {
+        LogHelper.title(this.name)
+        LogHelper.info('Initializing...')
 
-        ActionRecognitionLLMDuty.session = new LlamaChatSession({
-          contextSequence: LLM_MANAGER.context.getSequence(),
-          systemPrompt: this.systemPrompt
-        }) as LlamaChatSession
+        try {
+          const { LlamaChatSession } = await Function(
+            'return import("node-llama-cpp")'
+          )()
+
+          /**
+           * Dispose the previous session and sequence
+           * to give space for the new one
+           */
+          if (params.force) {
+            ActionRecognitionLLMDuty.session.dispose({ disposeSequence: true })
+            LogHelper.info('Session disposed')
+          }
+
+          ActionRecognitionLLMDuty.session = new LlamaChatSession({
+            contextSequence: LLM_MANAGER.context.getSequence(),
+            autoDisposeSequence: true,
+            systemPrompt: this.systemPrompt
+          }) as LlamaChatSession
+
+          LogHelper.success('Initialized')
+        } catch (e) {
+          LogHelper.title(this.name)
+          LogHelper.error(`Failed to initialize: ${e}`)
+        }
       }
     }
   }

@@ -3,12 +3,20 @@ import type { LlamaChatSession } from 'node-llama-cpp'
 import {
   type LLMDutyParams,
   type LLMDutyResult,
+  type LLMDutyInitParams,
   type LLMDutyExecuteParams,
   LLMDuty,
+  DEFAULT_INIT_PARAMS,
   DEFAULT_EXECUTE_PARAMS
 } from '@/core/llm-manager/llm-duty'
 import { LogHelper } from '@/helpers/log-helper'
-import { LLM_MANAGER, LLM_PROVIDER, PERSONA, SOCKET_SERVER } from '@/core'
+import {
+  EVENT_EMITTER,
+  LLM_MANAGER,
+  LLM_PROVIDER,
+  PERSONA,
+  SOCKET_SERVER
+} from '@/core'
 import { LLMProviders, LLMDuties } from '@/core/llm-manager/types'
 import { LLM_PROVIDER as LLM_PROVIDER_NAME } from '@/constants'
 import { StringHelper } from '@/helpers/string-helper'
@@ -18,6 +26,7 @@ interface ParaphraseLLMDutyParams extends LLMDutyParams {}
 export class ParaphraseLLMDuty extends LLMDuty {
   private static instance: ParaphraseLLMDuty
   private static session: LlamaChatSession = null as unknown as LlamaChatSession
+  protected static finalSystemPrompt = ''
   protected systemPrompt = `You are an AI system that generates answers (Natural Language Generation).
 You must provide a text alternative according to your current mood and your personality.
 Never indicate that it's a modified version.
@@ -43,24 +52,55 @@ The sun is a star, it is the closest star to Earth.`
       LogHelper.success('New instance')
 
       ParaphraseLLMDuty.instance = this
+
+      EVENT_EMITTER.on('persona_new-mood-set', async () => {
+        await this.init({ force: true })
+      })
+      EVENT_EMITTER.on('persona_new-info-set', async () => {
+        await this.init({ force: true })
+      })
     }
 
     this.input = params.input
   }
 
-  public async init(): Promise<void> {
+  public async init(
+    params: LLMDutyInitParams = DEFAULT_INIT_PARAMS
+  ): Promise<void> {
     if (LLM_PROVIDER_NAME === LLMProviders.Local) {
-      if (!ParaphraseLLMDuty.session) {
-        const { LlamaChatSession } = await Function(
-          'return import("node-llama-cpp")'
-        )()
+      if (!ParaphraseLLMDuty.session || params.force) {
+        LogHelper.title(this.name)
+        LogHelper.info('Initializing...')
 
-        this.systemPrompt = PERSONA.getDutySystemPrompt(this.systemPrompt)
+        try {
+          const { LlamaChatSession } = await Function(
+            'return import("node-llama-cpp")'
+          )()
 
-        ParaphraseLLMDuty.session = new LlamaChatSession({
-          contextSequence: LLM_MANAGER.context.getSequence(),
-          systemPrompt: this.systemPrompt
-        }) as LlamaChatSession
+          /**
+           * Dispose the previous session and sequence
+           * to give space for the new one
+           */
+          if (params.force) {
+            ParaphraseLLMDuty.session.dispose({ disposeSequence: true })
+            LogHelper.info('Session disposed')
+          }
+
+          ParaphraseLLMDuty.finalSystemPrompt = PERSONA.getDutySystemPrompt(
+            this.systemPrompt
+          )
+
+          ParaphraseLLMDuty.session = new LlamaChatSession({
+            contextSequence: LLM_MANAGER.context.getSequence(),
+            autoDisposeSequence: true,
+            systemPrompt: ParaphraseLLMDuty.finalSystemPrompt
+          }) as LlamaChatSession
+
+          LogHelper.success('Initialized')
+        } catch (e) {
+          LogHelper.title(this.name)
+          LogHelper.error(`Failed to initialize: ${e}`)
+        }
       }
     }
   }
@@ -75,7 +115,7 @@ The sun is a star, it is the closest star to Earth.`
       const prompt = `Modify the following text but do not say you modified it: ${this.input}`
       const completionParams = {
         dutyType: LLMDuties.Paraphrase,
-        systemPrompt: this.systemPrompt,
+        systemPrompt: ParaphraseLLMDuty.finalSystemPrompt,
         temperature: 0.8
       }
       let completionResult
