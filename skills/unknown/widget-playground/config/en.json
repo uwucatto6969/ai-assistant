@@ -3,7 +3,7 @@
   "actions": {
     "run": {
       "type": "logic",
-      "utterance_samples": []
+      "utterance_samples": ["Invoke playground"]
     }
   },
   "answers": {
