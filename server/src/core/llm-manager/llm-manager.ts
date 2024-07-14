@@ -230,7 +230,8 @@ export default class LLMManager {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         this._model = await this._llama.loadModel({
-          modelPath: LLM_PATH
+          modelPath: LLM_PATH,
+          defaultContextFlashAttention: true
         })
 
         if (HAS_LLM_NLG) {
