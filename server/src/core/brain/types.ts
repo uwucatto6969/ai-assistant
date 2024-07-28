@@ -88,6 +88,7 @@ export interface SkillAnswerOutput extends IntentObject {
     answer: SkillAnswerConfigSchema
     core?: SkillAnswerCoreData
     widget?: WidgetWrapper
+    widgetWithHandlers?: unknown
   }
 }
 

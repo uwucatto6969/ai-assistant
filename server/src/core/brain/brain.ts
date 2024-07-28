@@ -431,7 +431,16 @@ export default class Brain {
         LogHelper.info(data.toString())
 
         if (skillAnswer.output.widget) {
-          SOCKET_SERVER.socket?.emit('widget', skillAnswer.output.widget)
+          // TODO
+          console.log(
+            'skillAnswer.output',
+            skillAnswer.output.widgetWithHandlers
+          )
+          // SOCKET_SERVER.socket?.emit('widget', skillAnswer.output.widget)
+          SOCKET_SERVER.socket?.emit(
+            'widget',
+            skillAnswer.output.widgetWithHandlers
+          )
         }
 
         const { answer } = skillAnswer.output

@@ -13,7 +13,18 @@ export class PlaygroundTestWidget extends Widget<Params> {
   }
 
   public render(): WidgetComponent {
+    function testo() {
+      console.log('testo')
+      return 'testi'
+    }
+
     const children = this.params.value1 + ' ' + this.params.value2
-    return new Button({ children })
+    return new Button({
+      children,
+      secondary: true,
+      onClick: (): void => {
+        console.log('test')
+      }
+    })
   }
 }

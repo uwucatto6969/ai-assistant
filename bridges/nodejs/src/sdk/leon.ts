@@ -1,3 +1,6 @@
+import React from 'react'
+import ReactDOMServer from 'react-dom/server'
+
 import type {
   AnswerData,
   AnswerInput,
@@ -119,6 +122,35 @@ class Leon {
           ...answerInput.widget.wrapperProps,
           children: [answerInput.widget.render()]
         })
+        // dynamically import the TSX component
+        const { default: tsxComponent } = await import(
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
+          '@@/skills/unknown/widget-playground/src/widgets/my-component.tsx'
+        )
+        console.log('tsxComponent', tsxComponent)
+        const componentString = ReactDOMServer.renderToString(
+          React.createElement(tsxComponent)
+        )
+        const componentEventHandlers = {
+          onClick: () => {}
+        }
+        // const componentString = ReactDOMServer.renderToString(tsxComponent)
+
+        // Collect event handlers from the component
+        React.Children.forEach(React.createElement(tsxComponent), (child) => {
+          if (child.props && child.props.onClick) {
+            componentEventHandlers.onClick = child.props.onClick.toString()
+          }
+        })
+        const response = {
+          componentString,
+          componentEventHandlers
+        }
+
+        console.log('componentString', componentString)
+
+        answerObject.output.widgetWithHandlers = response
       }
 
       // "Temporize" for the data buffer output on the core

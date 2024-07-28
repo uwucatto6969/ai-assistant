@@ -1,4 +1,6 @@
-import { createRoot } from 'react-dom/client'
+import { createRoot, hydrateRoot } from 'react-dom/client'
+import ReactDOM from 'react-dom'
+import HTMLReactParser from 'html-react-parser'
 import { createElement } from 'react'
 import * as auroraComponents from '@leon-ai/aurora'
 
@@ -112,6 +114,20 @@ export default class Chatbot {
       if (component) {
         const reactComponent = auroraComponents[component.component]
 
+        console.log('auroraComponents', auroraComponents)
+        console.log('component.component', component.component)
+        console.log('reactComponent', reactComponent)
+        console.log('component.props', component.props)
+
+        // Check if the component has an onClick event and wrap it
+        if (component.props?.onClick) {
+          const originalOnClick = component.props.onClick
+          component.props.onClick = (...args) => {
+            console.log('Component clicked')
+            originalOnClick(...args)
+          }
+        }
+
         if (
           component.props?.children &&
           Array.isArray(component.props.children)
@@ -126,7 +142,16 @@ export default class Chatbot {
     }
 
     if (typeof string === 'object') {
+      /*const testo = HTMLReactParser(string)
+      console.log('HTMLReactParser rendered string', testo)
+      hydrateRoot(container, testo)*/
+      // root.render(testo)
       root.render(render(string))
+    } else if (string.includes('button')) {
+      console.log('string', string)
+      const component = HTMLReactParser(string)
+      // ReactDOM.hydrate(component, container)
+      hydrateRoot(container, component)
     }
 
     if (save) {
