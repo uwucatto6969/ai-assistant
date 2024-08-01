@@ -167,7 +167,7 @@ export default class LLMManager {
       })
     } catch (e) {
       LogHelper.title('LLM Manager')
-      LogHelper.error(`LLM Manager failed to load: ${e}`)
+      LogHelper.error(`LLM Manager failed to load. Cannot get model: ${e}`)
     }
 
     if (!HAS_LLM) {
@@ -230,8 +230,9 @@ export default class LLMManager {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         this._model = await this._llama.loadModel({
-          modelPath: LLM_PATH,
-          defaultContextFlashAttention: true
+          modelPath: LLM_PATH
+          // Option available from node-llama-cpp@3.0.0-beta.38 but cannot compile well yet
+          // defaultContextFlashAttention: true
         })
 
         if (HAS_LLM_NLG) {
@@ -268,7 +269,7 @@ export default class LLMManager {
         LogHelper.success(`${LLM_NAME_WITH_VERSION} LLM has been loaded`)
       } catch (e) {
         LogHelper.title('LLM Manager')
-        LogHelper.error(`LLM Manager failed to load: ${e}`)
+        LogHelper.error(`LLM Manager failed to load. Cannot load model: ${e}`)
       }
     } else {
       if (!Object.values(LLMProviders).includes(LLM_PROVIDER as LLMProviders)) {
