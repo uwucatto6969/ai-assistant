@@ -37,6 +37,7 @@ export interface SkillResult {
     core: SkillCoreData | undefined
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: Record<string, any>
+    widget?: WidgetWrapper
   }
 }
 
@@ -88,7 +89,6 @@ export interface SkillAnswerOutput extends IntentObject {
     answer: SkillAnswerConfigSchema
     core?: SkillAnswerCoreData
     widget?: WidgetWrapper
-    widgetWithHandlers?: unknown
   }
 }
 

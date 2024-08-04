@@ -42,12 +42,14 @@ import { StringHelper } from '@/helpers/string-helper'
 import { DateHelper } from '@/helpers/date-helper'
 import { ParaphraseLLMDuty } from '@/core/llm-manager/llm-duties/paraphrase-llm-duty'
 import { AnswerQueue } from '@/core/brain/answer-queue'
+import { WidgetWrapper } from '@@/bridges/nodejs/src/sdk/aurora'
 
 interface IsTalkingWithVoiceOptions {
   shouldInterrupt?: boolean
 }
 
 const MIN_NB_OF_WORDS_TO_USE_LLM_NLG = 5
+const SKILL_WIDGET_EVENTS_MAP = new Map()
 
 export default class Brain {
   private static instance: Brain
@@ -431,16 +433,7 @@ export default class Brain {
         LogHelper.info(data.toString())
 
         if (skillAnswer.output.widget) {
-          // TODO
-          console.log(
-            'skillAnswer.output',
-            skillAnswer.output.widgetWithHandlers
-          )
-          // SOCKET_SERVER.socket?.emit('widget', skillAnswer.output.widget)
-          SOCKET_SERVER.socket?.emit(
-            'widget',
-            skillAnswer.output.widgetWithHandlers
-          )
+          SOCKET_SERVER.socket?.emit('widget', skillAnswer.output.widget)
         }
 
         const { answer } = skillAnswer.output
@@ -660,6 +653,39 @@ export default class Brain {
               skillResult?.output.core?.showSuggestions
             ) {
               SOCKET_SERVER.socket?.emit('suggest', action.suggestions)
+            }
+
+            // TODO
+            if (skillResult?.output.widget) {
+              try {
+                const setEvents = (widget: WidgetWrapper): void => {
+                  if (widget.props?.children) {
+                    const children = widget.props.children
+
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    children.forEach((child) => {
+                      const events = child.events as Record<string, unknown>[]
+
+                      events.forEach((event) => {
+                        const { id } = event
+                        SKILL_WIDGET_EVENTS_MAP.set(id, () => {
+                          // TODO: get real event data
+                          console.log('test')
+                        })
+                      })
+
+                      if (child.props?.children) {
+                        setEvents(children)
+                      }
+                    })
+                  }
+                }
+
+                setEvents(skillResult?.output.widget)
+              } catch (e) {
+                console.error('ERROR', e)
+              }
             }
 
             resolve({

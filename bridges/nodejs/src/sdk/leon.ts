@@ -1,6 +1,3 @@
-import React from 'react'
-import ReactDOMServer from 'react-dom/server'
-
 import type {
   AnswerData,
   AnswerInput,
@@ -118,12 +115,13 @@ class Leon {
       }
 
       if (answerInput.widget) {
+        console.log('render', answerInput.widget.render())
         answerObject.output.widget = new WidgetWrapper({
           ...answerInput.widget.wrapperProps,
           children: [answerInput.widget.render()]
         })
         // dynamically import the TSX component
-        const { default: tsxComponent } = await import(
+        /*const { default: tsxComponent } = await import(
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error
           '@@/skills/unknown/widget-playground/src/widgets/my-component.tsx'
@@ -150,7 +148,7 @@ class Leon {
 
         console.log('componentString', componentString)
 
-        answerObject.output.widgetWithHandlers = response
+        answerObject.output.widgetWithHandlers = response*/
       }
 
       // "Temporize" for the data buffer output on the core
