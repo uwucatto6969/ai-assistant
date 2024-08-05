@@ -312,7 +312,7 @@ export const LLM_HF_DOWNLOAD_URL = NetworkHelper.setHuggingFaceURL(
 /**
  * @see llama.cpp releases: https://github.com/ggerganov/llama.cpp/releases
  */
-export const LLM_LLAMA_CPP_RELEASE_TAG = 'b3322'
+export const LLM_LLAMA_CPP_RELEASE_TAG = 'b3504'
 
 /**
  * Misc
