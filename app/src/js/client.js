@@ -78,6 +78,11 @@ export default class Client {
   }
 
   asrStartRecording() {
+    if (!window.leonConfigInfo.stt.enabled) {
+      console.warn('ASR is not enabled')
+      return
+    }
+
     if (!this._isVoiceModeEnabled) {
       this.enableVoiceMode()
 

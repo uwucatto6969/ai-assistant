@@ -110,6 +110,10 @@ export default class Chatbot {
 
     const root = createRoot(container)
 
+    if (string.component) {
+      console.log('string', string.props.children[0])
+    }
+
     const render = (component) => {
       if (component) {
         const reactComponent = auroraComponents[component.component]
@@ -120,11 +124,12 @@ export default class Chatbot {
         console.log('component.props', component.props)
 
         // Check if the component has an onClick event and wrap it
-        if (component.props?.onClick) {
-          const originalOnClick = component.props.onClick
-          component.props.onClick = (...args) => {
-            console.log('Component clicked')
-            originalOnClick(...args)
+        if (component.events[0] && component.events[0].type === 'onClick') {
+          const eventType = component.events[0].type
+
+          component.props[eventType] = () => {
+            // TODO
+            console.log('should emit event')
           }
         }
 

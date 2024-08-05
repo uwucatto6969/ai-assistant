@@ -7,23 +7,39 @@ interface Params {
   value2: string
 }
 
+// TODO
+function runSkillAction(actionName, params) {
+  return {
+    method: 'run_skill_action',
+    params: {
+      actionName,
+      params
+    }
+  }
+}
+// TODO
+function sendUtterance(utterance) {
+  return {
+    method: 'send_utterance',
+    params: {
+      utterance
+    }
+  }
+}
+
 export class PlaygroundTestWidget extends Widget<Params> {
   constructor(options: WidgetOptions<Params>) {
     super(options)
   }
 
   public render(): WidgetComponent {
-    function testo() {
-      console.log('testo')
-      return 'testi'
-    }
-
     const children = this.params.value1 + ' ' + this.params.value2
     return new Button({
       children,
       secondary: true,
-      onClick: (): void => {
-        console.log('test')
+      // TODO
+      onClick: () => {
+        return runSkillAction('test', 'param1')
       }
     })
   }
