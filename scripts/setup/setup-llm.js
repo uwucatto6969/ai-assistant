@@ -18,6 +18,7 @@ import { OSTypes, CPUArchitectures } from '@/types'
 import { SystemHelper } from '@/helpers/system-helper'
 import { LogHelper } from '@/helpers/log-helper'
 import { FileHelper } from '@/helpers/file-helper'
+import { NetworkHelper } from '@/helpers/network-helper'
 
 /**
  * Download and set up LLM
@@ -32,6 +33,10 @@ const LLM_MANIFEST_PATH = path.join(LLM_DIR_PATH, 'manifest.json')
 let manifest = null
 
 async function checkMinimumHardwareRequirements() {
+  LogHelper.info(
+    'Checking minimum hardware requirements can take a few minutes...'
+  )
+
   const { getLlama, LlamaLogLevel } = await Function(
     'return import("node-llama-cpp")'
   )()
@@ -73,15 +78,15 @@ async function downloadLLM() {
         await fs.promises.unlink(LLM_PATH)
       }
 
+      const llmDownloadURL =
+        await NetworkHelper.setHuggingFaceURL(LLM_HF_DOWNLOAD_URL)
+
       LogHelper.info(
-        `Downloading ${LLM_NAME_WITH_VERSION} from ${LLM_HF_DOWNLOAD_URL}...`
+        `Downloading ${LLM_NAME_WITH_VERSION} from ${llmDownloadURL}...`
       )
 
       const llmWriter = fs.createWriteStream(LLM_PATH)
-      const response = await FileHelper.downloadFile(
-        LLM_HF_DOWNLOAD_URL,
-        'stream'
-      )
+      const response = await FileHelper.downloadFile(llmDownloadURL, 'stream')
 
       response.data.pipe(llmWriter)
       await stream.promises.finished(llmWriter)

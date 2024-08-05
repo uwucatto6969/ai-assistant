@@ -11,6 +11,7 @@ export class NetworkHelper {
   public static async canAccessHuggingFace(): Promise<boolean> {
     try {
       await axios.head(HUGGING_FACE_URL)
+
       return true
     } catch (e) {
       return false
@@ -22,8 +23,8 @@ export class NetworkHelper {
    * @param url The URL to set
    * @example setHuggingFaceURL('https://huggingface.co') // https://hf-mirror.com
    */
-  public static setHuggingFaceURL(url: string): string {
-    const canAccess = NetworkHelper.canAccessHuggingFace()
+  public static async setHuggingFaceURL(url: string): Promise<string> {
+    const canAccess = await NetworkHelper.canAccessHuggingFace()
 
     if (!canAccess) {
       return url.replace(HUGGING_FACE_URL, HUGGING_FACE_MIRROR_URL)
