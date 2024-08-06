@@ -133,6 +133,12 @@ export default class Chatbot {
           }
         }
 
+        // When children is a component, then wrap it in an array to render properly
+        const isComponent = !!component.props?.children?.component
+        if (isComponent) {
+          component.props.children = [component.props.children]
+        }
+
         if (
           component.props?.children &&
           Array.isArray(component.props.children)
