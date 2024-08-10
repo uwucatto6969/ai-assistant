@@ -306,7 +306,7 @@ export const LLM_HF_DOWNLOAD_URL =
 /**
  * @see llama.cpp releases: https://github.com/ggerganov/llama.cpp/releases
  */
-export const LLM_LLAMA_CPP_RELEASE_TAG = 'b3504'
+export const LLM_LLAMA_CPP_RELEASE_TAG = 'b3543'
 
 /**
  * Misc
