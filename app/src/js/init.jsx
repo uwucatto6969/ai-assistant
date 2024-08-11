@@ -46,7 +46,7 @@ function ErrorListItem({ children }) {
     <ListItem>
       <Flexbox flexDirection="row" alignItems="center" gap="sm">
         <Icon
-          name="close"
+          iconName="close"
           size="sm"
           type="fill"
           bgShape="circle"
@@ -63,7 +63,7 @@ function WarningListItem({ children }) {
     <ListItem>
       <Flexbox flexDirection="row" alignItems="center" gap="sm">
         <Icon
-          name="alert"
+          iconName="alert"
           size="sm"
           type="fill"
           bgShape="circle"
@@ -80,7 +80,7 @@ function SuccessListItem({ children }) {
     <ListItem>
       <Flexbox flexDirection="row" alignItems="center" gap="sm">
         <Icon
-          name="check"
+          iconName="check"
           size="sm"
           type="fill"
           bgShape="circle"

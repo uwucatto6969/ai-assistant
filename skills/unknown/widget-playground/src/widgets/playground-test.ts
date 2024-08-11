@@ -16,7 +16,7 @@ interface Params {
   value2: string
 }
 
-// TODO
+// TODO: implement into widget.ts
 function runSkillAction(actionName, params) {
   return {
     method: 'run_skill_action',
@@ -26,7 +26,7 @@ function runSkillAction(actionName, params) {
     }
   }
 }
-// TODO
+// TODO: implement into widget.ts
 function sendUtterance(utterance) {
   return {
     method: 'send_utterance',
@@ -105,6 +105,7 @@ export class PlaygroundTestWidget extends Widget<Params> {
             new ListItem({
               children: new Button({
                 children: 'Spotify',
+                value: 'spotify',
                 onClick: () => {
                   return runSkillAction('play_music', 'spotify')
                 }
@@ -113,6 +114,7 @@ export class PlaygroundTestWidget extends Widget<Params> {
             new ListItem({
               children: new Button({
                 children: 'Apple Music',
+                value: 'apple_music',
                 onClick: () => {
                   return runSkillAction('play_music', 'apple_music')
                 }
@@ -121,6 +123,7 @@ export class PlaygroundTestWidget extends Widget<Params> {
             new ListItem({
               children: new Button({
                 children: 'YouTube Music',
+                value: 'youtube_music',
                 onClick: () => {
                   return runSkillAction('play_music', 'youtube_music')
                 }

@@ -27,6 +27,11 @@ interface UtteranceDataEvent {
   value: string
 }
 
+interface WidgetDataEvent {
+  type: string
+  data: Record<string, string | number | undefined | unknown[]>
+}
+
 export default class SocketServer {
   private static instance: SocketServer
 
@@ -168,6 +173,12 @@ export default class SocketServer {
                 `ASR - Failed to encode audio blob to WAVE file: ${e}`
               )
             }
+          })
+
+          // Listen for widget events
+          this.socket?.on('widget-event', (event: WidgetDataEvent) => {
+            LogHelper.title('Socket')
+            LogHelper.info(`Widget event: ${JSON.stringify(event)}`)
           })
         }
       })

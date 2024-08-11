@@ -1,7 +1,11 @@
 import { createElement } from 'react'
 import * as auroraComponents from '@leon-ai/aurora'
 
-export default function renderAuroraComponent(component, supportedEvents) {
+export default function renderAuroraComponent(
+  socket,
+  component,
+  supportedEvents
+) {
   if (component) {
     // eslint-disable-next-line import/namespace
     const reactComponent = auroraComponents[component.component]
@@ -13,15 +17,21 @@ export default function renderAuroraComponent(component, supportedEvents) {
 
     // Check if the browsed component has a supported event and bind it
     if (
+      reactComponent &&
       component.events[0] &&
       supportedEvents.includes(component.events[0].type)
     ) {
       const eventType = component.events[0].type
 
+      console.log('component.props[eventType]', component.props[eventType])
+
       component.props[eventType] = (arg) => {
         // TODO
+        // component.events[0].function.method
+        // component.events[0].function.params
         console.log('should emit event', eventType, component)
         console.log('arg', arg)
+        socket.emit('widget-event', { type: eventType, data: arg })
       }
     }
 
@@ -33,7 +43,7 @@ export default function renderAuroraComponent(component, supportedEvents) {
 
     if (component.props?.children && Array.isArray(component.props.children)) {
       component.props.children = component.props.children.map((child) => {
-        return renderAuroraComponent(child, supportedEvents)
+        return renderAuroraComponent(socket, child, supportedEvents)
       })
     }
 

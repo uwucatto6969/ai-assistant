@@ -4,7 +4,11 @@ interface WidgetEvent {
   id: string
 }
 
-export const SUPPORTED_WIDGET_EVENTS = ['onClick', 'onSubmit'] as const
+export const SUPPORTED_WIDGET_EVENTS = [
+  'onClick',
+  'onSubmit',
+  'onChange'
+] as const
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 7)
