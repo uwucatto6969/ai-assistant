@@ -1,8 +1,6 @@
-import { createRoot, hydrateRoot } from 'react-dom/client'
-import ReactDOM from 'react-dom'
-import HTMLReactParser from 'html-react-parser'
-import { createElement } from 'react'
-import * as auroraComponents from '@leon-ai/aurora'
+import { createRoot } from 'react-dom/client'
+
+import renderAuroraComponent from './render-aurora-component'
 
 export default class Chatbot {
   constructor() {
@@ -66,9 +64,6 @@ export default class Chatbot {
   }
 
   loadFeed() {
-    /**
-     * TODO: widget: load widget from local storage
-     */
     return new Promise((resolve) => {
       if (this.parsedBubbles === null || this.parsedBubbles.length === 0) {
         this.noBubbleMessage.classList.remove('hide')
@@ -79,7 +74,13 @@ export default class Chatbot {
         for (let i = 0; i < this.parsedBubbles.length; i += 1) {
           const bubble = this.parsedBubbles[i]
 
-          this.createBubble(bubble.who, bubble.string, false)
+          /**
+           * TODO: widget: load widget from local storage
+           * ATM skip the widget loading
+           */
+          if (typeof bubble.string === 'string') {
+            this.createBubble(bubble.who, bubble.string, false)
+          }
 
           if (i + 1 === this.parsedBubbles.length) {
             setTimeout(() => {
@@ -108,61 +109,17 @@ export default class Chatbot {
 
     this.feed.appendChild(container).appendChild(bubble)
 
-    const root = createRoot(container)
+    let widgetTree = null
+    let widgetSupportedEvents = null
+    if (string.tree) {
+      const root = createRoot(container)
 
-    if (string.component) {
-      console.log('string', string.props.children[0])
-    }
+      widgetTree = string.tree
+      widgetSupportedEvents = string.supportedEvents
 
-    const render = (component) => {
-      if (component) {
-        const reactComponent = auroraComponents[component.component]
+      const reactNode = renderAuroraComponent(widgetTree, widgetSupportedEvents)
 
-        console.log('auroraComponents', auroraComponents)
-        console.log('component.component', component.component)
-        console.log('reactComponent', reactComponent)
-        console.log('component.props', component.props)
-
-        // Check if the component has an onClick event and wrap it
-        if (component.events[0] && component.events[0].type === 'onClick') {
-          const eventType = component.events[0].type
-
-          component.props[eventType] = () => {
-            // TODO
-            console.log('should emit event')
-          }
-        }
-
-        // When children is a component, then wrap it in an array to render properly
-        const isComponent = !!component.props?.children?.component
-        if (isComponent) {
-          component.props.children = [component.props.children]
-        }
-
-        if (
-          component.props?.children &&
-          Array.isArray(component.props.children)
-        ) {
-          component.props.children = component.props.children.map((child) => {
-            return render(child)
-          })
-        }
-
-        return createElement(reactComponent, component.props)
-      }
-    }
-
-    if (typeof string === 'object') {
-      /*const testo = HTMLReactParser(string)
-      console.log('HTMLReactParser rendered string', testo)
-      hydrateRoot(container, testo)*/
-      // root.render(testo)
-      root.render(render(string))
-    } else if (string.includes('button')) {
-      console.log('string', string)
-      const component = HTMLReactParser(string)
-      // ReactDOM.hydrate(component, container)
-      hydrateRoot(container, component)
+      root.render(reactNode)
     }
 
     if (save) {

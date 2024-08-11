@@ -3,6 +3,7 @@ import { type WidgetComponent } from '@sdk/widget-component'
 import {
   Button,
   Flexbox,
+  Form,
   List,
   ListHeader,
   ListItem,
@@ -59,26 +60,40 @@ export class PlaygroundTestWidget extends Widget<Params> {
             new ListHeader({
               children: 'Shopping List'
             }),
-            new ListItem({
-              children: new Checkbox({
-                value: 'Milk',
-                label: 'Milk',
-                checked: true
-              })
-            }),
-            new ListItem({
-              children: new Checkbox({
-                value: 'Eggs',
-                label: 'Eggs',
-                checked: false
-              })
-            }),
-            new ListItem({
-              children: new Checkbox({
-                value: 'Bread',
-                label: 'Bread',
-                checked: true
-              })
+            new Form({
+              onSubmit: (data): unknown => {
+                return runSkillAction('submit_shopping_list', data)
+              },
+              children: [
+                new ListItem({
+                  children: new Checkbox({
+                    name: 'ingredients[]',
+                    value: 'milk',
+                    label: 'Milk',
+                    checked: true
+                  })
+                }),
+                new ListItem({
+                  children: new Checkbox({
+                    name: 'ingredients[]',
+                    value: 'eggs',
+                    label: 'Eggs',
+                    checked: false
+                  })
+                }),
+                new ListItem({
+                  children: new Checkbox({
+                    name: 'ingredients[]',
+                    value: 'bread',
+                    label: 'Bread',
+                    checked: true
+                  })
+                }),
+                new Button({
+                  children: 'Submit',
+                  type: 'submit'
+                })
+              ]
             })
           ]
         }),

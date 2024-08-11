@@ -1,10 +1,10 @@
-type Events = (typeof SUPPORTED_EVENTS)[number]
-interface Event {
-  type: Events
+export type SupportedWidgetEvent = (typeof SUPPORTED_WIDGET_EVENTS)[number]
+interface WidgetEvent {
+  type: SupportedWidgetEvent
   id: string
 }
 
-const SUPPORTED_EVENTS = ['onClick'] as const
+export const SUPPORTED_WIDGET_EVENTS = ['onClick', 'onSubmit'] as const
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 7)
@@ -14,7 +14,7 @@ export abstract class WidgetComponent<T = unknown> {
   public readonly component: string
   public readonly id: string
   public readonly props: T
-  public readonly events: Event[]
+  public readonly events: WidgetEvent[]
 
   protected constructor(props: T) {
     this.component = this.constructor.name
@@ -23,14 +23,16 @@ export abstract class WidgetComponent<T = unknown> {
     this.events = this.parseEvents()
   }
 
-  private parseEvents(): Event[] {
+  private parseEvents(): WidgetEvent[] {
     if (!this.props) {
       return []
     }
 
     const eventTypes = Object.keys(this.props).filter(
-      (key) => key.startsWith('on') && SUPPORTED_EVENTS.includes(key as Events)
-    ) as Events[]
+      (key) =>
+        key.startsWith('on') &&
+        SUPPORTED_WIDGET_EVENTS.includes(key as SupportedWidgetEvent)
+    ) as SupportedWidgetEvent[]
 
     return eventTypes.map((type) => ({
       type,

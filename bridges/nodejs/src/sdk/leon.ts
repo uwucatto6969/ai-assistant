@@ -6,6 +6,7 @@ import type {
 } from '@sdk/types'
 import { INTENT_OBJECT, SKILL_CONFIG } from '@bridge/constants'
 import { WidgetWrapper } from '@sdk/aurora'
+import { SUPPORTED_WIDGET_EVENTS } from '@sdk/widget-component'
 
 class Leon {
   private static instance: Leon
@@ -116,10 +117,13 @@ class Leon {
 
       if (answerInput.widget) {
         console.log('render', answerInput.widget.render())
-        answerObject.output.widget = new WidgetWrapper({
-          ...answerInput.widget.wrapperProps,
-          children: [answerInput.widget.render()]
-        })
+        answerObject.output.widget = {
+          tree: new WidgetWrapper({
+            ...answerInput.widget.wrapperProps,
+            children: [answerInput.widget.render()]
+          }),
+          supportedEvents: SUPPORTED_WIDGET_EVENTS
+        }
         // dynamically import the TSX component
         /*const { default: tsxComponent } = await import(
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
