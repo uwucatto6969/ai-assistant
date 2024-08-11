@@ -15,6 +15,7 @@ import type {
 } from '@/schemas/skill-schemas'
 import type { ShortLanguageCode } from '@/types'
 import type { WidgetWrapper } from '@sdk/aurora'
+import type { SUPPORTED_WIDGET_EVENTS } from '@sdk/widget-component'
 
 interface SkillCoreData {
   restart?: boolean
@@ -37,6 +38,7 @@ export interface SkillResult {
     core: SkillCoreData | undefined
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: Record<string, any>
+    widget?: WidgetWrapper
   }
 }
 
@@ -87,7 +89,10 @@ export interface SkillAnswerOutput extends IntentObject {
     codes: string
     answer: SkillAnswerConfigSchema
     core?: SkillAnswerCoreData
-    widget?: WidgetWrapper
+    widget?: {
+      tree: WidgetWrapper
+      supportedEvents: typeof SUPPORTED_WIDGET_EVENTS
+    }
   }
 }
 

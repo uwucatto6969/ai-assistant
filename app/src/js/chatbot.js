@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client'
-import { createElement } from 'react'
-import * as auroraComponents from '@leon-ai/aurora'
+
+import renderAuroraComponent from './render-aurora-component'
 
 export default class Chatbot {
   constructor() {
@@ -64,9 +64,6 @@ export default class Chatbot {
   }
 
   loadFeed() {
-    /**
-     * TODO: widget: load widget from local storage
-     */
     return new Promise((resolve) => {
       if (this.parsedBubbles === null || this.parsedBubbles.length === 0) {
         this.noBubbleMessage.classList.remove('hide')
@@ -77,7 +74,13 @@ export default class Chatbot {
         for (let i = 0; i < this.parsedBubbles.length; i += 1) {
           const bubble = this.parsedBubbles[i]
 
-          this.createBubble(bubble.who, bubble.string, false)
+          /**
+           * TODO: widget: load widget from local storage
+           * ATM skip the widget loading
+           */
+          if (typeof bubble.string === 'string') {
+            this.createBubble(bubble.who, bubble.string, false)
+          }
 
           if (i + 1 === this.parsedBubbles.length) {
             setTimeout(() => {
@@ -106,27 +109,17 @@ export default class Chatbot {
 
     this.feed.appendChild(container).appendChild(bubble)
 
-    const root = createRoot(container)
+    let widgetTree = null
+    let widgetSupportedEvents = null
+    if (string.tree) {
+      const root = createRoot(container)
 
-    const render = (component) => {
-      if (component) {
-        const reactComponent = auroraComponents[component.component]
+      widgetTree = string.tree
+      widgetSupportedEvents = string.supportedEvents
 
-        if (
-          component.props?.children &&
-          Array.isArray(component.props.children)
-        ) {
-          component.props.children = component.props.children.map((child) => {
-            return render(child)
-          })
-        }
+      const reactNode = renderAuroraComponent(widgetTree, widgetSupportedEvents)
 
-        return createElement(reactComponent, component.props)
-      }
-    }
-
-    if (typeof string === 'object') {
-      root.render(render(string))
+      root.render(reactNode)
     }
 
     if (save) {
