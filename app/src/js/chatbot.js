@@ -3,7 +3,8 @@ import { createRoot } from 'react-dom/client'
 import renderAuroraComponent from './render-aurora-component'
 
 export default class Chatbot {
-  constructor() {
+  constructor(socket) {
+    this.socket = socket
     this.et = new EventTarget()
     this.feed = document.querySelector('#feed')
     this.typing = document.querySelector('#is-typing')
@@ -111,13 +112,21 @@ export default class Chatbot {
 
     let widgetTree = null
     let widgetSupportedEvents = null
+
+    /**
+     * Widget rendering
+     */
     if (string.tree) {
       const root = createRoot(container)
 
       widgetTree = string.tree
       widgetSupportedEvents = string.supportedEvents
 
-      const reactNode = renderAuroraComponent(widgetTree, widgetSupportedEvents)
+      const reactNode = renderAuroraComponent(
+        this.socket,
+        widgetTree,
+        widgetSupportedEvents
+      )
 
       root.render(reactNode)
     }

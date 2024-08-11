@@ -38,7 +38,10 @@ export interface SkillResult {
     core: SkillCoreData | undefined
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: Record<string, any>
-    widget?: WidgetWrapper
+    widget?: {
+      tree: WidgetWrapper
+      supportedEvents: typeof SUPPORTED_WIDGET_EVENTS
+    }
   }
 }
 

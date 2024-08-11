@@ -14,7 +14,7 @@ export default class Client {
     this.socket = io(this.serverUrl)
     this.history = localStorage.getItem('history')
     this.parsedHistory = []
-    this.chatbot = new Chatbot()
+    this.chatbot = new Chatbot(this.socket)
     this.voiceEnergy = new VoiceEnergy(this)
     this._recorder = {}
     this._suggestions = []
