@@ -1,4 +1,4 @@
-import { Widget, type WidgetOptions } from '@sdk/widget'
+import { Widget, type WidgetOptions, type WidgetEventMethod } from '@sdk/widget'
 import { type WidgetComponent } from '@sdk/widget-component'
 import {
   Button,
@@ -16,33 +16,26 @@ interface Params {
   value2: string
 }
 
-// TODO: implement into widget.ts
-function runSkillAction(actionName, params) {
-  return {
-    method: 'run_skill_action',
-    params: {
-      actionName,
-      params
-    }
-  }
-}
-// TODO: implement into widget.ts
-function sendUtterance(utterance) {
-  return {
-    method: 'send_utterance',
-    params: {
-      utterance
-    }
-  }
-}
-
 export class PlaygroundTestWidget extends Widget<Params> {
   constructor(options: WidgetOptions<Params>) {
     super(options)
   }
 
   public render(): WidgetComponent {
-    const children = this.params.value1 + ' ' + this.params.value2
+    const buttons = ['Spotify', 'Apple Music', 'YouTube Music'].map(
+      (provider) => {
+        return new ListItem({
+          children: new Button({
+            children: provider,
+            onClick: (): WidgetEventMethod => {
+              return this.sendUtterance('choose_provider', {
+                provider
+              })
+            }
+          })
+        })
+      }
+    )
 
     // TODO: timer
 
@@ -62,7 +55,7 @@ export class PlaygroundTestWidget extends Widget<Params> {
             }),
             new Form({
               onSubmit: (data): unknown => {
-                return runSkillAction('submit_shopping_list', data)
+                return this.runSkillAction('submit_shopping_list', data)
               },
               children: [
                 new ListItem({
@@ -100,35 +93,12 @@ export class PlaygroundTestWidget extends Widget<Params> {
         new List({
           children: [
             new ListHeader({
-              children: 'Select your music provider'
-            }),
-            new ListItem({
-              children: new Button({
-                children: 'Spotify',
-                value: 'spotify',
-                onClick: () => {
-                  return runSkillAction('play_music', 'spotify')
-                }
+              children: this.content('select_music_provider', {
+                adj: 'awesome',
+                extra: 'here'
               })
             }),
-            new ListItem({
-              children: new Button({
-                children: 'Apple Music',
-                value: 'apple_music',
-                onClick: () => {
-                  return runSkillAction('play_music', 'apple_music')
-                }
-              })
-            }),
-            new ListItem({
-              children: new Button({
-                children: 'YouTube Music',
-                value: 'youtube_music',
-                onClick: () => {
-                  return runSkillAction('play_music', 'youtube_music')
-                }
-              })
-            })
+            ...buttons
           ]
         })
         // TODO: form input

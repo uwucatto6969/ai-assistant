@@ -181,6 +181,11 @@ export default class Client {
       this.chatbot.createBubble('leon', data)
     })
 
+    this.socket.on('widget-send-utterance', (utterance) => {
+      this._input.value = utterance
+      this.send('utterance')
+    })
+
     this.socket.on('new-mood', (mood) => {
       this.updateMood(mood)
     })
