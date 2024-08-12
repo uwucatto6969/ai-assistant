@@ -28,7 +28,11 @@ interface UtteranceDataEvent {
 }
 
 interface WidgetDataEvent {
-  type: string
+  method: {
+    methodName: string
+    methodParams: Record<string, string | number | undefined | unknown[]>
+  }
+  // Data returned from Aurora components
   data: Record<string, string | number | undefined | unknown[]>
 }
 
@@ -179,6 +183,17 @@ export default class SocketServer {
           this.socket?.on('widget-event', (event: WidgetDataEvent) => {
             LogHelper.title('Socket')
             LogHelper.info(`Widget event: ${JSON.stringify(event)}`)
+
+            const { method } = event
+
+            if (method.methodName === 'send_utterance') {
+              this.socket?.emit(
+                'widget-send-utterance',
+                method.methodParams['utterance']
+              )
+            } else if (method.methodName === 'run_skill_action') {
+              this.socket?.emit('widget-run-skill-action', method.methodParams)
+            }
           })
         }
       })

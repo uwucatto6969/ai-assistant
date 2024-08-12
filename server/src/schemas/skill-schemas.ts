@@ -286,6 +286,7 @@ export const skillConfigSchemaObject = Type.Strict(
       )
     ),
     answers: Type.Optional(Type.Record(Type.String(), Type.Array(answerTypes))),
+    widget_contents: Type.Optional(Type.Record(Type.String(), Type.String())),
     entities: Type.Optional(Type.Record(Type.String(), Type.String())),
     resolvers: Type.Optional(
       Type.Record(

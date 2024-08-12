@@ -21,6 +21,7 @@
     "npm": ">=8.0.0"
   },
   "scripts": {
+    "pre-commit": "lint-staged",
     "lint": "tsx scripts/lint.js",
     "test": "npm run test:json && npm run test:over-http && npm run test:unit && npm run test:e2e",
     "test:unit": "npm run train en && cross-env PIPENV_PIPFILE=bridges/python/src/Pipfile LEON_NODE_ENV=testing jest --forceExit --silent --projects test/unit/unit.jest.json && npm run train",

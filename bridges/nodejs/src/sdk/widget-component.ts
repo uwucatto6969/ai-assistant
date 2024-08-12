@@ -43,7 +43,7 @@ export abstract class WidgetComponent<T = unknown> {
       id: `${this.id}_${type.toLowerCase()}-${generateId()}`,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
-      function: this.props[type]()
+      method: this.props[type]()
     }))
   }
 }

@@ -70,7 +70,7 @@ async function installASRModel() {
 
     for (const modelFile of ASR_MODEL_FILES) {
       const pythonTCPServerASRModelDownloadURL =
-        NetworkHelper.setHuggingFaceURL(
+        await NetworkHelper.setHuggingFaceURL(
           PYTHON_TCP_SERVER_ASR_MODEL_HF_PREFIX_DOWNLOAD_URL
         )
       const modelInstallationFileURL = `${pythonTCPServerASRModelDownloadURL}/${modelFile}?download=true`
@@ -101,7 +101,7 @@ async function installASRModel() {
     LogHelper.info('Installing TTS BERT French model...')
 
     for (const modelFile of TTS_BERT_FRENCH_MODEL_FILES) {
-      const pythonTCPServerTTSBERTFrenchModelPrefixDownloadURL = NetworkHelper.setHuggingFaceURL(
+      const pythonTCPServerTTSBERTFrenchModelPrefixDownloadURL = await NetworkHelper.setHuggingFaceURL(
         PYTHON_TCP_SERVER_TTS_BERT_FRENCH_MODEL_HF_PREFIX_DOWNLOAD_URL
       )
       const modelInstallationFileURL = `${pythonTCPServerTTSBERTFrenchModelPrefixDownloadURL}/${modelFile}?download=true`
@@ -133,7 +133,7 @@ async function installTTSBERTBaseModel() {
 
     for (const modelFile of TTS_BERT_BASE_MODEL_FILES) {
       const pythonTCPServerTTSBERTBaseModelPrefixDownloadURL =
-        NetworkHelper.setHuggingFaceURL(
+        await NetworkHelper.setHuggingFaceURL(
           PYTHON_TCP_SERVER_TTS_BERT_BASE_MODEL_HF_PREFIX_DOWNLOAD_URL
         )
       const modelInstallationFileURL = `${pythonTCPServerTTSBERTBaseModelPrefixDownloadURL}/${modelFile}?download=true`

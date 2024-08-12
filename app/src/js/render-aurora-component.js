@@ -10,11 +10,6 @@ export default function renderAuroraComponent(
     // eslint-disable-next-line import/namespace
     const reactComponent = auroraComponents[component.component]
 
-    console.log('auroraComponents', auroraComponents)
-    console.log('component.component', component.component)
-    console.log('reactComponent', reactComponent)
-    console.log('component.props', component.props)
-
     // Check if the browsed component has a supported event and bind it
     if (
       reactComponent &&
@@ -23,15 +18,10 @@ export default function renderAuroraComponent(
     ) {
       const eventType = component.events[0].type
 
-      console.log('component.props[eventType]', component.props[eventType])
+      component.props[eventType] = (data) => {
+        const { method } = component.events[0]
 
-      component.props[eventType] = (arg) => {
-        // TODO
-        // component.events[0].function.method
-        // component.events[0].function.params
-        console.log('should emit event', eventType, component)
-        console.log('arg', arg)
-        socket.emit('widget-event', { type: eventType, data: arg })
+        socket.emit('widget-event', { method, data })
       }
     }
 
