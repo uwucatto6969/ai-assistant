@@ -110,7 +110,7 @@ export default class Chatbot {
     /**
      * Widget rendering
      */
-    if (string.startsWith('{"tree":{"component')) {
+    if (string.startsWith && string.startsWith('{"tree":{"component')) {
       const parsedWidget = JSON.parse(string)
       const root = createRoot(container)
 
