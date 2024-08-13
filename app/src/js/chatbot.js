@@ -75,13 +75,7 @@ export default class Chatbot {
         for (let i = 0; i < this.parsedBubbles.length; i += 1) {
           const bubble = this.parsedBubbles[i]
 
-          /**
-           * TODO: widget: load widget from local storage
-           * ATM skip the widget loading
-           */
-          if (typeof bubble.string === 'string') {
-            this.createBubble(bubble.who, bubble.string, false)
-          }
+          this.createBubble(bubble.who, bubble.string, false)
 
           if (i + 1 === this.parsedBubbles.length) {
             setTimeout(() => {
@@ -116,11 +110,12 @@ export default class Chatbot {
     /**
      * Widget rendering
      */
-    if (string.tree) {
+    if (string.startsWith('{"tree":{"component')) {
+      const parsedWidget = JSON.parse(string)
       const root = createRoot(container)
 
-      widgetTree = string.tree
-      widgetSupportedEvents = string.supportedEvents
+      widgetTree = parsedWidget.tree
+      widgetSupportedEvents = parsedWidget.supportedEvents
 
       const reactNode = renderAuroraComponent(
         this.socket,

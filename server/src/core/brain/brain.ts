@@ -431,7 +431,19 @@ export default class Brain {
         LogHelper.info(data.toString())
 
         if (skillAnswer.output.widget) {
-          SOCKET_SERVER.socket?.emit('widget', skillAnswer.output.widget)
+          try {
+            SOCKET_SERVER.socket?.emit(
+              'widget',
+              JSON.stringify(skillAnswer.output.widget)
+            )
+          } catch (e) {
+            LogHelper.title('Brain')
+            LogHelper.error(
+              `Failed to send widget. Widget output is not well formatted: ${e}`
+            )
+          } finally {
+            SOCKET_SERVER.socket?.emit('is-typing', false)
+          }
         }
 
         const { answer } = skillAnswer.output
