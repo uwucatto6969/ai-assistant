@@ -116,7 +116,6 @@ class Leon {
       }
 
       if (answerInput.widget) {
-        console.log('render', answerInput.widget.render())
         answerObject.output.widget = {
           tree: new WidgetWrapper({
             ...answerInput.widget.wrapperProps,

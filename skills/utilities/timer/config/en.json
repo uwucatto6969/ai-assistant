@@ -1,0 +1,45 @@
+{
+  "$schema": "../../../../schemas/skill-schemas/skill-config.json",
+  "actions": {
+    "set_timer": {
+      "type": "logic",
+      "utterance_samples": [
+        "[Set|Start|Create] a timer for @number [minutes|seconds]"
+      ],
+      "slots": [
+        {
+          "name": "duration",
+          "item": {
+            "type": "entity",
+            "name": "duration"
+          },
+          "questions": ["For how long time?"]
+        }
+      ]
+    },
+    "cancel_timer": {
+      "type": "logic",
+      "utterance_samples": [
+        "[Cancel|Stop|Turn off|Delete] the timer",
+        "Don't need the timer"
+      ]
+    },
+    "pause_timer": {
+      "type": "logic",
+      "utterance_samples": ["Pause the timer", "Put the timer on hold"]
+    },
+    "resume_timer": {
+      "type": "logic",
+      "utterance_samples": ["[Resume|Continue] the timer"]
+    },
+    "check_timer": {
+      "type": "logic",
+      "utterance_samples": [
+        "How much time left on the timer",
+        "Check the timer",
+        "What's the remaining time on the timer"
+      ]
+    }
+  },
+  "answers": {}
+}
