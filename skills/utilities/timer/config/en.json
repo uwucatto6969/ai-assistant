@@ -1,8 +1,13 @@
 {
   "$schema": "../../../../schemas/skill-schemas/skill-config.json",
+  "variables": {
+    "hours": "hours",
+    "minutes": "minutes",
+    "seconds": "seconds"
+  },
   "actions": {
-    "set_timer": {
-      "type": "logic",
+    "configure_set_timer": {
+      "type": "dialog",
       "utterance_samples": [
         "[Set|Start|Create] a timer for @number [minutes|seconds]"
       ],
@@ -15,7 +20,11 @@
           },
           "questions": ["For how long time?"]
         }
-      ]
+      ],
+      "next_action": "set_timer"
+    },
+    "set_timer": {
+      "type": "logic"
     },
     "cancel_timer": {
       "type": "logic",
@@ -41,5 +50,14 @@
       ]
     }
   },
-  "answers": {}
+  "answers": {
+    "cannot_get_duration": [
+      "Sorry, I can't get the duration of the timer.",
+      "I can't get the duration of the timer. Sorry."
+    ],
+    "unit_not_supported": [
+      "Sorry, I can't set a timer for this unit. Use %hours%, %minutes% or %seconds% instead.",
+      "I can't set a timer for this duration. Use %hours%, %minutes% or %seconds% instead."
+    ]
+  }
 }

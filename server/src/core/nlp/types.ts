@@ -303,9 +303,8 @@ export type BuiltInDurationEntity = BuiltInEntity<
     values: {
       timex: string
       type: string
-      Mod?: 'before' | 'after'
       value: string
-      unit: NERDurationUnit | null
+      unit: NERDurationUnit
     }[]
   }
 >

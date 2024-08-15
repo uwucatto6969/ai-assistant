@@ -193,7 +193,9 @@ export default class NER {
             if (entity.type === 'duration' && entity.resolution.values[0]) {
               entity.resolution.values[0] = {
                 ...entity.resolution.values[0],
-                unit: getDurationUnit(entity.resolution.values[0].timex)
+                unit: getDurationUnit(
+                  entity.resolution.values[0].timex
+                ) as NERDurationUnit
               }
             }
           }

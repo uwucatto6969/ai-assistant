@@ -1,11 +1,6 @@
 {
   "endpoints": [
     {
-      "method": "GET",
-      "route": "/api/action/unknown/widget-playground/run",
-      "params": []
-    },
-    {
       "method": "POST",
       "route": "/api/action/news/github_trends/run",
       "params": ["number", "daterange"],
@@ -62,58 +57,6 @@
       "route": "/api/action/productivity/todo_list/uncheck_todos",
       "params": ["todos", "list"],
       "entitiesType": "trim"
-    },
-    {
-      "method": "POST",
-      "route": "/api/action/games/akinator/choose_thematic",
-      "params": ["thematic"],
-      "entitiesType": "trim"
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/games/akinator/setup",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/games/akinator/guess",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/games/akinator/retry",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/games/guess_the_number/setup",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/games/guess_the_number/guess",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/games/guess_the_number/replay",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/games/rochambeau/start",
-      "params": []
-    },
-    {
-      "method": "POST",
-      "route": "/api/action/games/rochambeau/play",
-      "params": ["handsign"],
-      "entitiesType": "trim"
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/games/rochambeau/rematch",
-      "params": []
     },
     {
       "method": "GET",
@@ -191,6 +134,88 @@
       "params": []
     },
     {
+      "method": "POST",
+      "route": "/api/action/games/akinator/choose_thematic",
+      "params": ["thematic"],
+      "entitiesType": "trim"
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/games/akinator/setup",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/games/akinator/guess",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/games/akinator/retry",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/games/guess_the_number/setup",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/games/guess_the_number/guess",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/games/guess_the_number/replay",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/games/rochambeau/start",
+      "params": []
+    },
+    {
+      "method": "POST",
+      "route": "/api/action/games/rochambeau/play",
+      "params": ["handsign"],
+      "entitiesType": "trim"
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/games/rochambeau/rematch",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/unknown/widget-playground/run",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/social_communication/conversation/setup",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/social_communication/conversation/chit_chat",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/social_communication/conversation/converse",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/social_communication/mbti/setup",
+      "params": []
+    },
+    {
+      "method": "GET",
+      "route": "/api/action/social_communication/mbti/quiz",
+      "params": []
+    },
+    {
       "method": "GET",
       "route": "/api/action/utilities/date_time/current_date_time",
       "params": []
@@ -238,6 +263,11 @@
     },
     {
       "method": "GET",
+      "route": "/api/action/utilities/timer/configure_set_timer",
+      "params": []
+    },
+    {
+      "method": "GET",
       "route": "/api/action/utilities/timer/set_timer",
       "params": []
     },
@@ -274,31 +304,6 @@
     {
       "method": "GET",
       "route": "/api/action/utilities/translator-poc/translate",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/social_communication/conversation/setup",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/social_communication/conversation/chit_chat",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/social_communication/conversation/converse",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/social_communication/mbti/setup",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/social_communication/mbti/quiz",
       "params": []
     }
   ]
