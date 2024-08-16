@@ -29,7 +29,9 @@ export class PlaygroundTestWidget extends Widget<Params> {
             children: provider,
             onClick: (): WidgetEventMethod => {
               return this.sendUtterance('choose_provider', {
-                provider
+                data: {
+                  provider
+                }
               })
             }
           })

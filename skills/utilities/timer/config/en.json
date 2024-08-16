@@ -59,5 +59,13 @@
       "Sorry, I can't set a timer for this unit. Use %hours%, %minutes% or %seconds% instead.",
       "I can't set a timer for this duration. Use %hours%, %minutes% or %seconds% instead."
     ]
+  },
+  "widget_contents": {
+    "second_unit": "second",
+    "seconds_unit": "seconds",
+    "minutes_unit": "minutes",
+    "minute_unit": "minute",
+    "total_time": "Total %value% %unit%",
+    "times_up": ["Time's up!", "The timer is up!", "The timer has ended!"]
   }
 }

@@ -3,12 +3,19 @@ import { type WidgetWrapperProps } from '@leon-ai/aurora'
 import { SKILL_CONFIG } from '@bridge/constants'
 import { WidgetComponent } from '@sdk/widget-component'
 
+type UtteranceSender = 'leon' | 'owner'
+
 interface SendUtteranceWidgetEventMethodParams {
+  from: UtteranceSender
   utterance: string
 }
 interface RunSkillActionWidgetEventMethodParams {
   actionName: string
   params: Record<string, unknown>
+}
+interface SendUtteranceOptions {
+  from?: UtteranceSender
+  data?: Record<string, unknown>
 }
 
 export interface WidgetEventMethod {
@@ -41,18 +48,20 @@ export abstract class Widget<T = unknown> {
   /**
    * Indicate the core to send a given utterance
    * @param key The key of the content
-   * @param data The data to apply
-   * @example content('provider_selected', { provider: 'Spotify' }) // 'I chose the Spotify provider'
+   * @param options The options of the utterance
+   * @example content('provider_selected', { data: { provider: 'Spotify' } }) // 'I chose the Spotify provider'
    */
   protected sendUtterance(
     key: string,
-    data?: Record<string, unknown>
+    options?: SendUtteranceOptions
   ): WidgetEventMethod {
-    const utteranceContent = this.content(key, data)
+    const utteranceContent = this.content(key, options?.data)
+    const from = options?.from || 'owner'
 
     return {
       methodName: 'send_utterance',
       methodParams: {
+        from,
         utterance: utteranceContent
       }
     }
@@ -92,6 +101,10 @@ export abstract class Widget<T = unknown> {
     }
 
     let content = widgetContents[key]
+
+    if (Array.isArray(content)) {
+      content = content[Math.floor(Math.random() * content.length)] as string
+    }
 
     if (data) {
       for (const key in data) {

@@ -3,10 +3,6 @@ import { leon } from '@sdk/leon'
 
 import { TimerWidget } from '../widgets/timer'
 
-function secondsToMinutes(seconds: number): number {
-  return seconds / 60
-}
-
 export const run: ActionFunction = async function (params) {
   const supportedUnits = ['hours', 'minutes', 'seconds']
   const durations = (
@@ -24,12 +20,17 @@ export const run: ActionFunction = async function (params) {
   }
 
   const { value: durationValue } = duration
-
+  const seconds = Number(durationValue)
   const timerWidget = new TimerWidget({
     params: {
-      minutes: secondsToMinutes(Number(durationValue))
+      seconds
     }
   })
 
+  // TODO: return a speech without new utterance
+  /*await leon.answer({
+    widget: timerWidget,
+    speech: 'I set a timer for ... ...'
+  })*/
   await leon.answer({ widget: timerWidget })
 }
