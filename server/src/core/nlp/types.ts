@@ -126,6 +126,15 @@ export const BUILT_IN_ENTITY_TYPES = [
   'temperature'
 ] as const
 
+export type NERDurationUnit =
+  | 'seconds'
+  | 'minutes'
+  | 'hours'
+  | 'days'
+  | 'weeks'
+  | 'months'
+  | 'years'
+
 export type BuiltInEntityType = (typeof BUILT_IN_ENTITY_TYPES)[number]
 
 export const CUSTOM_ENTITY_TYPES = ['regex', 'trim', 'enum', 'llm'] as const
@@ -294,8 +303,8 @@ export type BuiltInDurationEntity = BuiltInEntity<
     values: {
       timex: string
       type: string
-      Mod?: 'before' | 'after'
       value: string
+      unit: NERDurationUnit
     }[]
   }
 >

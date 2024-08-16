@@ -7,7 +7,10 @@ interface WidgetEvent {
 export const SUPPORTED_WIDGET_EVENTS = [
   'onClick',
   'onSubmit',
-  'onChange'
+  'onChange',
+  'onStart',
+  'onEnd',
+  'onFetch'
 ] as const
 
 function generateId(): string {

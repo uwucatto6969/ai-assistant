@@ -180,17 +180,20 @@ export default class SocketServer {
           })
 
           // Listen for widget events
-          this.socket?.on('widget-event', (event: WidgetDataEvent) => {
+          this.socket?.on('widget-event', async (event: WidgetDataEvent) => {
             LogHelper.title('Socket')
             LogHelper.info(`Widget event: ${JSON.stringify(event)}`)
 
             const { method } = event
 
             if (method.methodName === 'send_utterance') {
-              this.socket?.emit(
-                'widget-send-utterance',
-                method.methodParams['utterance']
-              )
+              const utterance = method.methodParams['utterance']
+
+              if (method.methodParams['from'] === 'leon') {
+                await BRAIN.talk(utterance as string, true)
+              } else {
+                this.socket?.emit('widget-send-utterance', utterance)
+              }
             } else if (method.methodName === 'run_skill_action') {
               this.socket?.emit('widget-run-skill-action', method.methodParams)
             }

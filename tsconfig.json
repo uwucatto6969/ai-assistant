@@ -6,6 +6,7 @@
     "baseUrl": ".",
     "moduleResolution": "Node",
     "module": "CommonJS",
+    "jsx": "react",
     "paths": {
       "@@/*": ["./*"],
       "@/*": ["./server/src/*"],

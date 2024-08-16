@@ -1,6 +1,8 @@
 import { createElement } from 'react'
 import * as auroraComponents from '@leon-ai/aurora'
 
+import * as customAuroraComponents from '../custom-aurora-components'
+
 export default function renderAuroraComponent(
   socket,
   component,
@@ -8,7 +10,18 @@ export default function renderAuroraComponent(
 ) {
   if (component) {
     // eslint-disable-next-line import/namespace
-    const reactComponent = auroraComponents[component.component]
+    let reactComponent = auroraComponents[component.component]
+    /**
+     * Find custom component if a former component is not found
+     */
+    if (!reactComponent) {
+      // eslint-disable-next-line import/namespace
+      reactComponent = customAuroraComponents[component.component]
+    }
+
+    if (!reactComponent) {
+      console.error(`Component ${component} not found`)
+    }
 
     // Check if the browsed component has a supported event and bind it
     if (

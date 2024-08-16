@@ -1,6 +1,7 @@
 import type { ShortLanguageCode } from '@/types'
 import type {
   BuiltInEntityType,
+  NERDurationUnit,
   NEREntity,
   NERSpacyEntity,
   NLPUtterance,
@@ -38,6 +39,42 @@ export const MICROSOFT_BUILT_IN_ENTITIES = [
   'Hashtag',
   'URL'
 ]
+
+function getDurationUnit(duration: string): NERDurationUnit | null {
+  const mapping = {
+    PT: {
+      S: 'seconds',
+      M: 'minutes',
+      H: 'hours'
+    },
+    P: {
+      D: 'days',
+      W: 'weeks',
+      M: 'months',
+      Y: 'years'
+    }
+  }
+
+  const prefix = duration.slice(0, 2)
+  const lastChar = duration.slice(-1)
+
+  if (prefix === 'PT') {
+    return (
+      (mapping.PT[lastChar as keyof typeof mapping.PT] as NERDurationUnit) ??
+      null
+    )
+  }
+  if (prefix.startsWith('P')) {
+    return (
+      (mapping.P[lastChar as keyof typeof mapping.P] as NERDurationUnit) ?? null
+    )
+  }
+
+  LogHelper.title('NER')
+  LogHelper.error(`Failed to get the duration unit: ${duration}`)
+
+  return null
+}
 
 export default class NER {
   private static instance: NER
@@ -152,6 +189,15 @@ export default class NER {
             BUILT_IN_ENTITY_TYPES.includes(entity.entity as BuiltInEntityType)
           ) {
             entity.type = entity.entity as BuiltInEntityType
+
+            if (entity.type === 'duration' && entity.resolution.values[0]) {
+              entity.resolution.values[0] = {
+                ...entity.resolution.values[0],
+                unit: getDurationUnit(
+                  entity.resolution.values[0].timex
+                ) as NERDurationUnit
+              }
+            }
           }
 
           if (SPACY_ENTITY_TYPES.includes(entity.entity as SpacyEntityType)) {

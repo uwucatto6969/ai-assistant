@@ -29,7 +29,9 @@ export class PlaygroundTestWidget extends Widget<Params> {
             children: provider,
             onClick: (): WidgetEventMethod => {
               return this.sendUtterance('choose_provider', {
-                provider
+                data: {
+                  provider
+                }
               })
             }
           })
@@ -37,9 +39,6 @@ export class PlaygroundTestWidget extends Widget<Params> {
       }
     )
 
-    // TODO: timer
-
-    // TODO
     return new Flexbox({
       gap: 'md',
       flexDirection: 'column',
@@ -101,7 +100,6 @@ export class PlaygroundTestWidget extends Widget<Params> {
             ...buttons
           ]
         })
-        // TODO: form input
       ]
     })
   }

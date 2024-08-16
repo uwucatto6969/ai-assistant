@@ -116,7 +116,6 @@ class Leon {
       }
 
       if (answerInput.widget) {
-        console.log('render', answerInput.widget.render())
         answerObject.output.widget = {
           tree: new WidgetWrapper({
             ...answerInput.widget.wrapperProps,
@@ -124,35 +123,6 @@ class Leon {
           }),
           supportedEvents: SUPPORTED_WIDGET_EVENTS
         }
-        // dynamically import the TSX component
-        /*const { default: tsxComponent } = await import(
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error
-          '@@/skills/unknown/widget-playground/src/widgets/my-component.tsx'
-        )
-        console.log('tsxComponent', tsxComponent)
-        const componentString = ReactDOMServer.renderToString(
-          React.createElement(tsxComponent)
-        )
-        const componentEventHandlers = {
-          onClick: () => {}
-        }
-        // const componentString = ReactDOMServer.renderToString(tsxComponent)
-
-        // Collect event handlers from the component
-        React.Children.forEach(React.createElement(tsxComponent), (child) => {
-          if (child.props && child.props.onClick) {
-            componentEventHandlers.onClick = child.props.onClick.toString()
-          }
-        })
-        const response = {
-          componentString,
-          componentEventHandlers
-        }
-
-        console.log('componentString', componentString)
-
-        answerObject.output.widgetWithHandlers = response*/
       }
 
       // "Temporize" for the data buffer output on the core

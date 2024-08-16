@@ -1,0 +1,71 @@
+{
+  "$schema": "../../../../schemas/skill-schemas/skill-config.json",
+  "variables": {
+    "hours": "hours",
+    "minutes": "minutes",
+    "seconds": "seconds"
+  },
+  "actions": {
+    "configure_set_timer": {
+      "type": "dialog",
+      "utterance_samples": [
+        "[Set|Start|Create] a timer for @number [minutes|seconds]"
+      ],
+      "slots": [
+        {
+          "name": "duration",
+          "item": {
+            "type": "entity",
+            "name": "duration"
+          },
+          "questions": ["For how long time?"]
+        }
+      ],
+      "next_action": "set_timer"
+    },
+    "set_timer": {
+      "type": "logic"
+    },
+    "cancel_timer": {
+      "type": "logic",
+      "utterance_samples": [
+        "[Cancel|Stop|Turn off|Delete] the timer",
+        "Don't need the timer"
+      ]
+    },
+    "pause_timer": {
+      "type": "logic",
+      "utterance_samples": ["Pause the timer", "Put the timer on hold"]
+    },
+    "resume_timer": {
+      "type": "logic",
+      "utterance_samples": ["[Resume|Continue] the timer"]
+    },
+    "check_timer": {
+      "type": "logic",
+      "utterance_samples": [
+        "How much time left on the timer",
+        "Check the timer",
+        "What's the remaining time on the timer"
+      ]
+    }
+  },
+  "answers": {
+    "cannot_get_duration": [
+      "Sorry, I can't get the duration of the timer.",
+      "I can't get the duration of the timer. Sorry."
+    ],
+    "unit_not_supported": [
+      "Sorry, I can't set a timer for this unit. Use %hours%, %minutes% or %seconds% instead.",
+      "I can't set a timer for this duration. Use %hours%, %minutes% or %seconds% instead."
+    ]
+  },
+  "widget_contents": {
+    "second_unit": "second",
+    "seconds_unit": "seconds",
+    "minutes_unit": "minutes",
+    "minute_unit": "minute",
+    "total_time": "Total %value% %unit%",
+    "times_up": ["Time's up!", "The timer is up!", "The timer has ended!"]
+  }
+}
