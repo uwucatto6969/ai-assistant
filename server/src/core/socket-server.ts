@@ -196,6 +196,11 @@ export default class SocketServer {
               }
             } else if (method.methodName === 'run_skill_action') {
               this.socket?.emit('widget-run-skill-action', method.methodParams)
+            } else if (method.methodName === 'fetch_widget_data') {
+              // TODO: get memory from domain:skill:action
+              // TODO: grab new data from the widget. E.g. initialTime
+              // TODO: get memory timestamp of the timer creation + initialTime
+              this.socket?.emit('widget-fetch-data', method.methodParams)
             }
           })
         }

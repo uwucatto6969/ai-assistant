@@ -1,10 +1,12 @@
+import type { WidgetEventMethod } from '@sdk/widget'
 import { WidgetComponent } from '@sdk/widget-component'
 
 interface TimerProps {
   initialTime: number
   interval: number
   totalTimeContent: string
-  onEnd?: () => void
+  onFetch: () => WidgetEventMethod
+  onEnd?: () => WidgetEventMethod
 }
 
 export class Timer extends WidgetComponent<TimerProps> {

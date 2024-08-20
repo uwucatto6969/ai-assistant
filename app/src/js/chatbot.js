@@ -110,11 +110,11 @@ export default class Chatbot {
     /**
      * Widget rendering
      */
-    if (string.startsWith && string.startsWith('{"tree":{"component')) {
+    if (string.includes && string.includes('"component":"WidgetWrapper"')) {
       const parsedWidget = JSON.parse(string)
       const root = createRoot(container)
 
-      widgetTree = parsedWidget.tree
+      widgetTree = parsedWidget.componentTree
       widgetSupportedEvents = parsedWidget.supportedEvents
 
       const reactNode = renderAuroraComponent(

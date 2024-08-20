@@ -1,10 +1,15 @@
 import { type WidgetWrapperProps } from '@leon-ai/aurora'
 
-import { SKILL_CONFIG } from '@bridge/constants'
+import { INTENT_OBJECT, SKILL_CONFIG } from '@bridge/constants'
 import { WidgetComponent } from '@sdk/widget-component'
 
 type UtteranceSender = 'leon' | 'owner'
 
+interface FetchWidgetDataWidgetEventMethodParams {
+  actionName: string
+  widgetId: string
+  dataToSet: string[]
+}
 interface SendUtteranceWidgetEventMethodParams {
   from: UtteranceSender
   utterance: string
@@ -19,10 +24,11 @@ interface SendUtteranceOptions {
 }
 
 export interface WidgetEventMethod {
-  methodName: 'send_utterance' | 'run_skill_action'
+  methodName: 'send_utterance' | 'run_skill_action' | 'fetch_widget_data'
   methodParams:
     | SendUtteranceWidgetEventMethodParams
     | RunSkillActionWidgetEventMethodParams
+    | FetchWidgetDataWidgetEventMethodParams
 }
 export interface WidgetOptions<T = unknown> {
   wrapperProps?: Omit<WidgetWrapperProps, 'children'>
@@ -30,6 +36,9 @@ export interface WidgetOptions<T = unknown> {
 }
 
 export abstract class Widget<T = unknown> {
+  public actionName: string
+  public id: string
+  public widget: string
   public wrapperProps: WidgetOptions<T>['wrapperProps']
   public params: WidgetOptions<T>['params']
 
@@ -37,6 +46,11 @@ export abstract class Widget<T = unknown> {
     if (options?.wrapperProps) {
       this.wrapperProps = options.wrapperProps
     }
+    this.actionName = `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${INTENT_OBJECT.action}`
+    this.widget = this.constructor.name
+    this.id = `${this.widget.toLowerCase()}-${Math.random()
+      .toString(36)
+      .substring(2, 10)}`
     this.params = options.params
   }
 
@@ -82,6 +96,22 @@ export abstract class Widget<T = unknown> {
       methodParams: {
         actionName,
         params
+      }
+    }
+  }
+
+  /**
+   * Indicate the core to fetch/set the data of a given widget
+   * @param dataToSet Data to set on fetch
+   * @example fetchWidgetData('timer-f42wa', { initialTime: 42 })
+   */
+  protected fetchWidgetData(dataToSet: string[]): WidgetEventMethod {
+    return {
+      methodName: 'fetch_widget_data',
+      methodParams: {
+        actionName: this.actionName,
+        widgetId: this.id,
+        dataToSet
       }
     }
   }

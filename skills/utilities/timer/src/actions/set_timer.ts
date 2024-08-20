@@ -1,7 +1,9 @@
 import type { ActionFunction, BuiltInDurationEntity } from '@sdk/types'
 import { leon } from '@sdk/leon'
+import { Memory } from '@sdk/memory'
 
 import { TimerWidget } from '../widgets/timer'
+import { createTimerMemory } from '@@/skills/utilities/timer/src/lib/memory'
 
 export const run: ActionFunction = async function (params) {
   const supportedUnits = ['hours', 'minutes', 'seconds']
@@ -21,11 +23,14 @@ export const run: ActionFunction = async function (params) {
 
   const { value: durationValue } = duration
   const seconds = Number(durationValue)
+
   const timerWidget = new TimerWidget({
     params: {
       seconds
     }
   })
+
+  await createTimerMemory(timerWidget.id, seconds)
 
   // TODO: return a speech without new utterance
   /*await leon.answer({

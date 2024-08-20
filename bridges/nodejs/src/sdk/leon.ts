@@ -117,7 +117,10 @@ class Leon {
 
       if (answerInput.widget) {
         answerObject.output.widget = {
-          tree: new WidgetWrapper({
+          actionName: `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${INTENT_OBJECT.action}`,
+          widget: answerInput.widget.widget,
+          id: answerInput.widget.id,
+          componentTree: new WidgetWrapper({
             ...answerInput.widget.wrapperProps,
             children: [answerInput.widget.render()]
           }),

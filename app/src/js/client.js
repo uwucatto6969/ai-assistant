@@ -186,6 +186,11 @@ export default class Client {
       this.send('utterance')
     })
 
+    this.socket.on('widget-fetch-data', (data) => {
+      // TODO
+      console.log('data', data)
+    })
+
     this.socket.on('new-mood', (mood) => {
       this.updateMood(mood)
     })
