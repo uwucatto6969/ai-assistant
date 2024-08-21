@@ -58,7 +58,8 @@
     "unit_not_supported": [
       "Sorry, I can't set a timer for this unit. Use %hours%, %minutes% or %seconds% instead.",
       "I can't set a timer for this duration. Use %hours%, %minutes% or %seconds% instead."
-    ]
+    ],
+    "no_timer_set": ["No timer is set.", "There is no timer set."]
   },
   "widget_contents": {
     "second_unit": "second",

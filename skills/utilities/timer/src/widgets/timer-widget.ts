@@ -5,11 +5,18 @@ import { Timer } from './components/timer'
 
 interface Params {
   seconds: number
+  interval: number
+  initialDuration?: number
+  id?: string
 }
 
 export class TimerWidget extends Widget<Params> {
   constructor(options: WidgetOptions<Params>) {
     super(options)
+
+    if (options.params.id) {
+      this.id = options.params.id
+    }
   }
 
   /**
@@ -25,15 +32,16 @@ export class TimerWidget extends Widget<Params> {
   // TODO: <Loader isLoading={isFetching}>content...</Loader>
 
   public render(): WidgetComponent {
-    const { seconds } = this.params
+    const { seconds, interval, initialDuration } = this.params
     const secondUnitContent = this.content('second_unit')
     const secondsUnitContent = this.content('seconds_unit')
     const minuteUnitContent = this.content('minute_unit')
     const minutesUnitContent = this.content('minutes_unit')
+    const totalTime = initialDuration || seconds
     let totalTimeContent = ''
 
-    if (seconds >= 60) {
-      const minutes = seconds / 60
+    if (totalTime >= 60) {
+      const minutes = totalTime / 60
 
       totalTimeContent = this.content('total_time', {
         value: minutes % 1 === 0 ? minutes : minutes.toFixed(2),
@@ -41,14 +49,14 @@ export class TimerWidget extends Widget<Params> {
       })
     } else {
       totalTimeContent = this.content('total_time', {
-        value: seconds,
-        unit: seconds > 1 ? secondsUnitContent : secondUnitContent
+        value: totalTime,
+        unit: totalTime > 1 ? secondsUnitContent : secondUnitContent
       })
     }
 
     return new Timer({
       initialTime: seconds,
-      interval: 1_000,
+      interval,
       totalTimeContent,
       onFetch: (): WidgetEventMethod => {
         return this.fetchWidgetData(['initialTime'])
@@ -60,6 +68,4 @@ export class TimerWidget extends Widget<Params> {
       }
     })
   }
-
-  public fetch(dataToSet: string[]): WidgetEventMethod {}
 }
