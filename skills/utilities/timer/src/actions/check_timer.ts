@@ -14,14 +14,10 @@ export const run: ActionFunction = async function () {
   const { widgetId, interval, finishedAt, duration } = timerMemory
   const remainingTime = finishedAt - Math.floor(Date.now() / 1_000)
 
-  if (remainingTime <= 0) {
-    return await leon.answer({ key: 'no_timer_set' })
-  }
-
   const timerWidget = new TimerWidget({
     params: {
       id: widgetId,
-      seconds: remainingTime,
+      seconds: remainingTime <= 0 ? 0 : remainingTime,
       initialDuration: duration,
       interval
     }

@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { CircularProgress, Flexbox, Text, Loader } from '@leon-ai/aurora'
+import { CircularProgress, Flexbox, Text } from '@leon-ai/aurora'
 
 interface TimerProps {
   initialTime: number
   interval: number
   totalTimeContent: string
-  onFetch: () => void
   onEnd?: () => void
-}
-interface TimerFetchData {
-  initialTime: number
 }
 
 function formatTime(seconds: number): string {
@@ -26,17 +22,12 @@ export function Timer({
   initialTime,
   interval,
   totalTimeContent,
-  onFetch,
   onEnd
 }: TimerProps) {
   const [progress, setProgress] = useState(0)
   const [timeLeft, setTimeLeft] = useState(initialTime)
-  const [isFetching, setIsFetching] = useState(false)
 
   useEffect(() => {
-    if (onFetch) {
-      onFetch()
-    }
     setTimeLeft(initialTime)
     setProgress(0)
   }, [initialTime])
@@ -65,18 +56,12 @@ export function Timer({
   return (
     <CircularProgress value={progress} size="lg">
       <Flexbox gap="xs" alignItems="center" justifyContent="center">
-        {!isFetching ? (
-          <>
-            <Text fontSize="lg" fontWeight="semi-bold">
-              {formatTime(timeLeft)}
-            </Text>
-            <Text fontSize="xs" secondary>
-              {totalTimeContent}
-            </Text>
-          </>
-        ) : (
-          <Loader />
-        )}
+        <Text fontSize="lg" fontWeight="semi-bold">
+          {formatTime(timeLeft)}
+        </Text>
+        <Text fontSize="xs" secondary>
+          {totalTimeContent}
+        </Text>
       </Flexbox>
     </CircularProgress>
   )

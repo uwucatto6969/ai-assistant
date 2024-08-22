@@ -64,7 +64,7 @@ export default class Brain {
   private skillProcess: ChildProcessWithoutNullStreams | undefined = undefined
   private domainFriendlyName = ''
   private skillFriendlyName = ''
-  private skillOutput = ''
+  public skillOutput = ''
   public isMuted = false // Close Leon mouth if true; e.g. over HTTP
 
   constructor() {

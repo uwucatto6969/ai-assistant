@@ -1,4 +1,3 @@
-import { join } from 'node:path'
 import { spawn } from 'node:child_process'
 
 import kill from 'tree-kill'
@@ -81,13 +80,9 @@ export default class NLU {
 
     const skillConfigPath = newNLUResult.skillConfigPath
       ? newNLUResult.skillConfigPath
-      : join(
-          process.cwd(),
-          'skills',
+      : SkillDomainHelper.getSkillConfigPath(
           newNLUResult.classification.domain,
-          newNLUResult.classification.skill,
-          'config',
-          BRAIN.lang + '.json'
+          newNLUResult.classification.skill
         )
     const { actions } = await SkillDomainHelper.getSkillConfig(
       skillConfigPath,
@@ -433,13 +428,9 @@ export default class NLU {
           )}`
         )
 
-        const skillConfigPath = join(
-          process.cwd(),
-          'skills',
+        const skillConfigPath = SkillDomainHelper.getSkillConfigPath(
           this._nluResult.classification.domain,
-          this._nluResult.classification.skill,
-          'config',
-          BRAIN.lang + '.json'
+          this._nluResult.classification.skill
         )
         this._nluResult.skillConfigPath = skillConfigPath
 

@@ -126,6 +126,10 @@ class Leon {
           }),
           supportedEvents: SUPPORTED_WIDGET_EVENTS
         }
+
+        if (answerInput.widget.onFetch) {
+          answerObject.output.widget.onFetch = answerInput.widget.onFetch
+        }
       }
 
       // "Temporize" for the data buffer output on the core

@@ -24,7 +24,7 @@ interface SendUtteranceOptions {
 }
 
 export interface WidgetEventMethod {
-  methodName: 'send_utterance' | 'run_skill_action' | 'fetch_widget_data'
+  methodName: 'send_utterance' | 'run_skill_action'
   methodParams:
     | SendUtteranceWidgetEventMethodParams
     | RunSkillActionWidgetEventMethodParams
@@ -32,6 +32,8 @@ export interface WidgetEventMethod {
 }
 export interface WidgetOptions<T = unknown> {
   wrapperProps?: Omit<WidgetWrapperProps, 'children'>
+  // TODO: widget fetching
+  onFetch?: string
   params: T
 }
 
@@ -39,12 +41,17 @@ export abstract class Widget<T = unknown> {
   public actionName: string
   public id: string
   public widget: string
+  // TODO: widget fetching
+  public onFetch: string | null = null
   public wrapperProps: WidgetOptions<T>['wrapperProps']
   public params: WidgetOptions<T>['params']
 
   protected constructor(options: WidgetOptions<T>) {
     if (options?.wrapperProps) {
       this.wrapperProps = options.wrapperProps
+    }
+    if (options?.onFetch) {
+      this.onFetch = options.onFetch
     }
     this.actionName = `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${INTENT_OBJECT.action}`
     this.widget = this.constructor.name
@@ -96,22 +103,6 @@ export abstract class Widget<T = unknown> {
       methodParams: {
         actionName,
         params
-      }
-    }
-  }
-
-  /**
-   * Indicate the core to fetch/set the data of a given widget
-   * @param dataToSet Data to set on fetch
-   * @example fetchWidgetData('timer-f42wa', { initialTime: 42 })
-   */
-  protected fetchWidgetData(dataToSet: string[]): WidgetEventMethod {
-    return {
-      methodName: 'fetch_widget_data',
-      methodParams: {
-        actionName: this.actionName,
-        widgetId: this.id,
-        dataToSet
       }
     }
   }

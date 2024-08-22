@@ -9,8 +9,7 @@ export const SUPPORTED_WIDGET_EVENTS = [
   'onSubmit',
   'onChange',
   'onStart',
-  'onEnd',
-  'onFetch'
+  'onEnd'
 ] as const
 
 function generateId(): string {

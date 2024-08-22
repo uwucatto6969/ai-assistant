@@ -10,6 +10,7 @@ import type {
   SkillBridgeSchema
 } from '@/schemas/skill-schemas'
 import { SKILLS_PATH } from '@/constants'
+import { BRAIN } from '@/core'
 
 interface SkillDomain {
   domainId: string
@@ -138,6 +139,18 @@ export class SkillDomainHelper {
     skill: SkillSchema['name']
   ): string {
     return path.join(SKILLS_PATH, domain, skill)
+  }
+
+  /**
+   * Get skill config path
+   * @param domain Domain where the skill belongs
+   * @param skill Skill to get config path from
+   */
+  public static getSkillConfigPath(
+    domain: SkillDomain['name'],
+    skill: SkillSchema['name']
+  ): string {
+    return path.join(SKILLS_PATH, domain, skill, 'config', `${BRAIN.lang}.json`)
   }
 
   /**

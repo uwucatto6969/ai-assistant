@@ -18,8 +18,10 @@ import { infoPlugin } from '@/core/http-server/api/info'
 import { llmInferencePlugin } from '@/core/http-server/api/llm-inference'
 import { keyMidd } from '@/core/http-server/plugins/key'
 import { utterancePlugin } from '@/core/http-server/api/utterance'
-import { LLM_MANAGER, PERSONA } from '@/core'
+import { BRAIN, LLM_MANAGER, PERSONA } from '@/core'
+import { DEFAULT_NLU_RESULT } from '@/core/nlp/nlu/nlu'
 import { SystemHelper } from '@/helpers/system-helper'
+import { SkillDomainHelper } from '@/helpers/skill-domain-helper'
 
 const API_VERSION = 'v1'
 
@@ -99,6 +101,41 @@ export default class HTTPServer {
     })
     this.fastify.get('/', (_request, reply) => {
       reply.sendFile('index.html')
+    })
+
+    this.fastify.get(`/api/${API_VERSION}/fetch`, async (_request, reply) => {
+      try {
+        BRAIN.isMuted = true
+        await BRAIN.execute({
+          ...DEFAULT_NLU_RESULT,
+          // TODO: widget fetching
+          skillConfigPath: SkillDomainHelper.getSkillConfigPath(
+            'utilities',
+            'timer'
+          ),
+          // TODO: widget fetching
+          classification: {
+            domain: 'utilities',
+            skill: 'timer',
+            action: 'check_timer',
+            confidence: 1
+          }
+        })
+
+        const parsedOutput = JSON.parse(BRAIN.skillOutput)
+
+        if (parsedOutput.output.widget) {
+          return reply.send({
+            componentTree: JSON.parse(BRAIN.skillOutput).output.widget
+              .componentTree
+          })
+        }
+
+        return reply.send({ componentTree: null })
+      } catch (e) {
+        LogHelper.title('HTTP Server')
+        LogHelper.error(`Failed to fetch widget component tree: ${e}`)
+      }
     })
 
     this.fastify.register(infoPlugin, { apiVersion: API_VERSION })

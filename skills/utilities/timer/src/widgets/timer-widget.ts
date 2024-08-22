@@ -58,9 +58,6 @@ export class TimerWidget extends Widget<Params> {
       initialTime: seconds,
       interval,
       totalTimeContent,
-      onFetch: (): WidgetEventMethod => {
-        return this.fetchWidgetData(['initialTime'])
-      },
       onEnd: (): WidgetEventMethod => {
         return this.sendUtterance('times_up', {
           from: 'leon'

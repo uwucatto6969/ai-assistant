@@ -48,16 +48,6 @@ export default function renderAuroraComponent(
       })
     }
 
-    // TODO: now!
-    // TODO: if onFetch, then set new values here, send generic fetch request to get skill -> widget id?
-    // TODO: need to create a standard on_fetch skill action that will be executed?
-    /*if (component.props.onFetch) {
-      console.log('component', component)
-      if (component.props.initialTime) {
-        component.props.initialTime = 0
-      }
-    }*/
-
     return createElement(reactComponent, component.props)
   }
 }

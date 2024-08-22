@@ -1,10 +1,12 @@
 import { createRoot } from 'react-dom/client'
+import axios from 'axios'
 
 import renderAuroraComponent from './render-aurora-component'
 
 export default class Chatbot {
-  constructor(socket) {
+  constructor(socket, serverURL) {
     this.socket = socket
+    this.serverURL = serverURL
     this.et = new EventTarget()
     this.feed = document.querySelector('#feed')
     this.typing = document.querySelector('#is-typing')
@@ -104,7 +106,7 @@ export default class Chatbot {
 
     this.feed.appendChild(container).appendChild(bubble)
 
-    let widgetTree = null
+    let componentTree = null
     let widgetSupportedEvents = null
 
     /**
@@ -114,16 +116,34 @@ export default class Chatbot {
       const parsedWidget = JSON.parse(string)
       const root = createRoot(container)
 
-      widgetTree = parsedWidget.componentTree
+      componentTree = parsedWidget.componentTree
       widgetSupportedEvents = parsedWidget.supportedEvents
 
-      const reactNode = renderAuroraComponent(
-        this.socket,
-        widgetTree,
-        widgetSupportedEvents
-      )
+      if (parsedWidget.onFetch) {
+        // TODO: widget fetching
+        // TODO: inject Loader component in the componentTree to show loading state + refactor
+        axios.get(`${this.serverURL}/api/v1/fetch`).then((data) => {
+          componentTree = data.data.componentTree
 
-      root.render(reactNode)
+          console.log('componentTree', componentTree)
+
+          const reactNode = renderAuroraComponent(
+            this.socket,
+            componentTree,
+            widgetSupportedEvents
+          )
+
+          root.render(reactNode)
+        })
+      } else {
+        const reactNode = renderAuroraComponent(
+          this.socket,
+          componentTree,
+          widgetSupportedEvents
+        )
+
+        root.render(reactNode)
+      }
     }
 
     if (save) {

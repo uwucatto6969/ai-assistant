@@ -6,10 +6,10 @@ import { createTimerMemory } from '../lib/memory'
 
 export const run: ActionFunction = async function (params) {
   const supportedUnits = ['hours', 'minutes', 'seconds']
-  const durations = (
-    params.slots['duration']?.resolution as BuiltInDurationEntity['resolution']
+  const [duration] = (
+    params.current_entities.find((entity) => entity.type === 'duration')
+      ?.resolution as BuiltInDurationEntity['resolution']
   ).values
-  const [duration] = durations
 
   if (!duration) {
     return leon.answer({ key: 'cannot_get_duration' })
@@ -27,7 +27,10 @@ export const run: ActionFunction = async function (params) {
     params: {
       seconds,
       interval
-    }
+    },
+    // TODO: widget fetching
+    // TODO: better method
+    onFetch: 'check_timer'
   })
 
   await createTimerMemory(timerWidget.id, seconds, interval)

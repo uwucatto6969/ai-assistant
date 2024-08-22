@@ -5,7 +5,6 @@ interface TimerProps {
   initialTime: number
   interval: number
   totalTimeContent: string
-  onFetch: () => WidgetEventMethod
   onEnd?: () => WidgetEventMethod
 }
 

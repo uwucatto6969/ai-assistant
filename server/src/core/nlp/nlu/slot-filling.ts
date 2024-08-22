@@ -1,5 +1,3 @@
-import { join } from 'node:path'
-
 import type { NLPUtterance } from '@/core/nlp/types'
 import type { BrainProcessResult } from '@/core/brain/types'
 import { BRAIN, MODEL_LOADER, NER, NLU, SOCKET_SERVER } from '@/core'
@@ -61,13 +59,9 @@ export class SlotFilling {
 
     const { domain, intent } = NLU.conversation.activeContext
     const [skillName, actionName] = intent.split('.') as [string, string]
-    const skillConfigPath = join(
-      process.cwd(),
-      'skills',
+    const skillConfigPath = SkillDomainHelper.getSkillConfigPath(
       domain,
-      skillName,
-      'config',
-      BRAIN.lang + '.json'
+      skillName
     )
 
     await NLU.setNLUResult({
