@@ -178,17 +178,15 @@ export default class Client {
     })
 
     this.socket.on('widget', (data) => {
-      this.chatbot.createBubble('leon', data)
+      this.chatbot.createBubble({
+        who: 'leon',
+        string: data
+      })
     })
 
     this.socket.on('widget-send-utterance', (utterance) => {
       this._input.value = utterance
       this.send('utterance')
-    })
-
-    this.socket.on('widget-fetch-data', (data) => {
-      // TODO
-      console.log('data', data)
     })
 
     this.socket.on('new-mood', (mood) => {
@@ -208,12 +206,12 @@ export default class Client {
       let bubbleContainerElement = null
 
       if (!isSameGeneration) {
-        bubbleContainerElement = this.chatbot.createBubble(
-          'leon',
-          data.token,
-          false,
-          newGenerationId
-        )
+        bubbleContainerElement = this.chatbot.createBubble({
+          who: 'leon',
+          string: data.token,
+          save: false,
+          bubbleId: newGenerationId
+        })
       } else {
         bubbleContainerElement = document.querySelector(
           `.${previousGenerationId}`

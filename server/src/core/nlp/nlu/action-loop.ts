@@ -24,7 +24,8 @@ export class ActionLoop {
     const [skillName, actionName] = intent.split('.') as [string, string]
     const skillConfigPath = SkillDomainHelper.getSkillConfigPath(
       domain,
-      skillName
+      skillName,
+      BRAIN.lang
     )
     const newNLUResult = {
       ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.

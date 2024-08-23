@@ -20,11 +20,17 @@ export default class Chatbot {
     this.scrollDown()
 
     this.et.addEventListener('to-leon', (event) => {
-      this.createBubble('me', event.detail)
+      this.createBubble({
+        who: 'me',
+        string: event.detail
+      })
     })
 
     this.et.addEventListener('me-received', (event) => {
-      this.createBubble('leon', event.detail)
+      this.createBubble({
+        who: 'leon',
+        string: event.detail
+      })
     })
   }
 
@@ -77,7 +83,12 @@ export default class Chatbot {
         for (let i = 0; i < this.parsedBubbles.length; i += 1) {
           const bubble = this.parsedBubbles[i]
 
-          this.createBubble(bubble.who, bubble.string, false)
+          this.createBubble({
+            who: bubble.who,
+            string: bubble.string,
+            save: false,
+            isCreatingFromLoadingFeed: true
+          })
 
           if (i + 1 === this.parsedBubbles.length) {
             setTimeout(() => {
@@ -89,16 +100,23 @@ export default class Chatbot {
     })
   }
 
-  createBubble(who, string, save = true, bubbleId) {
+  createBubble(params) {
+    const {
+      who,
+      string,
+      save = true,
+      bubbleId,
+      isCreatingFromLoadingFeed = false
+    } = params
     const container = document.createElement('div')
     const bubble = document.createElement('p')
 
     container.className = `bubble-container ${who}`
     bubble.className = 'bubble'
 
-    string = this.formatMessage(string)
+    const formattedString = this.formatMessage(string)
 
-    bubble.innerHTML = string
+    bubble.innerHTML = formattedString
 
     if (bubbleId) {
       container.classList.add(bubbleId)
@@ -106,48 +124,67 @@ export default class Chatbot {
 
     this.feed.appendChild(container).appendChild(bubble)
 
-    let componentTree = null
+    let widgetComponentTree = null
     let widgetSupportedEvents = null
 
     /**
      * Widget rendering
      */
-    if (string.includes && string.includes('"component":"WidgetWrapper"')) {
-      const parsedWidget = JSON.parse(string)
-      const root = createRoot(container)
+    if (
+      formattedString.includes &&
+      formattedString.includes('"component":"WidgetWrapper"')
+    ) {
+      const parsedWidget = JSON.parse(formattedString)
+      container.setAttribute('data-widget-id', parsedWidget.id)
 
-      componentTree = parsedWidget.componentTree
+      widgetComponentTree = parsedWidget.componentTree
       widgetSupportedEvents = parsedWidget.supportedEvents
 
-      if (parsedWidget.onFetch) {
+      /**
+       * On widget fetching
+       */
+      if (isCreatingFromLoadingFeed && parsedWidget.onFetch) {
+        const container = document.querySelector(
+          `[data-widget-id="${parsedWidget.id}"]`
+        )
+        const root = createRoot(container)
+
         // TODO: widget fetching
         // TODO: inject Loader component in the componentTree to show loading state + refactor
-        axios.get(`${this.serverURL}/api/v1/fetch`).then((data) => {
-          componentTree = data.data.componentTree
 
-          console.log('componentTree', componentTree)
+        // TODO: fix several fetch/widgets + parse string on loading (need loading state first)
+        // TODO: grab specific widgetid
+        axios.get(`${this.serverURL}/api/v1/fetch`).then((data) => {
+          widgetComponentTree = data.data.componentTree
 
           const reactNode = renderAuroraComponent(
             this.socket,
-            componentTree,
+            widgetComponentTree,
             widgetSupportedEvents
           )
 
           root.render(reactNode)
         })
-      } else {
-        const reactNode = renderAuroraComponent(
-          this.socket,
-          componentTree,
-          widgetSupportedEvents
-        )
 
-        root.render(reactNode)
+        return container
       }
+
+      /**
+       * On widget creation
+       */
+      const root = createRoot(container)
+
+      const reactNode = renderAuroraComponent(
+        this.socket,
+        widgetComponentTree,
+        widgetSupportedEvents
+      )
+
+      root.render(reactNode)
     }
 
     if (save) {
-      this.saveBubble(who, string)
+      this.saveBubble(who, formattedString)
     }
 
     return container

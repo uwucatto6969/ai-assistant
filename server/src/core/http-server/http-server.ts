@@ -111,7 +111,8 @@ export default class HTTPServer {
           // TODO: widget fetching
           skillConfigPath: SkillDomainHelper.getSkillConfigPath(
             'utilities',
-            'timer'
+            'timer',
+            BRAIN.lang
           ),
           // TODO: widget fetching
           classification: {

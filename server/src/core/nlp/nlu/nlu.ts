@@ -82,7 +82,8 @@ export default class NLU {
       ? newNLUResult.skillConfigPath
       : SkillDomainHelper.getSkillConfigPath(
           newNLUResult.classification.domain,
-          newNLUResult.classification.skill
+          newNLUResult.classification.skill,
+          BRAIN.lang
         )
     const { actions } = await SkillDomainHelper.getSkillConfig(
       skillConfigPath,
@@ -430,7 +431,8 @@ export default class NLU {
 
         const skillConfigPath = SkillDomainHelper.getSkillConfigPath(
           this._nluResult.classification.domain,
-          this._nluResult.classification.skill
+          this._nluResult.classification.skill,
+          BRAIN.lang
         )
         this._nluResult.skillConfigPath = skillConfigPath
 

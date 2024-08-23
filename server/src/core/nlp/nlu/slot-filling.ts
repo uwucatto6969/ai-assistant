@@ -61,7 +61,8 @@ export class SlotFilling {
     const [skillName, actionName] = intent.split('.') as [string, string]
     const skillConfigPath = SkillDomainHelper.getSkillConfigPath(
       domain,
-      skillName
+      skillName,
+      BRAIN.lang
     )
 
     await NLU.setNLUResult({

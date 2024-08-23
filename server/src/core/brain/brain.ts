@@ -430,7 +430,7 @@ export default class Brain {
         LogHelper.title(`${this.skillFriendlyName} skill (on data)`)
         LogHelper.info(data.toString())
 
-        if (skillAnswer.output.widget) {
+        if (skillAnswer.output.widget && !this.isMuted) {
           try {
             SOCKET_SERVER.socket?.emit(
               'widget',
