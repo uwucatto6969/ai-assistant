@@ -22,13 +22,10 @@ export class ActionLoop {
   ): Promise<Partial<BrainProcessResult> | null> {
     const { domain, intent } = NLU.conversation.activeContext
     const [skillName, actionName] = intent.split('.') as [string, string]
-    const skillConfigPath = join(
-      process.cwd(),
-      'skills',
+    const skillConfigPath = SkillDomainHelper.getSkillConfigPath(
       domain,
       skillName,
-      'config',
-      BRAIN.lang + '.json'
+      BRAIN.lang
     )
     const newNLUResult = {
       ...DEFAULT_NLU_RESULT, // Reset entities, slots, etc.

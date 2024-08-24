@@ -14,7 +14,7 @@ export default class Client {
     this.socket = io(this.serverUrl)
     this.history = localStorage.getItem('history')
     this.parsedHistory = []
-    this.chatbot = new Chatbot(this.socket)
+    this.chatbot = new Chatbot(this.socket, this.serverUrl)
     this.voiceEnergy = new VoiceEnergy(this)
     this._recorder = {}
     this._suggestions = []
@@ -178,7 +178,10 @@ export default class Client {
     })
 
     this.socket.on('widget', (data) => {
-      this.chatbot.createBubble('leon', data)
+      this.chatbot.createBubble({
+        who: 'leon',
+        string: data
+      })
     })
 
     this.socket.on('widget-send-utterance', (utterance) => {
@@ -203,12 +206,12 @@ export default class Client {
       let bubbleContainerElement = null
 
       if (!isSameGeneration) {
-        bubbleContainerElement = this.chatbot.createBubble(
-          'leon',
-          data.token,
-          false,
-          newGenerationId
-        )
+        bubbleContainerElement = this.chatbot.createBubble({
+          who: 'leon',
+          string: data.token,
+          save: false,
+          bubbleId: newGenerationId
+        })
       } else {
         bubbleContainerElement = document.querySelector(
           `.${previousGenerationId}`

@@ -1,10 +1,17 @@
+import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
+import axios from 'axios'
+import { WidgetWrapper, Flexbox, Loader } from '@leon-ai/aurora'
 
 import renderAuroraComponent from './render-aurora-component'
 
+const WIDGETS_TO_FETCH = []
+const WIDGETS_FETCH_CACHE = new Map()
+
 export default class Chatbot {
-  constructor(socket) {
+  constructor(socket, serverURL) {
     this.socket = socket
+    this.serverURL = serverURL
     this.et = new EventTarget()
     this.feed = document.querySelector('#feed')
     this.typing = document.querySelector('#is-typing')
@@ -18,11 +25,17 @@ export default class Chatbot {
     this.scrollDown()
 
     this.et.addEventListener('to-leon', (event) => {
-      this.createBubble('me', event.detail)
+      this.createBubble({
+        who: 'me',
+        string: event.detail
+      })
     })
 
     this.et.addEventListener('me-received', (event) => {
-      this.createBubble('leon', event.detail)
+      this.createBubble({
+        who: 'leon',
+        string: event.detail
+      })
     })
   }
 
@@ -65,7 +78,7 @@ export default class Chatbot {
   }
 
   loadFeed() {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       if (this.parsedBubbles === null || this.parsedBubbles.length === 0) {
         this.noBubbleMessage.classList.remove('hide')
         localStorage.setItem('bubbles', JSON.stringify([]))
@@ -75,7 +88,12 @@ export default class Chatbot {
         for (let i = 0; i < this.parsedBubbles.length; i += 1) {
           const bubble = this.parsedBubbles[i]
 
-          this.createBubble(bubble.who, bubble.string, false)
+          this.createBubble({
+            who: bubble.who,
+            string: bubble.string,
+            save: false,
+            isCreatingFromLoadingFeed: true
+          })
 
           if (i + 1 === this.parsedBubbles.length) {
             setTimeout(() => {
@@ -83,20 +101,70 @@ export default class Chatbot {
             }, 100)
           }
         }
+
+        /**
+         * Browse widgets that need to be fetched.
+         * Reverse widgets to fetch the last widgets first.
+         * Replace the loading content with the fetched widget
+         */
+        const widgetContainers = WIDGETS_TO_FETCH.reverse()
+        for (let i = 0; i < widgetContainers.length; i += 1) {
+          const widgetContainer = widgetContainers[i]
+          const hasWidgetBeenFetched = WIDGETS_FETCH_CACHE.has(
+            widgetContainer.widgetId
+          )
+
+          if (hasWidgetBeenFetched) {
+            const fetchedWidget = WIDGETS_FETCH_CACHE.get(
+              widgetContainer.widgetId
+            )
+            widgetContainer.reactRootNode.render(fetchedWidget.reactNode)
+
+            setTimeout(() => {
+              this.scrollDown()
+            }, 100)
+
+            continue
+          }
+
+          const data = await axios.get(
+            `${this.serverURL}/api/v1/fetch-widget?skill_action=${widgetContainer.onFetchAction}&widget_id=${widgetContainer.widgetId}`
+          )
+          const fetchedWidget = data.data.widget
+          const reactNode = renderAuroraComponent(
+            this.socket,
+            fetchedWidget.componentTree,
+            fetchedWidget.supportedEvents
+          )
+
+          widgetContainer.reactRootNode.render(reactNode)
+          WIDGETS_FETCH_CACHE.set(widgetContainer.widgetId, {
+            ...fetchedWidget,
+            reactNode
+          })
+          this.scrollDown()
+        }
       }
     })
   }
 
-  createBubble(who, string, save = true, bubbleId) {
+  createBubble(params) {
+    const {
+      who,
+      string,
+      save = true,
+      bubbleId,
+      isCreatingFromLoadingFeed = false
+    } = params
     const container = document.createElement('div')
     const bubble = document.createElement('p')
 
     container.className = `bubble-container ${who}`
     bubble.className = 'bubble'
 
-    string = this.formatMessage(string)
+    const formattedString = this.formatMessage(string)
 
-    bubble.innerHTML = string
+    bubble.innerHTML = formattedString
 
     if (bubbleId) {
       container.classList.add(bubbleId)
@@ -104,22 +172,55 @@ export default class Chatbot {
 
     this.feed.appendChild(container).appendChild(bubble)
 
-    let widgetTree = null
+    let widgetComponentTree = null
     let widgetSupportedEvents = null
 
     /**
      * Widget rendering
      */
-    if (string.startsWith && string.startsWith('{"tree":{"component')) {
-      const parsedWidget = JSON.parse(string)
-      const root = createRoot(container)
+    if (
+      formattedString.includes &&
+      formattedString.includes('"component":"WidgetWrapper"')
+    ) {
+      const parsedWidget = JSON.parse(formattedString)
+      container.setAttribute('data-widget-id', parsedWidget.id)
 
-      widgetTree = parsedWidget.tree
+      /**
+       * On widget fetching, render the loader
+       */
+      if (isCreatingFromLoadingFeed && parsedWidget.onFetchAction) {
+        const root = createRoot(container)
+
+        root.render(
+          createElement(WidgetWrapper, {
+            children: createElement(Flexbox, {
+              alignItems: 'center',
+              justifyContent: 'center',
+              children: createElement(Loader)
+            })
+          })
+        )
+
+        WIDGETS_TO_FETCH.push({
+          reactRootNode: root,
+          widgetId: parsedWidget.id,
+          onFetchAction: parsedWidget.onFetchAction
+        })
+
+        return
+      }
+
+      widgetComponentTree = parsedWidget.componentTree
       widgetSupportedEvents = parsedWidget.supportedEvents
+
+      /**
+       * On widget creation
+       */
+      const root = createRoot(container)
 
       const reactNode = renderAuroraComponent(
         this.socket,
-        widgetTree,
+        widgetComponentTree,
         widgetSupportedEvents
       )
 
@@ -127,7 +228,7 @@ export default class Chatbot {
     }
 
     if (save) {
-      this.saveBubble(who, string)
+      this.saveBubble(who, formattedString)
     }
 
     return container

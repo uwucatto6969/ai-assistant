@@ -16,6 +16,7 @@ import { corsMidd } from '@/core/http-server/plugins/cors'
 import { otherMidd } from '@/core/http-server/plugins/other'
 import { infoPlugin } from '@/core/http-server/api/info'
 import { llmInferencePlugin } from '@/core/http-server/api/llm-inference'
+import { fetchWidgetPlugin } from '@/core/http-server/api/fetch-widget'
 import { keyMidd } from '@/core/http-server/plugins/key'
 import { utterancePlugin } from '@/core/http-server/api/utterance'
 import { LLM_MANAGER, PERSONA } from '@/core'
@@ -59,13 +60,9 @@ export default class HTTPServer {
     LogHelper.title('Initialization')
     LogHelper.info(`Environment: ${LEON_NODE_ENV}`)
     LogHelper.info(`Version: ${LEON_VERSION}`)
-
     LogHelper.info(`Time zone: ${DateHelper.getTimeZone()}`)
-
     LogHelper.info(`LLM provider: ${LLM_PROVIDER}`)
-
     LogHelper.info(`Mood: ${PERSONA.mood.type}`)
-
     LogHelper.info(`GPU: ${(await SystemHelper.getGPUDeviceNames())[0]}`)
     LogHelper.info(
       `Graphics compute API: ${await SystemHelper.getGraphicsComputeAPI()}`
@@ -101,8 +98,8 @@ export default class HTTPServer {
       reply.sendFile('index.html')
     })
 
+    this.fastify.register(fetchWidgetPlugin, { apiVersion: API_VERSION })
     this.fastify.register(infoPlugin, { apiVersion: API_VERSION })
-
     this.fastify.register(llmInferencePlugin, { apiVersion: API_VERSION })
 
     if (HAS_OVER_HTTP) {

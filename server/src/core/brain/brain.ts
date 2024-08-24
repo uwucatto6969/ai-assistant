@@ -64,7 +64,7 @@ export default class Brain {
   private skillProcess: ChildProcessWithoutNullStreams | undefined = undefined
   private domainFriendlyName = ''
   private skillFriendlyName = ''
-  private skillOutput = ''
+  public skillOutput = ''
   public isMuted = false // Close Leon mouth if true; e.g. over HTTP
 
   constructor() {
@@ -430,7 +430,7 @@ export default class Brain {
         LogHelper.title(`${this.skillFriendlyName} skill (on data)`)
         LogHelper.info(data.toString())
 
-        if (skillAnswer.output.widget) {
+        if (skillAnswer.output.widget && !this.isMuted) {
           try {
             SOCKET_SERVER.socket?.emit(
               'widget',

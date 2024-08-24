@@ -39,7 +39,7 @@ export interface SkillResult {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: Record<string, any>
     widget?: {
-      tree: WidgetWrapper
+      componentTree: WidgetWrapper
       supportedEvents: typeof SUPPORTED_WIDGET_EVENTS
     }
   }
@@ -93,8 +93,12 @@ export interface SkillAnswerOutput extends IntentObject {
     answer: SkillAnswerConfigSchema
     core?: SkillAnswerCoreData
     widget?: {
-      tree: WidgetWrapper
+      actionName: string
+      widget: string
+      id: string
+      componentTree: WidgetWrapper
       supportedEvents: typeof SUPPORTED_WIDGET_EVENTS
+      onFetchAction: string | null
     }
   }
 }

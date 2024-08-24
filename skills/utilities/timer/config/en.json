@@ -6,25 +6,11 @@
     "seconds": "seconds"
   },
   "actions": {
-    "configure_set_timer": {
-      "type": "dialog",
+    "set_timer": {
+      "type": "logic",
       "utterance_samples": [
         "[Set|Start|Create] a timer for @number [minutes|seconds]"
-      ],
-      "slots": [
-        {
-          "name": "duration",
-          "item": {
-            "type": "entity",
-            "name": "duration"
-          },
-          "questions": ["For how long time?"]
-        }
-      ],
-      "next_action": "set_timer"
-    },
-    "set_timer": {
-      "type": "logic"
+      ]
     },
     "cancel_timer": {
       "type": "logic",
@@ -52,13 +38,14 @@
   },
   "answers": {
     "cannot_get_duration": [
-      "Sorry, I can't get the duration of the timer.",
-      "I can't get the duration of the timer. Sorry."
+      "You should provide a duration for the timer.",
+      "You didn't provide a duration for the timer."
     ],
     "unit_not_supported": [
       "Sorry, I can't set a timer for this unit. Use %hours%, %minutes% or %seconds% instead.",
       "I can't set a timer for this duration. Use %hours%, %minutes% or %seconds% instead."
-    ]
+    ],
+    "no_timer_set": ["No timer is set.", "There is no timer set."]
   },
   "widget_contents": {
     "second_unit": "second",

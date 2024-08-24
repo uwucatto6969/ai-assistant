@@ -141,6 +141,20 @@ export class SkillDomainHelper {
   }
 
   /**
+   * Get skill config path
+   * @param domain Domain where the skill belongs
+   * @param skill Skill to get config path from
+   * @param lang Language short code
+   */
+  public static getSkillConfigPath(
+    domain: SkillDomain['name'],
+    skill: SkillSchema['name'],
+    lang: ShortLanguageCode
+  ): string {
+    return path.join(SKILLS_PATH, domain, skill, 'config', `${lang}.json`)
+  }
+
+  /**
    * Get skill config
    * @param configFilePath Path of the skill config file
    * @param lang Language short code

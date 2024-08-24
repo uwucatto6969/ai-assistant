@@ -1,10 +1,15 @@
 import { type WidgetWrapperProps } from '@leon-ai/aurora'
 
-import { SKILL_CONFIG } from '@bridge/constants'
+import { INTENT_OBJECT, SKILL_CONFIG } from '@bridge/constants'
 import { WidgetComponent } from '@sdk/widget-component'
 
 type UtteranceSender = 'leon' | 'owner'
 
+interface FetchWidgetDataWidgetEventMethodParams {
+  actionName: string
+  widgetId: string
+  dataToSet: string[]
+}
 interface SendUtteranceWidgetEventMethodParams {
   from: UtteranceSender
   utterance: string
@@ -23,13 +28,19 @@ export interface WidgetEventMethod {
   methodParams:
     | SendUtteranceWidgetEventMethodParams
     | RunSkillActionWidgetEventMethodParams
+    | FetchWidgetDataWidgetEventMethodParams
 }
 export interface WidgetOptions<T = unknown> {
   wrapperProps?: Omit<WidgetWrapperProps, 'children'>
+  onFetchAction?: string
   params: T
 }
 
 export abstract class Widget<T = unknown> {
+  public actionName: string
+  public id: string
+  public widget: string
+  public onFetchAction: string | null = null
   public wrapperProps: WidgetOptions<T>['wrapperProps']
   public params: WidgetOptions<T>['params']
 
@@ -37,6 +48,14 @@ export abstract class Widget<T = unknown> {
     if (options?.wrapperProps) {
       this.wrapperProps = options.wrapperProps
     }
+    if (options?.onFetchAction) {
+      this.onFetchAction = `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${options.onFetchAction}`
+    }
+    this.actionName = `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${INTENT_OBJECT.action}`
+    this.widget = this.constructor.name
+    this.id = `${this.widget.toLowerCase()}-${Math.random()
+      .toString(36)
+      .substring(2, 10)}`
     this.params = options.params
   }
 

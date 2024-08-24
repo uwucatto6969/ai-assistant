@@ -24,18 +24,16 @@ export default function renderAuroraComponent(
     }
 
     // Check if the browsed component has a supported event and bind it
-    if (
-      reactComponent &&
-      component.events[0] &&
-      supportedEvents.includes(component.events[0].type)
-    ) {
-      const eventType = component.events[0].type
+    if (reactComponent) {
+      component.events.forEach((event) => {
+        if (supportedEvents.includes(event.type)) {
+          component.props[event.type] = (data) => {
+            const { method } = event
 
-      component.props[eventType] = (data) => {
-        const { method } = component.events[0]
-
-        socket.emit('widget-event', { method, data })
-      }
+            socket.emit('widget-event', { method, data })
+          }
+        }
+      })
     }
 
     // When children is a component, then wrap it in an array to render properly

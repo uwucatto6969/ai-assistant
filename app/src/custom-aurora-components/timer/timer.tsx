@@ -5,6 +5,7 @@ interface TimerProps {
   initialTime: number
   interval: number
   totalTimeContent: string
+  initialProgress?: number
   onEnd?: () => void
 }
 
@@ -20,16 +21,17 @@ function formatTime(seconds: number): string {
 
 export function Timer({
   initialTime,
+  initialProgress,
   interval,
   totalTimeContent,
   onEnd
 }: TimerProps) {
-  const [progress, setProgress] = useState(0)
+  const [progress, setProgress] = useState(initialProgress || 0)
   const [timeLeft, setTimeLeft] = useState(initialTime)
 
   useEffect(() => {
     setTimeLeft(initialTime)
-    setProgress(0)
+    setProgress(progress)
   }, [initialTime])
 
   useEffect(() => {
