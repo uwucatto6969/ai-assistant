@@ -1,7 +1,12 @@
+import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import axios from 'axios'
+import { WidgetWrapper, Flexbox, Loader } from '@leon-ai/aurora'
 
 import renderAuroraComponent from './render-aurora-component'
+
+const WIDGETS_TO_FETCH = []
+const WIDGETS_FETCH_CACHE = new Map()
 
 export default class Chatbot {
   constructor(socket, serverURL) {
@@ -73,7 +78,7 @@ export default class Chatbot {
   }
 
   loadFeed() {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       if (this.parsedBubbles === null || this.parsedBubbles.length === 0) {
         this.noBubbleMessage.classList.remove('hide')
         localStorage.setItem('bubbles', JSON.stringify([]))
@@ -95,6 +100,49 @@ export default class Chatbot {
               resolve()
             }, 100)
           }
+        }
+
+        /**
+         * Browse widgets that need to be fetched.
+         * Reverse widgets to fetch the last widgets first.
+         * Replace the loading content with the fetched widget
+         */
+        const widgetContainers = WIDGETS_TO_FETCH.reverse()
+        for (let i = 0; i < widgetContainers.length; i += 1) {
+          const widgetContainer = widgetContainers[i]
+          const hasWidgetBeenFetched = WIDGETS_FETCH_CACHE.has(
+            widgetContainer.widgetId
+          )
+
+          if (hasWidgetBeenFetched) {
+            const fetchedWidget = WIDGETS_FETCH_CACHE.get(
+              widgetContainer.widgetId
+            )
+            widgetContainer.reactRootNode.render(fetchedWidget.reactNode)
+
+            setTimeout(() => {
+              this.scrollDown()
+            }, 100)
+
+            continue
+          }
+
+          const data = await axios.get(
+            `${this.serverURL}/api/v1/fetch-widget?skill_action=${widgetContainer.onFetchAction}&widget_id=${widgetContainer.widgetId}`
+          )
+          const fetchedWidget = data.data.widget
+          const reactNode = renderAuroraComponent(
+            this.socket,
+            fetchedWidget.componentTree,
+            fetchedWidget.supportedEvents
+          )
+
+          widgetContainer.reactRootNode.render(reactNode)
+          WIDGETS_FETCH_CACHE.set(widgetContainer.widgetId, {
+            ...fetchedWidget,
+            reactNode
+          })
+          this.scrollDown()
         }
       }
     })
@@ -137,42 +185,33 @@ export default class Chatbot {
       const parsedWidget = JSON.parse(formattedString)
       container.setAttribute('data-widget-id', parsedWidget.id)
 
-      widgetComponentTree = parsedWidget.componentTree
-      widgetSupportedEvents = parsedWidget.supportedEvents
-
       /**
-       * On widget fetching
+       * On widget fetching, render the loader
        */
       if (isCreatingFromLoadingFeed && parsedWidget.onFetchAction) {
-        const container = document.querySelector(
-          `[data-widget-id="${parsedWidget.id}"]`
-        )
         const root = createRoot(container)
 
-        // TODO: widget fetching
-        // TODO: inject Loader component in the componentTree to show loading state + refactor
-
-        // TODO: fix several fetch/widgets + parse string on loading (need loading state first)
-        // TODO: grab specific widgetid
-        const qs = `skill_action=${parsedWidget.onFetchAction}&widget_id=${parsedWidget.id}`
-        axios
-          .get(`${this.serverURL}/api/v1/fetch-widget?${qs}`)
-          .then((data) => {
-            const fetchedWidget = data.data.widget
-
-            widgetComponentTree = fetchedWidget.componentTree
-
-            const reactNode = renderAuroraComponent(
-              this.socket,
-              widgetComponentTree,
-              widgetSupportedEvents
-            )
-
-            root.render(reactNode)
+        root.render(
+          createElement(WidgetWrapper, {
+            children: createElement(Flexbox, {
+              alignItems: 'center',
+              justifyContent: 'center',
+              children: createElement(Loader)
+            })
           })
+        )
 
-        return container
+        WIDGETS_TO_FETCH.push({
+          reactRootNode: root,
+          widgetId: parsedWidget.id,
+          onFetchAction: parsedWidget.onFetchAction
+        })
+
+        return
       }
+
+      widgetComponentTree = parsedWidget.componentTree
+      widgetSupportedEvents = parsedWidget.supportedEvents
 
       /**
        * On widget creation

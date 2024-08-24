@@ -94,7 +94,7 @@ export const fetchWidget: FastifyPluginAsync<APIOptions> = async (
             status: 200,
             code: 'widget_fetched',
             message,
-            widget: JSON.parse(BRAIN.skillOutput).output.widget
+            widget: parsedOutput.output.widget
           })
         }
 

@@ -138,7 +138,9 @@ table {
   --blue-color: #1c75db;
   --pink-color: #ed297a;
 
-  --a-loader-size-md: 20px !important;
+  .settingup {
+    --a-loader-size-md: 20px !important;
+  }
 }
 
 a {
@@ -263,7 +265,7 @@ textarea::-webkit-scrollbar-thumb {
 
 #top-container {
   position: absolute;
-  top: 6%;
+  top: 4%;
   color: var(--grey-color);
   display: flex;
   width: 100%;
@@ -286,7 +288,7 @@ textarea::-webkit-scrollbar-thumb {
 #feed {
   position: absolute;
   width: 100%;
-  top: 10%;
+  top: 8%;
   height: 50%;
   overflow-y: auto;
   border: 2px solid var(--grey-color);
@@ -431,7 +433,7 @@ textarea::-webkit-scrollbar-thumb {
 #input-container {
   position: absolute;
   width: 100%;
-  bottom: 22%;
+  bottom: 18%;
 }
 
 #mic-container {

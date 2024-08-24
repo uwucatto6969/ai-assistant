@@ -20,18 +20,6 @@ export class TimerWidget extends Widget<Params> {
     }
   }
 
-  /**
-   * TODO
-   * 1. Save timer + timer id in memory
-   * 2. On rendering, set widget id to timer id
-   * 3. When load feed, need to fetch all timers (onFetch?) as per their timer id. Need a built-in API here
-   * While fetching, set Aurora loader component for all components
-   * 4. onEnd (or onChange and check if done?), then trigger next action or utterance
-   */
-
-  // TODO: rewrite Loader component? To accept children and set it for all components with onFetch by default
-  // TODO: <Loader isLoading={isFetching}>content...</Loader>
-
   public render(): WidgetComponent {
     const { seconds, interval, initialDuration, initialProgress } = this.params
     const secondUnitContent = this.content('second_unit')
