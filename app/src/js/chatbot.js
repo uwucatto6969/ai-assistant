@@ -154,17 +154,22 @@ export default class Chatbot {
 
         // TODO: fix several fetch/widgets + parse string on loading (need loading state first)
         // TODO: grab specific widgetid
-        axios.get(`${this.serverURL}/api/v1/fetch`).then((data) => {
-          widgetComponentTree = data.data.componentTree
+        const qs = `skill_action=${parsedWidget.onFetch}&widget_id=${parsedWidget.id}`
+        axios
+          .get(`${this.serverURL}/api/v1/fetch-widget?${qs}`)
+          .then((data) => {
+            const fetchedWidget = data.data.widget
 
-          const reactNode = renderAuroraComponent(
-            this.socket,
-            widgetComponentTree,
-            widgetSupportedEvents
-          )
+            widgetComponentTree = fetchedWidget.componentTree
 
-          root.render(reactNode)
-        })
+            const reactNode = renderAuroraComponent(
+              this.socket,
+              widgetComponentTree,
+              widgetSupportedEvents
+            )
+
+            root.render(reactNode)
+          })
 
         return container
       }

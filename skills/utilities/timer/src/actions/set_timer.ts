@@ -26,11 +26,12 @@ export const run: ActionFunction = async function (params) {
   const timerWidget = new TimerWidget({
     params: {
       seconds,
+      initialProgress: 0,
       interval
     },
     // TODO: widget fetching
     // TODO: better method
-    onFetch: 'check_timer'
+    onFetch: 'utilities:timer:check_timer'
   })
 
   await createTimerMemory(timerWidget.id, seconds, interval)

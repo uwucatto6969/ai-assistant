@@ -16,12 +16,11 @@ import { corsMidd } from '@/core/http-server/plugins/cors'
 import { otherMidd } from '@/core/http-server/plugins/other'
 import { infoPlugin } from '@/core/http-server/api/info'
 import { llmInferencePlugin } from '@/core/http-server/api/llm-inference'
+import { fetchWidgetPlugin } from '@/core/http-server/api/fetch-widget'
 import { keyMidd } from '@/core/http-server/plugins/key'
 import { utterancePlugin } from '@/core/http-server/api/utterance'
-import { BRAIN, LLM_MANAGER, PERSONA } from '@/core'
-import { DEFAULT_NLU_RESULT } from '@/core/nlp/nlu/nlu'
+import { LLM_MANAGER, PERSONA } from '@/core'
 import { SystemHelper } from '@/helpers/system-helper'
-import { SkillDomainHelper } from '@/helpers/skill-domain-helper'
 
 const API_VERSION = 'v1'
 
@@ -61,13 +60,9 @@ export default class HTTPServer {
     LogHelper.title('Initialization')
     LogHelper.info(`Environment: ${LEON_NODE_ENV}`)
     LogHelper.info(`Version: ${LEON_VERSION}`)
-
     LogHelper.info(`Time zone: ${DateHelper.getTimeZone()}`)
-
     LogHelper.info(`LLM provider: ${LLM_PROVIDER}`)
-
     LogHelper.info(`Mood: ${PERSONA.mood.type}`)
-
     LogHelper.info(`GPU: ${(await SystemHelper.getGPUDeviceNames())[0]}`)
     LogHelper.info(
       `Graphics compute API: ${await SystemHelper.getGraphicsComputeAPI()}`
@@ -103,44 +98,8 @@ export default class HTTPServer {
       reply.sendFile('index.html')
     })
 
-    this.fastify.get(`/api/${API_VERSION}/fetch`, async (_request, reply) => {
-      try {
-        BRAIN.isMuted = true
-        await BRAIN.execute({
-          ...DEFAULT_NLU_RESULT,
-          // TODO: widget fetching
-          skillConfigPath: SkillDomainHelper.getSkillConfigPath(
-            'utilities',
-            'timer',
-            BRAIN.lang
-          ),
-          // TODO: widget fetching
-          classification: {
-            domain: 'utilities',
-            skill: 'timer',
-            action: 'check_timer',
-            confidence: 1
-          }
-        })
-
-        const parsedOutput = JSON.parse(BRAIN.skillOutput)
-
-        if (parsedOutput.output.widget) {
-          return reply.send({
-            componentTree: JSON.parse(BRAIN.skillOutput).output.widget
-              .componentTree
-          })
-        }
-
-        return reply.send({ componentTree: null })
-      } catch (e) {
-        LogHelper.title('HTTP Server')
-        LogHelper.error(`Failed to fetch widget component tree: ${e}`)
-      }
-    })
-
+    this.fastify.register(fetchWidgetPlugin, { apiVersion: API_VERSION })
     this.fastify.register(infoPlugin, { apiVersion: API_VERSION })
-
     this.fastify.register(llmInferencePlugin, { apiVersion: API_VERSION })
 
     if (HAS_OVER_HTTP) {

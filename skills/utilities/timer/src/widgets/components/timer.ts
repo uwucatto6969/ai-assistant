@@ -3,6 +3,7 @@ import { WidgetComponent } from '@sdk/widget-component'
 
 interface TimerProps {
   initialTime: number
+  initialProgress: number
   interval: number
   totalTimeContent: string
   onEnd?: () => WidgetEventMethod

@@ -6,6 +6,7 @@ import { Timer } from './components/timer'
 interface Params {
   seconds: number
   interval: number
+  initialProgress: number
   initialDuration?: number
   id?: string
 }
@@ -32,7 +33,7 @@ export class TimerWidget extends Widget<Params> {
   // TODO: <Loader isLoading={isFetching}>content...</Loader>
 
   public render(): WidgetComponent {
-    const { seconds, interval, initialDuration } = this.params
+    const { seconds, interval, initialDuration, initialProgress } = this.params
     const secondUnitContent = this.content('second_unit')
     const secondsUnitContent = this.content('seconds_unit')
     const minuteUnitContent = this.content('minute_unit')
@@ -56,6 +57,7 @@ export class TimerWidget extends Widget<Params> {
 
     return new Timer({
       initialTime: seconds,
+      initialProgress,
       interval,
       totalTimeContent,
       onEnd: (): WidgetEventMethod => {
