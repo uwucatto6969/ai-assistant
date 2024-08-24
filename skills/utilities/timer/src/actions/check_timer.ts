@@ -16,13 +16,16 @@ export const run: ActionFunction = async function () {
   }
 
   const { interval, finishedAt, duration } = timerMemory
-  const remainingTime = finishedAt - Math.floor(Date.now() / 1_000)
+  let remainingTime = finishedAt - Math.floor(Date.now() / 1_000)
+  if (remainingTime <= 0) {
+    remainingTime = 0
+  }
   const initialProgress = 100 - (remainingTime / duration) * 100
 
   const timerWidget = new TimerWidget({
     params: {
       id: widgetId ?? timerMemory.widgetId,
-      seconds: remainingTime <= 0 ? 0 : remainingTime,
+      seconds: remainingTime,
       initialProgress,
       initialDuration: duration,
       interval
