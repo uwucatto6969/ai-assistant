@@ -14,7 +14,7 @@ export const fetchWidget: FastifyPluginAsync<APIOptions> = async (
     method: 'GET',
     url: `/api/${options.apiVersion}/fetch-widget`,
     handler: async (_request, reply) => {
-      LogHelper.title('GET /fetch-widget')
+      let message
 
       try {
         const queryParams = _request.query as Record<string, string>
@@ -22,11 +22,14 @@ export const fetchWidget: FastifyPluginAsync<APIOptions> = async (
 
         if (!skillAction || !widgetId) {
           reply.statusCode = 400
+          message = 'skill_action and widget_id are missing.'
+          LogHelper.title('GET /fetch-widget')
+          LogHelper.warning(message)
           return reply.send({
             success: false,
             status: reply.statusCode,
             code: 'missing_params',
-            message: 'skill_action and widget_id are missing.',
+            message,
             widget: null
           })
         }
@@ -34,11 +37,14 @@ export const fetchWidget: FastifyPluginAsync<APIOptions> = async (
         const [domain, skill, action] = skillAction.split(':')
 
         if (!domain || !skill || !action) {
+          message = 'skill_action is not well formatted.'
+          LogHelper.title('GET /fetch-widget')
+          LogHelper.warning(message)
           return reply.send({
             success: false,
             status: reply.statusCode,
             code: 'skill_action_not_valid',
-            message: 'skill_action is not well formatted.',
+            message,
             widget: null
           })
         }
@@ -80,20 +86,26 @@ export const fetchWidget: FastifyPluginAsync<APIOptions> = async (
         const parsedOutput = JSON.parse(BRAIN.skillOutput)
 
         if (parsedOutput.output.widget) {
+          message = 'Widget fetched successfully.'
+          LogHelper.title('GET /fetch-widget')
+          LogHelper.success(message)
           return reply.send({
             success: true,
             status: 200,
             code: 'widget_fetched',
-            message: 'Widget fetched successfully.',
+            message,
             widget: JSON.parse(BRAIN.skillOutput).output.widget
           })
         }
 
+        message = 'Widget not fetched.'
+        LogHelper.title('GET /fetch-widget')
+        LogHelper.success(message)
         return reply.send({
           success: true,
           status: 200,
           code: 'widget_not_fetched',
-          message: 'Widget not fetched.',
+          message,
           widget: null
         })
       } catch (e) {

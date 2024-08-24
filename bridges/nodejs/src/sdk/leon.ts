@@ -120,15 +120,12 @@ class Leon {
           actionName: `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${INTENT_OBJECT.action}`,
           widget: answerInput.widget.widget,
           id: answerInput.widget.id,
+          onFetchAction: answerInput.widget.onFetchAction,
           componentTree: new WidgetWrapper({
             ...answerInput.widget.wrapperProps,
             children: [answerInput.widget.render()]
           }),
           supportedEvents: SUPPORTED_WIDGET_EVENTS
-        }
-
-        if (answerInput.widget.onFetch) {
-          answerObject.output.widget.onFetch = answerInput.widget.onFetch
         }
       }
 

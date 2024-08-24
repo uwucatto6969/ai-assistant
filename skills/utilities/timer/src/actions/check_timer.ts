@@ -1,20 +1,15 @@
 import type { ActionFunction } from '@sdk/types'
 import { leon } from '@sdk/leon'
+import { getWidgetId } from '@sdk/toolbox'
 
 import { TimerWidget } from '../widgets/timer-widget'
-import { getByWidgetIdTimerMemory, getNewestTimerMemory } from '../lib/memory'
+import { getTimerMemoryByWidgetId, getNewestTimerMemory } from '../lib/memory'
 
-export const run: ActionFunction = async function (params) {
-  const widgetId = params.current_entities.find(
-    (entity) => entity.entity === 'widgetid'
-  )?.sourceText
-  let timerMemory
-
-  if (widgetId) {
-    timerMemory = await getByWidgetIdTimerMemory(widgetId)
-  } else {
-    timerMemory = await getNewestTimerMemory()
-  }
+export const run: ActionFunction = async function () {
+  const widgetId = getWidgetId()
+  const timerMemory = widgetId
+    ? await getTimerMemoryByWidgetId(widgetId)
+    : await getNewestTimerMemory()
 
   if (!timerMemory) {
     return await leon.answer({ key: 'no_timer_set' })
@@ -31,7 +26,8 @@ export const run: ActionFunction = async function (params) {
       initialProgress,
       initialDuration: duration,
       interval
-    }
+    },
+    onFetchAction: 'check_timer'
   })
 
   await leon.answer({ widget: timerWidget })

@@ -33,7 +33,7 @@ export async function createTimerMemory(
   return newTimerMemory
 }
 
-export async function getByWidgetIdTimerMemory(
+export async function getTimerMemoryByWidgetId(
   widgetId: string
 ): Promise<TimerMemory | null> {
   const timersMemory = await TIMERS_MEMORY.read()

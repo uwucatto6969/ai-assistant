@@ -32,8 +32,7 @@ export interface WidgetEventMethod {
 }
 export interface WidgetOptions<T = unknown> {
   wrapperProps?: Omit<WidgetWrapperProps, 'children'>
-  // TODO: widget fetching
-  onFetch?: string
+  onFetchAction?: string
   params: T
 }
 
@@ -41,8 +40,7 @@ export abstract class Widget<T = unknown> {
   public actionName: string
   public id: string
   public widget: string
-  // TODO: widget fetching
-  public onFetch: string | null = null
+  public onFetchAction: string | null = null
   public wrapperProps: WidgetOptions<T>['wrapperProps']
   public params: WidgetOptions<T>['params']
 
@@ -50,8 +48,8 @@ export abstract class Widget<T = unknown> {
     if (options?.wrapperProps) {
       this.wrapperProps = options.wrapperProps
     }
-    if (options?.onFetch) {
-      this.onFetch = options.onFetch
+    if (options?.onFetchAction) {
+      this.onFetchAction = `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${options.onFetchAction}`
     }
     this.actionName = `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${INTENT_OBJECT.action}`
     this.widget = this.constructor.name

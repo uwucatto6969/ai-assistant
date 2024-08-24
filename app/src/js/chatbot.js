@@ -143,7 +143,7 @@ export default class Chatbot {
       /**
        * On widget fetching
        */
-      if (isCreatingFromLoadingFeed && parsedWidget.onFetch) {
+      if (isCreatingFromLoadingFeed && parsedWidget.onFetchAction) {
         const container = document.querySelector(
           `[data-widget-id="${parsedWidget.id}"]`
         )
@@ -154,7 +154,7 @@ export default class Chatbot {
 
         // TODO: fix several fetch/widgets + parse string on loading (need loading state first)
         // TODO: grab specific widgetid
-        const qs = `skill_action=${parsedWidget.onFetch}&widget_id=${parsedWidget.id}`
+        const qs = `skill_action=${parsedWidget.onFetchAction}&widget_id=${parsedWidget.id}`
         axios
           .get(`${this.serverURL}/api/v1/fetch-widget?${qs}`)
           .then((data) => {
