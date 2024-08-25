@@ -142,7 +142,9 @@ export default class Chatbot {
             ...fetchedWidget,
             reactNode
           })
-          this.scrollDown()
+          setTimeout(() => {
+            this.scrollDown()
+          }, 100)
         }
       }
     })
