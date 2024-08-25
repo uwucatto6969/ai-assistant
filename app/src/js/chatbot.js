@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import axios from 'axios'
-import { WidgetWrapper, Flexbox, Loader } from '@leon-ai/aurora'
+import { WidgetWrapper, Flexbox, Loader, Text } from '@leon-ai/aurora'
 
 import renderAuroraComponent from './render-aurora-component'
 
@@ -130,12 +130,24 @@ export default class Chatbot {
           const data = await axios.get(
             `${this.serverURL}/api/v1/fetch-widget?skill_action=${widgetContainer.onFetchAction}&widget_id=${widgetContainer.widgetId}`
           )
+          console.log('data', data.data)
           const fetchedWidget = data.data.widget
-          const reactNode = renderAuroraComponent(
-            this.socket,
-            fetchedWidget.componentTree,
-            fetchedWidget.supportedEvents
-          )
+          const reactNode = fetchedWidget
+            ? renderAuroraComponent(
+                this.socket,
+                fetchedWidget.componentTree,
+                fetchedWidget.supportedEvents
+              )
+            : createElement(WidgetWrapper, {
+                children: createElement(Flexbox, {
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  children: createElement(Text, {
+                    secondary: true,
+                    children: 'This widget has been deleted.'
+                  })
+                })
+              })
 
           widgetContainer.reactRootNode.render(reactNode)
           WIDGETS_FETCH_CACHE.set(widgetContainer.widgetId, {
