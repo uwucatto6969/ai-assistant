@@ -44,18 +44,26 @@ class Leon {
 
       if (data != null) {
         for (const key in data) {
-          // In case the answer needs speech and text differentiation
-          if (typeof answer !== 'string' && answer.text) {
-            answer.text = answer.text.replaceAll(`%${key}%`, String(data[key]))
-            answer.speech = answer.speech.replaceAll(
-              `%${key}%`,
-              String(data[key])
-            )
-          } else {
+          if (typeof answer === 'string') {
             answer = (answer as string).replaceAll(
               `%${key}%`,
               String(data[key])
             )
+          } else {
+            // In case the answer needs speech and text differentiation
+
+            if (answer.text) {
+              answer.text = answer.text.replaceAll(
+                `%${key}%`,
+                String(data[key])
+              )
+            }
+            if (answer.speech) {
+              answer.speech = answer.speech.replaceAll(
+                `%${key}%`,
+                String(data[key])
+              )
+            }
           }
         }
       }
@@ -64,21 +72,26 @@ class Leon {
         const { variables } = SKILL_CONFIG
 
         for (const key in variables) {
-          // In case the answer needs speech and text differentiation
-          if (typeof answer !== 'string' && answer.text) {
-            answer.text = answer.text.replaceAll(
-              `%${key}%`,
-              String(variables[key])
-            )
-            answer.speech = answer.speech.replaceAll(
-              `%${key}%`,
-              String(variables[key])
-            )
-          } else {
+          if (typeof answer === 'string') {
             answer = (answer as string).replaceAll(
               `%${key}%`,
               String(variables[key])
             )
+          } else {
+            // In case the answer needs speech and text differentiation
+
+            if (answer.text) {
+              answer.text = answer.text.replaceAll(
+                `%${key}%`,
+                String(variables[key])
+              )
+            }
+            if (answer.speech) {
+              answer.speech = answer.speech.replaceAll(
+                `%${key}%`,
+                String(variables[key])
+              )
+            }
           }
         }
       }

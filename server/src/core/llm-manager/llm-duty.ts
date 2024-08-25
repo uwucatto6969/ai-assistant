@@ -27,6 +27,7 @@ export interface LLMDutyInitParams {
 }
 export interface LLMDutyExecuteParams {
   isWarmingUp?: boolean
+  shouldEmitOnToken?: boolean
 }
 export interface LLMDutyParams {
   input: string | null
@@ -46,7 +47,8 @@ export const DEFAULT_INIT_PARAMS: LLMDutyInitParams = {
   force: false
 }
 export const DEFAULT_EXECUTE_PARAMS: LLMDutyExecuteParams = {
-  isWarmingUp: false
+  isWarmingUp: false,
+  shouldEmitOnToken: true
 }
 
 export abstract class LLMDuty {

@@ -39,5 +39,8 @@ export const run: ActionFunction = async function (params) {
     widget: timerWidget,
     speech: 'I set a timer for ... ...'
   })*/
-  await leon.answer({ widget: timerWidget })
+  await leon.answer({
+    widget: timerWidget,
+    key: 'timer_set'
+  })
 }
