@@ -182,7 +182,7 @@ export default class Brain {
       }, naturalStartTypingDelay)
       // Next answer to handle
       const answer = this.answerQueue.pop()
-      let textAnswer = ''
+      let textAnswer: string | undefined = ''
       let speechAnswer = ''
 
       if (answer && answer !== '') {
@@ -208,21 +208,33 @@ export default class Brain {
           !hasLoopConfig &&
           !hasSlotsConfig
         ) {
-          if (speechAnswer === textAnswer || typeof answer === 'string') {
+          if (
+            speechAnswer === textAnswer ||
+            typeof answer === 'string' ||
+            answer.speech
+          ) {
             /**
              * Only use LLM NLG if the answer is not too short
              * otherwise it will be too hard for the model to generate a meaningful text
              */
-            const nbOfWords = String(answer).split(' ').length
+            const textToParaphrase = textAnswer ?? speechAnswer
+            const nbOfWords = String(textToParaphrase).split(' ').length
             if (nbOfWords >= MIN_NB_OF_WORDS_TO_USE_LLM_NLG) {
               const paraphraseDuty = new ParaphraseLLMDuty({
-                input: textAnswer
+                input: textToParaphrase
               })
               await paraphraseDuty.init()
-              const paraphraseResult = await paraphraseDuty.execute()
+              const paraphraseResult = await paraphraseDuty.execute({
+                // Do not generate tokens when only a speech answer is needed
+                shouldEmitOnToken: !!(!textAnswer && speechAnswer)
+              })
 
-              textAnswer = paraphraseResult?.output as unknown as string
-              speechAnswer = textAnswer
+              if (!textAnswer) {
+                speechAnswer = paraphraseResult?.output as unknown as string
+              } else {
+                textAnswer = paraphraseResult?.output as unknown as string
+                speechAnswer = textAnswer
+              }
             }
           }
         }
@@ -249,17 +261,24 @@ export default class Brain {
           })
         })*/
 
-        SOCKET_SERVER.socket?.emit('answer', textAnswer)
-        SOCKET_SERVER.socket?.emit('is-typing', false)
+        /**
+         * Only send an answer when the text answer is defined.
+         * It may happen that only a speech is needed
+         */
+        if (textAnswer) {
+          SOCKET_SERVER.socket?.emit('answer', textAnswer)
 
-        await CONVERSATION_LOGGER.push({
-          who: 'owner',
-          message: NLU.nluResult.newUtterance
-        })
-        await CONVERSATION_LOGGER.push({
-          who: 'leon',
-          message: textAnswer
-        })
+          await CONVERSATION_LOGGER.push({
+            who: 'owner',
+            message: NLU.nluResult.newUtterance
+          })
+          await CONVERSATION_LOGGER.push({
+            who: 'leon',
+            message: textAnswer
+          })
+        }
+
+        SOCKET_SERVER.socket?.emit('is-typing', false)
       }
     }
 
@@ -448,7 +467,7 @@ export default class Brain {
 
         const { answer } = skillAnswer.output
         if (!this.isMuted) {
-          this.talk(answer)
+          this.talk(answer, true)
         }
         this.skillOutput = data.toString()
 

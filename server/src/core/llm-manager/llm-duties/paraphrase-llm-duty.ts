@@ -138,7 +138,7 @@ The sun is a star, it is the closest star to Earth.`
           session: ParaphraseLLMDuty.session,
           maxTokens: LLM_MANAGER.context.contextSize,
           onToken: (chunk) => {
-            if (!params.isWarmingUp) {
+            if (!params.isWarmingUp && !params.shouldEmitOnToken) {
               const detokenizedChunk = LLM_PROVIDER.cleanUpResult(
                 LLM_MANAGER.model.detokenize(chunk)
               )

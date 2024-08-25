@@ -28,7 +28,7 @@ const answerTypes = Type.Union([
   Type.String(),
   Type.Object({
     speech: Type.String(),
-    text: Type.String()
+    text: Type.Optional(Type.String())
   })
 ])
 const skillCustomEnumEntityType = Type.Object(
