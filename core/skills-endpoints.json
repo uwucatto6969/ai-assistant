@@ -273,16 +273,6 @@
     },
     {
       "method": "GET",
-      "route": "/api/action/utilities/timer/pause_timer",
-      "params": []
-    },
-    {
-      "method": "GET",
-      "route": "/api/action/utilities/timer/resume_timer",
-      "params": []
-    },
-    {
-      "method": "GET",
       "route": "/api/action/utilities/timer/check_timer",
       "params": []
     },

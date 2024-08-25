@@ -49,3 +49,7 @@ export async function getNewestTimerMemory(): Promise<TimerMemory | null> {
 
   return timersMemory[timersMemory.length - 1] || null
 }
+
+export function deleteAllTimersMemory(): Promise<TimerMemory[]> {
+  return TIMERS_MEMORY.write([])
+}

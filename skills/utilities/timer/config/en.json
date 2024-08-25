@@ -19,14 +19,6 @@
         "Don't need the timer"
       ]
     },
-    "pause_timer": {
-      "type": "logic",
-      "utterance_samples": ["Pause the timer", "Put the timer on hold"]
-    },
-    "resume_timer": {
-      "type": "logic",
-      "utterance_samples": ["[Resume|Continue] the timer"]
-    },
     "check_timer": {
       "type": "logic",
       "utterance_samples": [
@@ -45,7 +37,8 @@
       "Sorry, I can't set a timer for this unit. Use %hours%, %minutes% or %seconds% instead.",
       "I can't set a timer for this duration. Use %hours%, %minutes% or %seconds% instead."
     ],
-    "no_timer_set": ["No timer is set.", "There is no timer set."]
+    "no_timer_set": ["No timer is set.", "There is no timer set."],
+    "timer_canceled": ["The timer is canceled.", "Timer is stopped."]
   },
   "widget_contents": {
     "second_unit": "second",
