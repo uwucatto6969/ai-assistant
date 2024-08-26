@@ -15,13 +15,16 @@ def run(params: ActionParams) -> None:
 
     # TODO: handle voice text when widget
     number_widget_options: WidgetOptions[NumberWidgetParams] = WidgetOptions(
-        wrapper_props={'noPadding': False},
         params={'random_number': random_number}
     )
     number_widget = NumberWidget(number_widget_options)
 
     leon.answer({
-        'widget': number_widget
+        'widget': number_widget,
+        'key': 'give_number',
+        'data': {
+            'given_number': random_number
+        }
     })
 
     # leon.answer({

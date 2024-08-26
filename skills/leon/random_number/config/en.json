@@ -16,6 +16,10 @@
     }
   },
   "answers": {
-    "answer": ["%answer%"]
+    "give_number": [
+      {
+        "speech": "%given_number%"
+      }
+    ]
   }
 }

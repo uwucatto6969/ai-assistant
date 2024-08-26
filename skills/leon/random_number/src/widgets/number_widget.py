@@ -1,5 +1,4 @@
 from typing import TypedDict
-from bridges.python.src.sdk.aurora.button import Button
 from bridges.python.src.sdk.aurora.text import Text
 from bridges.python.src.sdk.aurora.flexbox import Flexbox
 

@@ -5,8 +5,8 @@ from time import sleep
 import json
 
 from .aurora.widget_wrapper import WidgetWrapper
-
 from .types import AnswerInput, AnswerData, AnswerConfig
+from .widget_component import SUPPORTED_WIDGET_EVENTS
 from ..constants import SKILL_CONFIG, INTENT_OBJECT
 
 
@@ -37,21 +37,25 @@ class Leon:
 
             if data:
                 for key, value in data.items():
-                    # In case the answer needs speech and text differentiation
-                    if not isinstance(answer, str) and answer.get('text'):
-                        answer['text'] = answer['text'].replace('%{}%'.format(key), str(value))
-                        answer['speech'] = answer['speech'].replace('%{}%'.format(key), str(value))
+                    if isinstance(answer, str):
+                        answer = answer.replace(f'%{key}%', str(value))
                     else:
-                        answer = answer.replace('%{}%'.format(key), str(value))
+                        if 'text' in answer:
+                            answer['text'] = answer['text'].replace(f'%{key}%', str(value))
+                        if 'speech' in answer:
+                            answer['speech'] = answer['speech'].replace(f'%{key}%', str(value))
 
             if SKILL_CONFIG.get('variables'):
-                for key, value in SKILL_CONFIG['variables'].items():
-                    # In case the answer needs speech and text differentiation
-                    if not isinstance(answer, str) and answer.get('text'):
-                        answer['text'] = answer['text'].replace('%{}%'.format(key), str(value))
-                        answer['speech'] = answer['speech'].replace('%{}%'.format(key), str(value))
+                variables = SKILL_CONFIG['variables']
+
+                for key, value in variables.items():
+                    if isinstance(answer, str):
+                        answer = answer.replace(f'%{key}%', str(value))
                     else:
-                        answer = answer.replace('%{}%'.format(key), str(value))
+                        if 'text' in answer:
+                            answer['text'] = answer['text'].replace(f'%{key}%', str(value))
+                        if 'speech' in answer:
+                            answer['speech'] = answer['speech'].replace(f'%{key}%', str(value))
 
             return answer
         except Exception as e:
@@ -75,10 +79,18 @@ class Leon:
 
             widget = answer_input.get('widget')
             if widget is not None:
-                output['output']['widget'] = WidgetWrapper({
-                    **widget.wrapper_props,
-                    'children': [widget.render()]
-                }).__dict__()
+                wrapper_props = widget.wrapper_props if widget.wrapper_props else {}
+                output['output']['widget'] = {
+                    'actionName': f"{INTENT_OBJECT['domain']}:{INTENT_OBJECT['skill']}:{INTENT_OBJECT['action']}",
+                    'widget': widget.widget,
+                    'id': widget.id,
+                    'onFetchAction': widget.on_fetch_action,
+                    'componentTree': WidgetWrapper({
+                        **wrapper_props,
+                        'children': [widget.render()]
+                    }).__dict__(),
+                    'supportedEvents': SUPPORTED_WIDGET_EVENTS  # You might need to define this constant
+                }
 
             answer_object = {
                 **INTENT_OBJECT,
