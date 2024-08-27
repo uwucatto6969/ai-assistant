@@ -4,13 +4,13 @@
     "create_list": {
       "type": "logic",
       "utterance_samples": [
-        "[Crée|Fais] [la|une] liste [shopping|nourriture]",
-        "Je veux que tu crées une liste choses",
-        "Peux-tu créer une liste rappel ?",
-        "J'ai besoin que tu fasses une liste films",
-        "Je veux une liste shopping",
-        "Aides-moi à avoir une liste films",
-        "Peux-tu ajouter une liste rappel ?"
+        "[Crée|Fais] [la|une] liste @list",
+        "Je veux que tu crées une liste @list",
+        "Peux-tu créer une liste @list ?",
+        "J'ai besoin que tu fasses une liste @list",
+        "Je veux une liste @list",
+        "Aides-moi à avoir une liste @list",
+        "Peux-tu ajouter une liste @list ?"
       ],
       "entities": [
         {
@@ -40,15 +40,15 @@
     "view_list": {
       "type": "logic",
       "utterance_samples": [
-        "Montre [ma|la] liste shopping",
-        "Dis moi ce qu'il y a dans ma liste choses",
-        "Qu'est-ce qu'il y a sur la liste rappel ?",
-        "Peux-tu donner le contenu de ma liste films ?",
-        "J'aimerai savoir ce qu'il y a sur la liste nourriture",
-        "Donne-moi le contenu de la liste shopping",
-        "J'ai besoin que tu me dises ce qu'il y a dans la liste choses",
-        "Il y a quoi dans ma liste rappel ?",
-        "Donne-moi la liste nourriture"
+        "Montre [ma|la] liste @list",
+        "Dis moi ce qu'il y a dans ma liste @list",
+        "Qu'est-ce qu'il y a sur la liste @list ?",
+        "Peux-tu donner le contenu de ma liste @list ?",
+        "J'aimerai savoir ce qu'il y a sur la liste @list",
+        "Donne-moi le contenu de la liste @list",
+        "J'ai besoin que tu me dises ce qu'il y a dans la liste @list",
+        "Il y a quoi dans ma liste @list ?",
+        "Donne-moi la liste @list"
       ],
       "entities": [
         {
@@ -66,8 +66,8 @@
     "rename_list": {
       "type": "logic",
       "utterance_samples": [
-        "[Renomme|Change|Modifie|Remplace] [la|ma] liste shopping [en|par] achats",
-        "Peux-tu renommer la liste nourriture en courses ?"
+        "[Renomme|Change|Modifie|Remplace] [la|ma] liste @old_list [en|par] @new_list",
+        "Peux-tu renommer la liste @old_list en @new_list ?"
       ],
       "entities": [
         {
@@ -96,10 +96,10 @@
     "delete_list": {
       "type": "logic",
       "utterance_samples": [
-        "[Supprime|Retire|Annule] [la|ma] liste shopping",
+        "[Supprime|Retire|Annule] [la|ma] liste @list",
         "Supprime la",
-        "Peux-tu retirer la liste nourriture ?",
-        "Je ne veux plus de la liste rappel"
+        "Peux-tu retirer la liste @list ?",
+        "Je ne veux plus de la liste @list"
       ],
       "entities": [
         {
@@ -117,9 +117,9 @@
     "add_todos": {
       "type": "logic",
       "utterance_samples": [
-        "Ajoute patates à [ma|la] liste courses",
-        "Peux-tu ajouter nettoyage à la liste rappel ?",
-        "Il faut mettre la viande dans la liste nourriture"
+        "Ajoute @todos à [ma|la] liste @list",
+        "Peux-tu ajouter @todos à la liste @list ?",
+        "Il faut mettre la @todos dans la liste @list"
       ],
       "entities": [
         {
@@ -148,8 +148,8 @@
     "complete_todos": {
       "type": "logic",
       "utterance_samples": [
-        "[Coche|Complète] pain de [la|ma] liste shopping",
-        "Tu peux cocher pêches de la liste fruits"
+        "[Coche|Complète] @todos de [la|ma] liste @list",
+        "Tu peux cocher @todos de la liste @list"
       ],
       "entities": [
         {
@@ -178,8 +178,8 @@
     "uncheck_todos": {
       "type": "logic",
       "utterance_samples": [
-        "[Décoche|Remet|Invalide] patates de [la|ma] liste courses",
-        "Peux-tu incompléter pêches de ma liste fruits ?"
+        "[Décoche|Remet|Invalide] @todos de [la|ma] liste @list",
+        "Peux-tu incompléter @todos de ma liste @list ?"
       ],
       "entities": [
         {

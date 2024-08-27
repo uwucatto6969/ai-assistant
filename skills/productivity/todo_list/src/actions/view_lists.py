@@ -2,8 +2,6 @@ from bridges.python.src.sdk.leon import leon
 from bridges.python.src.sdk.types import ActionParams
 from ..lib import memory
 
-from typing import Union
-
 
 def run(params: ActionParams) -> None:
     """View to-do lists"""

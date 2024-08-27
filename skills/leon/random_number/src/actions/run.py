@@ -13,7 +13,6 @@ def run(params: ActionParams) -> None:
 
     random_number = randint(0, 100)
 
-    # TODO: handle voice text when widget
     number_widget_options: WidgetOptions[NumberWidgetParams] = WidgetOptions(
         params={'random_number': random_number}
     )
@@ -26,10 +25,3 @@ def run(params: ActionParams) -> None:
             'given_number': random_number
         }
     })
-
-    # leon.answer({
-    #     'key': 'answer',
-    #     'data': {
-    #         'answer': randint(0, 100)
-    #     }
-    # })
