@@ -22,8 +22,7 @@ def run(params: ActionParams) -> None:
         }))
 
     list_of_lists_options: WidgetOptions[ListOfListsWidgetParams] = WidgetOptions(
-        wrapper_props={'noPadding': True},
-        params={'random_number': 4}
+        wrapper_props={'noPadding': True}
     )
     list_of_lists_widget = ListOfListsWidget(list_of_lists_options)
 
