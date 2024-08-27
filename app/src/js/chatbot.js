@@ -130,7 +130,6 @@ export default class Chatbot {
           const data = await axios.get(
             `${this.serverURL}/api/v1/fetch-widget?skill_action=${widgetContainer.onFetchAction}&widget_id=${widgetContainer.widgetId}`
           )
-          console.log('data', data.data)
           const fetchedWidget = data.data.widget
           const reactNode = fetchedWidget
             ? renderAuroraComponent(

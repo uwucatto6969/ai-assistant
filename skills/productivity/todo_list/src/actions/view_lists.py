@@ -1,6 +1,9 @@
 from bridges.python.src.sdk.leon import leon
 from bridges.python.src.sdk.types import ActionParams
+from bridges.python.src.sdk.widget import WidgetOptions
 from ..lib import memory
+
+from ..widgets.list_of_lists_widget import ListOfListsWidget, ListOfListsWidgetParams
 
 
 def run(params: ActionParams) -> None:
@@ -18,10 +21,10 @@ def run(params: ActionParams) -> None:
             'todos_nb': memory.count_todo_items(list_element['name'])
         }))
 
-    leon.answer({
-        'key': 'lists_listed',
-        'data': {
-            'lists_nb': todo_lists_count,
-            'result': result
-        }
-    })
+    list_of_lists_options: WidgetOptions[ListOfListsWidgetParams] = WidgetOptions(
+        wrapper_props={'noPadding': True},
+        params={'random_number': 4}
+    )
+    list_of_lists_widget = ListOfListsWidget(list_of_lists_options)
+
+    leon.answer({'widget': list_of_lists_widget})
