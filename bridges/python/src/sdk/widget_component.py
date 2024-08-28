@@ -47,7 +47,8 @@ class WidgetComponent(Generic[T]):
 
     def __dict__(self):
         children_value = self.props.get('children')
-        rest_of_values = {key: value for key, value in self.props.items() if key != 'children' and key not in SUPPORTED_WIDGET_EVENTS}
+        rest_of_values = {key: value for key, value in self.props.items() if key != 'children'
+                          and key not in SUPPORTED_WIDGET_EVENTS}
 
         children = None
 
@@ -69,7 +70,7 @@ class WidgetComponent(Generic[T]):
                 **rest_of_values,
                 'children': children
             },
-            'events': [{'type': event['type'], 'id': event['id']} for event in self.events]
+            'events': [{'type': event['type'], 'id': event['id'], 'method': event['method']} for event in self.events]
         }
 
         return result

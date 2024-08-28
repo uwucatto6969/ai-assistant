@@ -23,9 +23,7 @@ class ListOfListsWidget(Widget[ListOfListsWidgetParams]):
                         'children': 'List 1'
                     })],
                     'align': 'center',
-                    # TODO: error here
-                    # 'onClick': lambda: self.send_utterance('List 1')
-                    'onClick': lambda: self.send_utterance('List 1')
+                    'onClick': self.send_utterance('List 1')
                 }),
                 ListItem({
                     'children': [Text({
