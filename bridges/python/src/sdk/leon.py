@@ -105,6 +105,9 @@ class Leon:
 
         except Exception as e:
             print('Error while creating answer:', e)
+            if 'not JSON serializable' in str(e):
+                return print("Hint: make sure that widget children components are a list. "
+                             "E.g. { 'children': [Text({ 'children': 'Hello' })] }")
 
 
 leon = Leon()

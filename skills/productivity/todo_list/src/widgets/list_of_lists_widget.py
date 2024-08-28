@@ -8,7 +8,7 @@ from bridges.python.src.sdk.widget_component import WidgetComponent
 
 
 class ListOfListsWidgetParams(TypedDict):
-    random_number: int
+    list_names: list[str]
 
 
 class ListOfListsWidget(Widget[ListOfListsWidgetParams]):
@@ -19,19 +19,23 @@ class ListOfListsWidget(Widget[ListOfListsWidgetParams]):
         return List({
             'children': [
                 ListItem({
-                    'children': Text({
+                    'children': [Text({
                         'children': 'List 1'
-                    })
+                    })],
+                    'align': 'center',
+                    # TODO: error here
+                    # 'onClick': lambda: self.send_utterance('List 1')
+                    'onClick': lambda: self.send_utterance('List 1')
                 }),
                 ListItem({
-                    'children': Text({
+                    'children': [Text({
                         'children': 'List 2'
-                    })
+                    })]
                 }),
                 ListItem({
-                    'children': Text({
+                    'children': [Text({
                         'children': 'List 3'
-                    })
+                    })]
                 })
             ]
         })
