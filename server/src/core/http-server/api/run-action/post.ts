@@ -50,8 +50,6 @@ export const runAction: FastifyPluginAsync<APIOptions> = async (
           })
         }
 
-        // Do not return any speech
-        BRAIN.isMuted = true
         await BRAIN.execute({
           ...DEFAULT_NLU_RESULT,
           ...actionParams,

@@ -204,21 +204,19 @@ export default class SocketServer {
                 }
               } else if (method.methodName === 'run_skill_action') {
                 const { actionName, params } = method.methodParams
-                const result = await axios.post(
-                  `${HTTP_SERVER.host}/api/${API_VERSION}/run-action`,
+
+                await axios.post(
+                  `${HTTP_SERVER.host}:${HTTP_SERVER.port}/api/${API_VERSION}/run-action`,
                   {
                     skill_action: actionName,
                     action_params: params
                   }
                 )
-
-                console.log('result', result)
-
-                // TODO: HTTP request to execute skill action, then return the result to client, similar to fetch-widget
-                // this.socket?.emit('widget-run-skill-action', method.methodParams)
               }
             } catch (e) {
-              LogHelper.error(`Failed to handle widget event: ${e}`)
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-expect-error
+              LogHelper.error(`Failed to handle widget event: ${e.errors || e}`)
             }
           })
         }
