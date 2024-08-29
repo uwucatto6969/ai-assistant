@@ -191,30 +191,34 @@ export default class SocketServer {
             LogHelper.title('Socket')
             LogHelper.info(`Widget event: ${JSON.stringify(event)}`)
 
-            const { method } = event
+            try {
+              const { method } = event
 
-            if (method.methodName === 'send_utterance') {
-              const utterance = method.methodParams['utterance']
+              if (method.methodName === 'send_utterance') {
+                const utterance = method.methodParams['utterance']
 
-              if (method.methodParams['from'] === 'leon') {
-                await BRAIN.talk(utterance as string, true)
-              } else {
-                this.socket?.emit('widget-send-utterance', utterance)
-              }
-            } else if (method.methodName === 'run_skill_action') {
-              const { actionName, params } = method.methodParams
-              const result = await axios.post(
-                `${HTTP_SERVER.host}/api/${API_VERSION}/run-action`,
-                {
-                  skill_action: actionName,
-                  action_params: params
+                if (method.methodParams['from'] === 'leon') {
+                  await BRAIN.talk(utterance as string, true)
+                } else {
+                  this.socket?.emit('widget-send-utterance', utterance)
                 }
-              )
+              } else if (method.methodName === 'run_skill_action') {
+                const { actionName, params } = method.methodParams
+                const result = await axios.post(
+                  `${HTTP_SERVER.host}/api/${API_VERSION}/run-action`,
+                  {
+                    skill_action: actionName,
+                    action_params: params
+                  }
+                )
 
-              console.log('result', result)
+                console.log('result', result)
 
-              // TODO: HTTP request to execute skill action, then return the result to client, similar to fetch-widget
-              // this.socket?.emit('widget-run-skill-action', method.methodParams)
+                // TODO: HTTP request to execute skill action, then return the result to client, similar to fetch-widget
+                // this.socket?.emit('widget-run-skill-action', method.methodParams)
+              }
+            } catch (e) {
+              LogHelper.error(`Failed to handle widget event: ${e}`)
             }
           })
         }
