@@ -16,32 +16,27 @@ class ListOfListsWidget(Widget[ListOfListsWidgetParams]):
         super().__init__(options)
 
     def render(self) -> WidgetComponent:
+        list_items = []
+        for list_name in self.params['list_names']:
+            list_items.append(ListItem({
+                'children': [Text({
+                    'fontWeight': 'semi-bold',
+                    'fontSize': 'lg',
+                    'children': list_name
+                })],
+                'align': 'left',
+                'onClick': self.run_skill_action('productivity:todo_list:view_list', {
+                    'entities': [
+                        {
+                            'entity': 'list',
+                            'sourceText': list_name
+                        }
+                    ]
+                })
+            }))
+
         return List({
             'children': [
-                ListItem({
-                    'children': [Text({
-                        'children': 'List 1'
-                    })],
-                    'align': 'center',
-                    'onClick': self.run_skill_action('productivity:todo_list:view_list', {
-                        'entities': [
-                            {
-                                'entity': 'list',
-                                'sourceText': 'List 1'
-                            }
-                        ]
-                    })
-                    # 'onClick': self.send_utterance('List 1')
-                }),
-                ListItem({
-                    'children': [Text({
-                        'children': 'List 2'
-                    })]
-                }),
-                ListItem({
-                    'children': [Text({
-                        'children': 'List 3'
-                    })]
-                })
+                *list_items
             ]
         })

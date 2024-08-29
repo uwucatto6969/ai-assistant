@@ -191,6 +191,8 @@ export default class SocketServer {
             LogHelper.title('Socket')
             LogHelper.info(`Widget event: ${JSON.stringify(event)}`)
 
+            this.socket?.emit('is-typing', true)
+
             try {
               const { method } = event
 
@@ -217,6 +219,8 @@ export default class SocketServer {
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-expect-error
               LogHelper.error(`Failed to handle widget event: ${e.errors || e}`)
+            } finally {
+              this.socket?.emit('is-typing', false)
             }
           })
         }
