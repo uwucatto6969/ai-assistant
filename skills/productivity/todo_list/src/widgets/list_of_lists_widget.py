@@ -23,7 +23,15 @@ class ListOfListsWidget(Widget[ListOfListsWidgetParams]):
                         'children': 'List 1'
                     })],
                     'align': 'center',
-                    'onClick': self.send_utterance('List 1')
+                    'onClick': self.run_skill_action('productivity:todo_list:view_list', {
+                        'entities': [
+                            {
+                                'entity': 'list',
+                                'sourceText': 'List 1'
+                            }
+                        ]
+                    })
+                    # 'onClick': self.send_utterance('List 1')
                 }),
                 ListItem({
                     'children': [Text({

@@ -1,7 +1,14 @@
 import type { DefaultEventsMap } from 'socket.io/dist/typed-events'
 import { Server as SocketIOServer, Socket } from 'socket.io'
+import axios from 'axios'
 
-import { LANG, HAS_STT, HAS_TTS, IS_DEVELOPMENT_ENV } from '@/constants'
+import {
+  LANG,
+  HAS_STT,
+  HAS_TTS,
+  IS_DEVELOPMENT_ENV,
+  API_VERSION
+} from '@/constants'
 import {
   HTTP_SERVER,
   PYTHON_TCP_CLIENT,
@@ -195,7 +202,19 @@ export default class SocketServer {
                 this.socket?.emit('widget-send-utterance', utterance)
               }
             } else if (method.methodName === 'run_skill_action') {
-              this.socket?.emit('widget-run-skill-action', method.methodParams)
+              const { actionName, params } = method.methodParams
+              const result = await axios.post(
+                `${HTTP_SERVER.host}/api/${API_VERSION}/run-action`,
+                {
+                  skill_action: actionName,
+                  action_params: params
+                }
+              )
+
+              console.log('result', result)
+
+              // TODO: HTTP request to execute skill action, then return the result to client, similar to fetch-widget
+              // this.socket?.emit('widget-run-skill-action', method.methodParams)
             }
           })
         }
