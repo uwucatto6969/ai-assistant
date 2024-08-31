@@ -4,6 +4,7 @@ import Fastify from 'fastify'
 import fastifyStatic from '@fastify/static'
 
 import {
+  API_VERSION,
   LEON_VERSION,
   LEON_NODE_ENV,
   HAS_OVER_HTTP,
@@ -16,13 +17,12 @@ import { corsMidd } from '@/core/http-server/plugins/cors'
 import { otherMidd } from '@/core/http-server/plugins/other'
 import { infoPlugin } from '@/core/http-server/api/info'
 import { llmInferencePlugin } from '@/core/http-server/api/llm-inference'
+import { runActionPlugin } from '@/core/http-server/api/run-action'
 import { fetchWidgetPlugin } from '@/core/http-server/api/fetch-widget'
 import { keyMidd } from '@/core/http-server/plugins/key'
 import { utterancePlugin } from '@/core/http-server/api/utterance'
 import { LLM_MANAGER, PERSONA } from '@/core'
 import { SystemHelper } from '@/helpers/system-helper'
-
-const API_VERSION = 'v1'
 
 export interface APIOptions {
   apiVersion: string
@@ -98,6 +98,7 @@ export default class HTTPServer {
       reply.sendFile('index.html')
     })
 
+    this.fastify.register(runActionPlugin, { apiVersion: API_VERSION })
     this.fastify.register(fetchWidgetPlugin, { apiVersion: API_VERSION })
     this.fastify.register(infoPlugin, { apiVersion: API_VERSION })
     this.fastify.register(llmInferencePlugin, { apiVersion: API_VERSION })

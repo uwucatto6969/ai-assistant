@@ -13,6 +13,7 @@ const DEVELOPMENT_ENV = 'development'
 const TESTING_ENV = 'testing'
 
 export const GITHUB_URL = 'https://github.com/leon-ai/leon'
+export const API_VERSION = 'v1'
 
 /**
  * Environments

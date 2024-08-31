@@ -147,7 +147,7 @@ a {
   color: inherit;
 }
 
-#feed ul li {
+#feed ul li:not(.aurora-list-item) {
   margin-left: 20px;
 }
 

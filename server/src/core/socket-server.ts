@@ -1,7 +1,14 @@
 import type { DefaultEventsMap } from 'socket.io/dist/typed-events'
 import { Server as SocketIOServer, Socket } from 'socket.io'
+import axios from 'axios'
 
-import { LANG, HAS_STT, HAS_TTS, IS_DEVELOPMENT_ENV } from '@/constants'
+import {
+  LANG,
+  HAS_STT,
+  HAS_TTS,
+  IS_DEVELOPMENT_ENV,
+  API_VERSION
+} from '@/constants'
 import {
   HTTP_SERVER,
   PYTHON_TCP_CLIENT,
@@ -184,18 +191,36 @@ export default class SocketServer {
             LogHelper.title('Socket')
             LogHelper.info(`Widget event: ${JSON.stringify(event)}`)
 
-            const { method } = event
+            this.socket?.emit('is-typing', true)
 
-            if (method.methodName === 'send_utterance') {
-              const utterance = method.methodParams['utterance']
+            try {
+              const { method } = event
 
-              if (method.methodParams['from'] === 'leon') {
-                await BRAIN.talk(utterance as string, true)
-              } else {
-                this.socket?.emit('widget-send-utterance', utterance)
+              if (method.methodName === 'send_utterance') {
+                const utterance = method.methodParams['utterance']
+
+                if (method.methodParams['from'] === 'leon') {
+                  await BRAIN.talk(utterance as string, true)
+                } else {
+                  this.socket?.emit('widget-send-utterance', utterance)
+                }
+              } else if (method.methodName === 'run_skill_action') {
+                const { actionName, params } = method.methodParams
+
+                await axios.post(
+                  `${HTTP_SERVER.host}:${HTTP_SERVER.port}/api/${API_VERSION}/run-action`,
+                  {
+                    skill_action: actionName,
+                    action_params: params
+                  }
+                )
               }
-            } else if (method.methodName === 'run_skill_action') {
-              this.socket?.emit('widget-run-skill-action', method.methodParams)
+            } catch (e) {
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-expect-error
+              LogHelper.error(`Failed to handle widget event: ${e.errors || e}`)
+            } finally {
+              this.socket?.emit('is-typing', false)
             }
           })
         }

@@ -1,5 +1,7 @@
 from bridges.python.src.sdk.leon import leon
 from bridges.python.src.sdk.types import ActionParams
+from bridges.python.src.sdk.widget import WidgetOptions
+from ..widgets.todos_list_widget import TodosListWidget, TodosListWidgetParams
 from ..lib import memory
 
 from typing import Union
@@ -33,10 +35,10 @@ def run(params: ActionParams) -> None:
                 memory.complete_todo_item(list_name, todo_item['name'])
                 result += str(leon.set_answer_data('list_completed_todo_element', {'todo': todo_item['name']}))
 
-    leon.answer({
-        'key': 'todos_completed',
-        'data': {
-            'list': list_name,
-            'result': result
-        }
-    })
+    todos_list_options: WidgetOptions[TodosListWidgetParams] = WidgetOptions(
+        wrapper_props={'noPadding': True},
+        params={'list_name': list_name, 'todos': todos}
+    )
+    todos_list_widget = TodosListWidget(todos_list_options)
+
+    leon.answer({'widget': todos_list_widget})
