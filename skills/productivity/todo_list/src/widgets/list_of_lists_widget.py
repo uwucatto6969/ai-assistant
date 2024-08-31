@@ -21,7 +21,6 @@ class ListOfListsWidget(Widget[ListOfListsWidgetParams]):
             list_items.append(ListItem({
                 'children': [Text({
                     'fontWeight': 'semi-bold',
-                    'fontSize': 'lg',
                     'children': list_name
                 })],
                 'align': 'left',
