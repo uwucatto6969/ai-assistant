@@ -128,7 +128,7 @@ export default class Chatbot {
           }
 
           const data = await axios.get(
-            `${this.serverURL}/api/v1/fetch-widget?skill_action=${widgetContainer.onFetchAction}&widget_id=${widgetContainer.widgetId}`
+            `${this.serverURL}/api/v1/fetch-widget?skill_action=${widgetContainer.onFetch.actionName}&widget_id=${widgetContainer.widgetId}`
           )
           const fetchedWidget = data.data.widget
           const reactNode = fetchedWidget
@@ -201,7 +201,7 @@ export default class Chatbot {
       /**
        * On widget fetching, render the loader
        */
-      if (isCreatingFromLoadingFeed && parsedWidget.onFetchAction) {
+      if (isCreatingFromLoadingFeed && parsedWidget.onFetch) {
         const root = createRoot(container)
 
         root.render(
@@ -217,7 +217,7 @@ export default class Chatbot {
         WIDGETS_TO_FETCH.push({
           reactRootNode: root,
           widgetId: parsedWidget.id,
-          onFetchAction: parsedWidget.onFetchAction
+          onFetch: parsedWidget.onFetch
         })
 
         return

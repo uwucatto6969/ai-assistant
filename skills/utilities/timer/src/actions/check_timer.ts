@@ -24,13 +24,15 @@ export const run: ActionFunction = async function () {
 
   const timerWidget = new TimerWidget({
     params: {
-      id: widgetId ?? timerMemory.widgetId,
       seconds: remainingTime,
       initialProgress,
       initialDuration: duration,
       interval
     },
-    onFetchAction: 'check_timer'
+    onFetch: {
+      widgetId: widgetId ?? timerMemory.widgetId,
+      actionName: 'check_timer'
+    }
   })
 
   await leon.answer({ widget: timerWidget })

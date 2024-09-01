@@ -84,12 +84,12 @@ class Leon:
                     'actionName': f"{INTENT_OBJECT['domain']}:{INTENT_OBJECT['skill']}:{INTENT_OBJECT['action']}",
                     'widget': widget.widget,
                     'id': widget.id,
-                    'onFetchAction': widget.on_fetch_action,
+                    'onFetch': widget.on_fetch if hasattr(widget, 'on_fetch') else None,
                     'componentTree': WidgetWrapper({
                         **wrapper_props,
                         'children': [widget.render()]
                     }).__dict__(),
-                    'supportedEvents': SUPPORTED_WIDGET_EVENTS  # You might need to define this constant
+                    'supportedEvents': SUPPORTED_WIDGET_EVENTS
                 }
 
             answer_object = {

@@ -1,7 +1,8 @@
 from bridges.python.src.sdk.leon import leon
+from bridges.python.src.sdk.toolbox import get_widget_id
 from bridges.python.src.sdk.types import ActionParams
 from bridges.python.src.sdk.widget import WidgetOptions
-from ..widgets.todos_list_widget import TodosListWidget, TodosListWidgetParams
+from ..widgets.todos_list_widget import TodosListWidget
 from ..lib import memory
 
 from typing import Union
@@ -10,6 +11,7 @@ from typing import Union
 def run(params: ActionParams) -> None:
     """View a to-do list"""
 
+    widget_id = get_widget_id()
     list_name: Union[str, None] = None
 
     for item in params['entities']:
@@ -27,6 +29,7 @@ def run(params: ActionParams) -> None:
             }
         })
 
+    # TODO: if widget_id, get list by widget_id, otherwise get by list_name
     todos = memory.get_todo_items(list_name)
 
     if len(todos) == 0:
@@ -37,10 +40,15 @@ def run(params: ActionParams) -> None:
             }
         })
 
-    todos_list_options: WidgetOptions[TodosListWidgetParams] = WidgetOptions(
-        wrapper_props={'noPadding': True},
-        params={'list_name': list_name, 'todos': todos}
+    todos_list_widget = TodosListWidget(
+        WidgetOptions(
+            wrapper_props={'noPadding': True},
+            params={'list_name': list_name, 'todos': todos},
+            on_fetch={
+                'widget_id': widget_id,
+                'action_name': 'view_list'
+            }
+        )
     )
-    todos_list_widget = TodosListWidget(todos_list_options)
 
     leon.answer({'widget': todos_list_widget})

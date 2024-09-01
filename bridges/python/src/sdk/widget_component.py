@@ -1,4 +1,6 @@
 from typing import TypeVar, Generic, TypedDict, List, Any
+import random
+import string
 
 T = TypeVar('T')
 
@@ -12,8 +14,6 @@ SUPPORTED_WIDGET_EVENTS = [
 
 
 def generate_id() -> str:
-    import random
-    import string
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=5))
 
 

@@ -2,6 +2,7 @@ from typing import Any, Optional, Generic, TypeVar, Literal, TypedDict, Union, D
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import random
+import string
 
 from .widget_component import WidgetComponent
 from ..constants import SKILL_CONFIG, INTENT_OBJECT
@@ -9,12 +10,6 @@ from ..constants import SKILL_CONFIG, INTENT_OBJECT
 T = TypeVar('T')
 
 UtteranceSender = Literal['leon', 'owner']
-
-
-class FetchWidgetDataWidgetEventMethodParams(TypedDict):
-    action_name: str
-    widget_id: str
-    data_to_set: list[str]
 
 
 class SendUtteranceWidgetEventMethodParams(TypedDict):
@@ -36,8 +31,7 @@ class WidgetEventMethod(TypedDict):
     methodName: Literal['send_utterance', 'run_skill_action']
     methodParams: Union[
         SendUtteranceWidgetEventMethodParams,
-        RunSkillActionWidgetEventMethodParams,
-        FetchWidgetDataWidgetEventMethodParams
+        RunSkillActionWidgetEventMethodParams
     ]
 
 
@@ -45,18 +39,23 @@ class WidgetEventMethod(TypedDict):
 class WidgetOptions(Generic[T]):
     wrapper_props: dict[str, Any] = None
     params: T = None
-    on_fetch_action: Optional[str] = None
+    on_fetch: Optional[dict[str, Any]] = None
 
 
 class Widget(ABC, Generic[T]):
     def __init__(self, options: WidgetOptions[T]):
+        if options.wrapper_props:
+            self.wrapper_props = options.wrapper_props
         self.action_name = f"{INTENT_OBJECT['domain']}:{INTENT_OBJECT['skill']}:{INTENT_OBJECT['action']}"
-        self.widget = self.__class__.__name__
-        self.id = f"{self.widget.lower()}-{random.randint(100000, 999999)}"
-        self.wrapper_props = options.wrapper_props
         self.params = options.params
-        self.on_fetch_action = f"{INTENT_OBJECT['domain']}:{INTENT_OBJECT['skill']}:{options.on_fetch_action}" \
-            if options.on_fetch_action else None
+        self.widget = self.__class__.__name__
+        if options.on_fetch:
+            self.on_fetch = {
+                'widgetId': options.on_fetch.get('widget_id'),
+                'actionName': f"{INTENT_OBJECT['domain']}:{INTENT_OBJECT['skill']}:{options.on_fetch.get('action_name')}"
+            }
+        self.id = options.on_fetch.get('widget_id') if options.on_fetch \
+            else f"{self.widget.lower()}-{''.join(random.choices(string.ascii_lowercase + string.digits, k=8))}"
 
     @abstractmethod
     def render(self) -> WidgetComponent:
