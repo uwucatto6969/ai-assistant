@@ -1,5 +1,5 @@
 from bridges.python.src.sdk.memory import Memory
-from typing import TypedDict
+from typing import TypedDict, Optional
 
 from datetime import datetime
 
@@ -23,6 +23,7 @@ class TodoListMemory(TypedDict):
 
 
 class TodoItemMemory(TypedDict):
+    widget_id: str
     todo_list_name: str
     name: str
     is_completed: bool
@@ -30,7 +31,7 @@ class TodoItemMemory(TypedDict):
     updated_at: str
 
 
-def create_todo_list(widget_id: str, name: str) -> None:
+def create_todo_list(widget_id: Optional[str], name: str) -> None:
     """Create a new todo list"""
 
     datetime_now = datetime.now().isoformat()
@@ -43,6 +44,26 @@ def create_todo_list(widget_id: str, name: str) -> None:
     todo_lists: list[TodoListMemory] = todo_lists_memory.read()
     todo_lists.append(todo_list)
     todo_lists_memory.write(todo_lists)
+
+def get_todo_list_by_name(name: str) -> TodoListMemory:
+    """Get a todo list by name"""
+
+    todo_lists: list[TodoListMemory] = todo_lists_memory.read()
+    for todo_list in todo_lists:
+        if todo_list['name'] == name:
+            return todo_list
+
+    return None
+
+def get_todo_list_by_widget_id(widget_id: str) -> TodoListMemory:
+    """Get a todo list by widget id"""
+
+    todo_lists: list[TodoListMemory] = todo_lists_memory.read()
+    for todo_list in todo_lists:
+        if todo_list['widget_id'] == widget_id:
+            return todo_list
+
+    return None
 
 
 def get_todo_lists() -> list[TodoListMemory]:
@@ -103,13 +124,15 @@ def has_todo_list(name: str) -> bool:
     return False
 
 
-def create_todo_item(todo_list_name: str, name: str) -> None:
+def create_todo_item(widget_id: str, todo_list_name: str, name: str) -> None:
     """Create a new todo item"""
 
     if not has_todo_list(todo_list_name):
-        create_todo_list(todo_list_name)
+        create_todo_list(widget_id, todo_list_name)
+
     datetime_now = datetime.now().isoformat()
     todo_item = TodoItemMemory(
+        widget_id=widget_id,
         todo_list_name=todo_list_name,
         name=name,
         is_completed=False,
@@ -121,10 +144,14 @@ def create_todo_item(todo_list_name: str, name: str) -> None:
     todo_items_memory.write(todo_items)
 
 
-def get_todo_items(todo_list_name: str) -> list[TodoItemMemory]:
+def get_todo_items(widget_id: Optional[str], todo_list_name: str) -> list[TodoItemMemory]:
     """Get all todo items of a todo list"""
 
     todo_items: list[TodoItemMemory] = todo_items_memory.read()
+
+    if widget_id is not None:
+        return [todo_item for todo_item in todo_items if todo_item['todo_list_name'] == todo_list_name and todo_item['widget_id'] == widget_id]
+
     return [todo_item for todo_item in todo_items if todo_item['todo_list_name'] == todo_list_name]
 
 
@@ -147,6 +174,17 @@ def get_uncompleted_todo_items(todo_list_name: str) -> list[TodoItemMemory]:
     todo_items: list[TodoItemMemory] = todo_items_memory.read()
     return [todo_item for todo_item in todo_items if todo_item['todo_list_name'] == todo_list_name and not todo_item['is_completed']]
 
+
+def toggle_todo_item(todo_list_name: str, name: str) -> None:
+    """Toggle a todo item"""
+
+    todo_items: list[TodoItemMemory] = todo_items_memory.read()
+    for todo_item in todo_items:
+        if todo_item['todo_list_name'] == todo_list_name and todo_item['name'] == name:
+            todo_item['is_completed'] = not todo_item['is_completed']
+            todo_item['updated_at'] = datetime.now().isoformat()
+            break
+    todo_items_memory.write(todo_items)
 
 def complete_todo_item(todo_list_name: str, name: str) -> None:
     """Complete a todo item"""

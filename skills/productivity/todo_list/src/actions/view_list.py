@@ -18,19 +18,24 @@ def run(params: ActionParams) -> None:
         if item['entity'] == 'list':
             list_name = item['sourceText'].lower()
 
-    if list_name is None:
-        return leon.answer({'key': 'list_not_provided'})
+    # Do not check anything if a widget id is provided (fetch)
+    if widget_id is None:
+        if list_name is None:
+            return leon.answer({'key': 'list_not_provided'})
 
-    if not memory.has_todo_list(list_name):
-        return leon.answer({
-            'key': 'list_does_not_exist',
-            'data': {
-                'list': list_name
-            }
-        })
+        if not memory.has_todo_list(list_name):
+            return leon.answer({
+                'key': 'list_does_not_exist',
+                'data': {
+                    'list': list_name
+                }
+            })
 
-    # TODO: if widget_id, get list by widget_id, otherwise get by list_name
-    todos = memory.get_todo_items(list_name)
+        widget_id = memory.get_todo_list_by_name(list_name)['widget_id']
+    else:
+        list_name = memory.get_todo_list_by_widget_id(widget_id)['name']
+
+    todos = memory.get_todo_items(widget_id, list_name)
 
     if len(todos) == 0:
         return leon.answer({

@@ -6,7 +6,6 @@ from ..lib import memory
 
 from typing import Union
 
-
 def run(params: ActionParams) -> None:
     """Create a to-do list"""
 

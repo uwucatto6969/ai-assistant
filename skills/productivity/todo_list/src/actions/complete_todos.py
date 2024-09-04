@@ -26,18 +26,23 @@ def run(params: ActionParams) -> None:
         return leon.answer({'key': 'todos_not_provided'})
 
     if not memory.has_todo_list(list_name):
-        memory.create_todo_list(list_name)
+        memory.create_todo_list(None, list_name)
 
-    result: str = ''
     for todo in todos:
-        for todo_item in memory.get_todo_items(list_name):
+        for todo_item in memory.get_todo_items(None, list_name):
             if todo_item['name'].find(todo) != -1:
-                memory.complete_todo_item(list_name, todo_item['name'])
-                result += str(leon.set_answer_data('list_completed_todo_element', {'todo': todo_item['name']}))
+                memory.toggle_todo_item(list_name, todo_item['name'])
+
+    # Get the updated list of todos
+    list_todos = memory.get_todo_items(None, list_name)
 
     todos_list_options: WidgetOptions[TodosListWidgetParams] = WidgetOptions(
         wrapper_props={'noPadding': True},
-        params={'list_name': list_name, 'todos': todos}
+        params={'list_name': list_name, 'todos': list_todos},
+        on_fetch={
+            'widget_id': list_todos[0]['widget_id'],
+            'action_name': 'view_list'
+        }
     )
     todos_list_widget = TodosListWidget(todos_list_options)
 
