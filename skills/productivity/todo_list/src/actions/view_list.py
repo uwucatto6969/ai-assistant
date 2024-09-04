@@ -33,6 +33,16 @@ def run(params: ActionParams) -> None:
 
         widget_id = memory.get_todo_list_by_name(list_name)['widget_id']
     else:
+        todo_list = memory.get_todo_list_by_widget_id(widget_id)
+
+        if todo_list is None:
+            return leon.answer({
+                'key': 'list_does_not_exist',
+                'data': {
+                    'list': list_name
+                }
+            })
+
         list_name = memory.get_todo_list_by_widget_id(widget_id)['name']
 
     todos = memory.get_todo_items(widget_id, list_name)

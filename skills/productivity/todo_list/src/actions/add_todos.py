@@ -1,7 +1,7 @@
 from bridges.python.src.sdk.leon import leon
 from bridges.python.src.sdk.types import ActionParams
 from bridges.python.src.sdk.widget import WidgetOptions
-from ..widgets.todos_list_widget import TodosListWidget
+from ..widgets.todos_list_widget import TodosListWidget, TodosListWidgetParams
 from ..lib import memory
 
 from typing import Union
@@ -41,10 +41,17 @@ def run(params: ActionParams) -> None:
         memory.create_todo_item(widget_id, list_name, todo)
         result += str(leon.set_answer_data('list_todo_element', {'todo': todo}))
 
-    leon.answer({
-        'key': 'todos_added',
-        'data': {
-            'list': list_name,
-            'result': result
+    # Get the updated list of todos
+    list_todos = memory.get_todo_items(None, list_name)
+
+    todos_list_options: WidgetOptions[TodosListWidgetParams] = WidgetOptions(
+        wrapper_props={'noPadding': True},
+        params={'list_name': list_name, 'todos': list_todos},
+        on_fetch={
+            'widget_id': list_todos[0]['widget_id'],
+            'action_name': 'view_list'
         }
-    })
+    )
+    todos_list_widget = TodosListWidget(todos_list_options)
+
+    leon.answer({'widget': todos_list_widget})
