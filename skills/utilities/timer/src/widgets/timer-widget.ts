@@ -8,16 +8,11 @@ interface Params {
   interval: number
   initialProgress: number
   initialDuration?: number
-  id?: string
 }
 
 export class TimerWidget extends Widget<Params> {
   constructor(options: WidgetOptions<Params>) {
     super(options)
-
-    if (options.params.id) {
-      this.id = options.params.id
-    }
   }
 
   public render(): WidgetComponent {

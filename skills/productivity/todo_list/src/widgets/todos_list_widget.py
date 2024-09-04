@@ -14,6 +14,7 @@ class TodoType(TypedDict):
 
 
 class TodosListWidgetParams(TypedDict):
+    id: str
     list_name: str
     todos: list[TodoType]
 

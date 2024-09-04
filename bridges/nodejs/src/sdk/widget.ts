@@ -5,11 +5,6 @@ import { WidgetComponent } from '@sdk/widget-component'
 
 type UtteranceSender = 'leon' | 'owner'
 
-interface FetchWidgetDataWidgetEventMethodParams {
-  actionName: string
-  widgetId: string
-  dataToSet: string[]
-}
 interface SendUtteranceWidgetEventMethodParams {
   from: UtteranceSender
   utterance: string
@@ -28,11 +23,13 @@ export interface WidgetEventMethod {
   methodParams:
     | SendUtteranceWidgetEventMethodParams
     | RunSkillActionWidgetEventMethodParams
-    | FetchWidgetDataWidgetEventMethodParams
 }
 export interface WidgetOptions<T = unknown> {
   wrapperProps?: Omit<WidgetWrapperProps, 'children'>
-  onFetchAction?: string
+  onFetch?: {
+    widgetId?: string | undefined
+    actionName: string
+  }
   params: T
 }
 
@@ -40,7 +37,7 @@ export abstract class Widget<T = unknown> {
   public actionName: string
   public id: string
   public widget: string
-  public onFetchAction: string | null = null
+  public onFetch: WidgetOptions<T>['onFetch'] | null = null
   public wrapperProps: WidgetOptions<T>['wrapperProps']
   public params: WidgetOptions<T>['params']
 
@@ -48,15 +45,20 @@ export abstract class Widget<T = unknown> {
     if (options?.wrapperProps) {
       this.wrapperProps = options.wrapperProps
     }
-    if (options?.onFetchAction) {
-      this.onFetchAction = `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${options.onFetchAction}`
-    }
     this.actionName = `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${INTENT_OBJECT.action}`
-    this.widget = this.constructor.name
-    this.id = `${this.widget.toLowerCase()}-${Math.random()
-      .toString(36)
-      .substring(2, 10)}`
     this.params = options.params
+    this.widget = this.constructor.name
+    if (options?.onFetch) {
+      this.onFetch = {
+        widgetId: options.onFetch.widgetId,
+        actionName: `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${options.onFetch.actionName}`
+      }
+    }
+    this.id =
+      options.onFetch?.widgetId ||
+      `${this.widget.toLowerCase()}-${Math.random()
+        .toString(36)
+        .substring(2, 10)}`
   }
 
   /**

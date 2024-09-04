@@ -133,7 +133,7 @@ class Leon {
           actionName: `${INTENT_OBJECT.domain}:${INTENT_OBJECT.skill}:${INTENT_OBJECT.action}`,
           widget: answerInput.widget.widget,
           id: answerInput.widget.id,
-          onFetchAction: answerInput.widget.onFetchAction,
+          onFetch: answerInput.widget.onFetch ?? null,
           componentTree: new WidgetWrapper({
             ...answerInput.widget.wrapperProps,
             children: [answerInput.widget.render()]

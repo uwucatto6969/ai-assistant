@@ -98,7 +98,10 @@ export interface SkillAnswerOutput extends IntentObject {
       id: string
       componentTree: WidgetWrapper
       supportedEvents: typeof SUPPORTED_WIDGET_EVENTS
-      onFetchAction: string | null
+      onFetch: {
+        widgetId?: string
+        actionName: string
+      } | null
     }
   }
 }

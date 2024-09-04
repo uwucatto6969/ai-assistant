@@ -29,18 +29,16 @@ export const run: ActionFunction = async function (params) {
       initialProgress: 0,
       interval
     },
-    onFetchAction: 'check_timer'
+    onFetch: {
+      actionName: 'check_timer'
+    }
   })
 
-  await createTimerMemory(timerWidget.id, seconds, interval)
-
-  // TODO: return a speech without new utterance
-  /*await leon.answer({
-    widget: timerWidget,
-    speech: 'I set a timer for ... ...'
-  })*/
-  await leon.answer({
-    widget: timerWidget,
-    key: 'timer_set'
-  })
+  await Promise.all([
+    createTimerMemory(timerWidget.id, seconds, interval),
+    leon.answer({
+      widget: timerWidget,
+      key: 'timer_set'
+    })
+  ])
 }

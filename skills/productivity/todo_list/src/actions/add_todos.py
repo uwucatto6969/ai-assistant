@@ -1,9 +1,10 @@
 from bridges.python.src.sdk.leon import leon
 from bridges.python.src.sdk.types import ActionParams
+from bridges.python.src.sdk.widget import WidgetOptions
+from ..widgets.todos_list_widget import TodosListWidget
 from ..lib import memory
 
 from typing import Union
-
 
 def run(params: ActionParams) -> None:
     """Add todos to a to-do list"""
@@ -23,12 +24,21 @@ def run(params: ActionParams) -> None:
     if len(todos) == 0:
         return leon.answer({'key': 'todos_not_provided'})
 
+    widget_id = None
     if not memory.has_todo_list(list_name):
-        memory.create_todo_list(list_name)
+        todos_list_widget = TodosListWidget(WidgetOptions())
+        widget_id = todos_list_widget.id
+        memory.create_todo_list(
+            widget_id,
+            list_name
+        )
+        memory.create_todo_list(widget_id, list_name)
+    else:
+        widget_id = memory.get_todo_list_by_name(list_name)['widget_id']
 
     result: str = ''
     for todo in todos:
-        memory.create_todo_item(list_name, todo)
+        memory.create_todo_item(widget_id, list_name, todo)
         result += str(leon.set_answer_data('list_todo_element', {'todo': todo}))
 
     leon.answer({

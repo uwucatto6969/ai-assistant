@@ -1,7 +1,7 @@
 import { INTENT_OBJECT } from '@bridge/constants'
 
 /**
- * Get the widget ID if any
+ * Get the widget id if any
  * @example getWidgetId() // 'timerwidget-5q1xlzeh
  */
 export function getWidgetId(): string | null {
