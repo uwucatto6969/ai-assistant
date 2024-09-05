@@ -1,18 +1,17 @@
 from bridges.python.src.sdk.memory import Memory
-from typing import TypedDict, Any
+from typing import TypedDict, NotRequired
 
 
 class Session(TypedDict):
-    response: str
-    session: int
+    question: str
     progression: float
-    signature: int
-    uri: str
-    timestamp: float
-    server: Any
-    child_mode: bool
-    frontaddr: str
-    question_filter: str
+    step: int
+    session: str
+    signature: str
+    lang: str
+    theme: str
+    sid: int
+    cm: bool
 
 
 session_memory = Memory({

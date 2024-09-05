@@ -1,7 +1,6 @@
 from bridges.python.src.sdk.leon import leon
 from bridges.python.src.sdk.types import ActionParams
-from ..lib import akinator, memory
-
+from ..lib import Akinator, memory
 
 def run(params: ActionParams) -> None:
     """Initialize new session"""
@@ -10,35 +9,34 @@ def run(params: ActionParams) -> None:
 
     slots, lang = params['slots'], params['lang']
     thematic = slots['thematic']['resolution']['value']
-    theme_lang = lang
-    if thematic != 'characters':
-        theme_lang = lang + '_' + thematic
 
     try:
-        aki = akinator.Akinator()
+        akinator = Akinator(
+            lang=lang,
+            theme=thematic
+        )
 
-        q = aki.start_game(theme_lang)
+        question = akinator.start_game()
 
         memory.upsert_session({
-            'response': aki.response,
-            'session': aki.session,
-            'progression': aki.progression,
-            'signature': aki.signature,
-            'uri': aki.uri,
-            'timestamp': aki.timestamp,
-            'server': aki.server,
-            'child_mode': aki.child_mode,
-            'frontaddr': aki.frontaddr,
-            'question_filter': aki.question_filter
+            'lang': lang,
+            'theme': thematic,
+            'cm': False,
+            'sid': akinator.json['sid'],
+            'question': akinator.question,
+            'step': akinator.step,
+            'progression': akinator.progression,
+            'signature': akinator.json['signature'],
+            'session': akinator.json['session'],
         })
 
         leon.answer({
-            'key': q,
+            'key': question,
             'core': {
                 'showNextActionSuggestions': True
             }
         })
-    except BaseException:
+    except:
         leon.answer({
             'key': 'network_error',
             'core': {

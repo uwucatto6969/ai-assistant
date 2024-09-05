@@ -1,7 +1,6 @@
 from bridges.python.src.sdk.leon import leon
 from bridges.python.src.sdk.types import ActionParams
-from ..lib import akinator, memory
-
+from ..lib import Akinator, memory
 
 def run(params: ActionParams) -> None:
     """Guess according to the given thematic"""
@@ -17,39 +16,39 @@ def run(params: ActionParams) -> None:
     if answer is None:
         return leon.answer({'core': {'isInActionLoop': False}})
 
-    aki = akinator.Akinator()
-
     session = memory.get_session()
-    response = session['response']
-    aki.session = session['session']
-    aki.signature = session['signature']
-    aki.progression = session['progression']
-    aki.uri = session['uri']
-    aki.timestamp = session['timestamp']
-    aki.server = session['server']
-    aki.child_mode = session['child_mode']
-    aki.frontaddr = session['frontaddr']
-    aki.question_filter = session['question_filter']
 
-    resp = aki._parse_response(response)
-    aki._update(resp, '"step": "0"' in response)
+    akinator = Akinator(
+        lang=session['lang'],
+        theme=session['theme']
+    )
 
-    if session['progression'] > 80:
-        aki.win()
+    # Retrieve the current session progress
+    akinator.json = {
+        'step': session['step'],
+        'progression': session['progression'],
+        'sid': session['sid'],
+        'cm': session['cm'],
+        'session': session['session'],
+        'signature': session['signature']
+    }
 
+    new_progress_response = akinator.post_answer(answer)
+
+    if 'name_proposition' in new_progress_response:
         leon.answer({
             'key': 'guessed',
             'data': {
-                'name': aki.first_guess['name'],
-                'description': aki.first_guess['description']
+                'name': new_progress_response['name_proposition'],
+                'description': new_progress_response['description_proposition']
             }
         })
 
         leon.answer({
             'key': 'guessed_img',
             'data': {
-                'name': aki.first_guess['name'],
-                'url': aki.first_guess['absolute_picture_path']
+                'name': new_progress_response['name_proposition'],
+                'url': new_progress_response['photo']
             }
         })
 
@@ -61,23 +60,22 @@ def run(params: ActionParams) -> None:
             }
         })
 
-    aki.answer(answer)
-
     memory.upsert_session({
-        'response': aki.response,
-        'session': aki.session,
-        'signature': aki.signature,
-        'progression': aki.progression,
-        'uri': aki.uri,
-        'timestamp': aki.timestamp,
-        'server': aki.server,
-        'child_mode': aki.child_mode,
-        'frontaddr': aki.frontaddr,
-        'question_filter': aki.question_filter
+        'lang': session['lang'],
+        'theme': session['theme'],
+        'sid': session['sid'],
+        'cm': session['cm'],
+        'signature': session['signature'],
+        'session': session['session'],
+        'question': new_progress_response['question'],
+        'step': int(new_progress_response['step']),
+        'progression': float(new_progress_response['progression'])
     })
 
+    # TODO: widget with image
+
     leon.answer({
-        'key': aki.question,
+        'key': akinator.question,
         'core': {
             'showSuggestions': True
         }

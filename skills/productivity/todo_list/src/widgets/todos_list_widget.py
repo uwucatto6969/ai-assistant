@@ -31,7 +31,6 @@ class TodosListWidget(Widget[TodosListWidgetParams]):
                 'children': [Checkbox({
                     'label': todo['name'],
                     'checked': todo['is_completed'],
-                    # TODO
                     'onChange': self.run_skill_action(f'productivity:todo_list:{action_name}', {
                         'entities': [
                             {
