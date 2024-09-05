@@ -4,7 +4,6 @@ from bridges.python.src.sdk.types import ActionParams
 from random import randint
 
 from bridges.python.src.sdk.widget import WidgetOptions
-
 from ..widgets.number_widget import NumberWidget, NumberWidgetParams
 
 
