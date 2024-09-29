@@ -41,39 +41,6 @@ _<p align="center">Your open-source personal assistant.</p>_
 
 Please note that the documentation and this README are not up to date. We've made significant changes to Leon over the past few months, including the introduction of new TTS and ASR engines, and a hybrid approach that balances LLM, simple classification, and multiple NLP techniques to achieve optimal speed, customization, and accuracy. We'll update the documentation for the official release.
 
-**Project History and Future Plans**
-
-Since its inception in 2017, Leon has undergone significant transformations. Although we've been inconsistent in shipping updates over the years, we're now focused on maturing the project. With the recent integration of transformers-based models, we're prepared to unlock Leon's full potential.
-
-Our next step is to finalize the latest features for the official release.
-Then we'll be establishing a group of active contributors to work together, develop new skills, and share them with the community. A skill registry platform will be built (see it as the npm or pip registry but for skills).
-
-- Check out [the roadmap](http://roadmap.getleon.ai/) for more information on our upcoming plans.
-- Watch a [preview of our last progress](https://www.youtube.com/watch?v=6CInSt6pTVA) to see what we've been working on.
-
-**Get Involved**
-
-[Join us on Discord](https://discord.gg/MNQqqKg) to ask questions, or express interest in becoming an active contributor.
-
----
-
-### Why is there a small amount of contributors?
-
-I'm taking a lot of time to work on the new core of Leon due to personal reasons. I can only work on it during my spare time. Hence, I'm blocking any contribution as the whole core of Leon is coming with many breaking changes. Many of you are willing to contribute in Leon (create new skills, help to improve the core, translations and so on...), a big thanks to every one of you!
-
-While I would love to devote more time to Leon, I'm currently unable to do so because I have bills to pay. I have some ideas about how to monetize Leon in the future (Leon's core will always remain open source), but before to get there there is still a long way to go.
-
-Until then, any financial support by [sponsoring Leon](http://sponsor.getleon.ai) is much appreciated 🙂
-
----
-
-## Latest Release
-
-Check out the [latest release blog post](https://blog.getleon.ai/binaries-and-typescript-rewrite-1-0-0-beta-8/).
-
-<a href="https://blog.getleon.ai/binaries-and-typescript-rewrite-1-0-0-beta-8/"><img width="400" src="https://blog.getleon.ai/static/a0d1cbafd1968e7531dc17e229f8cc61/aa440/beta-8.png" /></a>
-
----
 
 ## 👋 Introduction
 
@@ -106,20 +73,6 @@ If you want to, Leon can communicate with you by being **offline to protect your
 > - The hotword node
 > - The TCP server (for inter-process communication between Leon and third-party nodes such as spaCy)
 > - The Python bridge (the connector between the core and skills made with Python)
-
-### What is Leon able to do?
-
-> Today, the most interesting part is about his core and the way he can scale up. He is pretty young but can easily scale to have new features (skills).
-> You can find what he is able to do by browsing the [skills list](https://github.com/leon-ai/leon/tree/develop/skills).<br>
-> Please do know that after the official release, we will build many skills along with the community. Feel free to [join us on Discord](https://discord.gg/MNQqqKg) to be part of the journey.
-
-Sounds good to you? Then let's get started!
-
-## ☁️ Try with a Single-Click
-
-Gitpod will automatically set up an environment and run an instance for you.
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/leon-ai/leon)
 
 ## 🚀 Getting Started
 
